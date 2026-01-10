@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { BucketBadge } from "@/components/ui/bucket-badge";
@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { LANGUAGE } from "@/lib/constants";
-import { generateMockWorklistItems } from "@/lib/mock-data";
+import { useStudy, useSubmitFeedback, FeedbackType } from "@/hooks/useStudies";
 import { 
   Check, 
   AlertTriangle, 
@@ -20,34 +20,56 @@ import {
   RotateCw,
   Maximize2,
   Eye,
-  Activity
+  Activity,
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { WorklistItem } from "@/lib/types";
 
 export default function Reviewer() {
   const [searchParams] = useSearchParams();
   const studyId = searchParams.get("studyId");
   
-  // Get study data (mock)
-  const worklistItems = useMemo(() => generateMockWorklistItems(20), []);
-  const item = useMemo(() => {
-    if (studyId) {
-      return worklistItems.find(w => w.study.id === studyId) || worklistItems[0];
-    }
-    return worklistItems[0];
-  }, [studyId, worklistItems]);
+  // Fetch study data from database
+  const { data: studyData, isLoading } = useStudy(studyId || undefined);
   
   const [showROI, setShowROI] = useState(true);
   const [roiOpacity, setRoiOpacity] = useState([70]);
   const [feedbackNote, setFeedbackNote] = useState("");
   const [submittedFeedback, setSubmittedFeedback] = useState<string | null>(null);
   
-  const handleFeedback = (type: string) => {
-    setSubmittedFeedback(type);
-    setTimeout(() => setSubmittedFeedback(null), 2000);
-  };
+  const submitFeedback = useSubmitFeedback();
   
-  if (!item) {
+  const handleFeedback = (type: FeedbackType) => {
+    if (!studyData) return;
+    
+    const triageResult = studyData.triage_results?.[0];
+    
+    submitFeedback.mutate({
+      studyId: studyData.id,
+      triageResultId: triageResult?.id,
+      feedbackType: type,
+      notes: feedbackNote || undefined
+    }, {
+      onSuccess: () => {
+        setSubmittedFeedback(type);
+        setFeedbackNote("");
+        setTimeout(() => setSubmittedFeedback(null), 2000);
+      }
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="h-[calc(100vh-3.5rem)] flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AppLayout>
+    );
+  }
+  
+  if (!studyData) {
     return (
       <AppLayout>
         <div className="h-[calc(100vh-3.5rem)] flex items-center justify-center">
@@ -56,6 +78,48 @@ export default function Reviewer() {
       </AppLayout>
     );
   }
+
+  // Transform to WorklistItem format for components
+  const latestTriage = studyData.triage_results?.[0];
+  const latestLab = studyData.lab_results?.[0];
+
+  const item: WorklistItem = {
+    study: {
+      id: studyData.id,
+      patient_hash: studyData.patient_hash,
+      study_time: studyData.study_time,
+      modality: studyData.modality,
+      file_path: studyData.file_path,
+      thumbnail_path: studyData.thumbnail_path,
+      status: studyData.status,
+      site_id: studyData.site_id,
+      created_at: studyData.created_at,
+      updated_at: studyData.updated_at
+    },
+    triage: latestTriage ? {
+      id: latestTriage.id,
+      study_id: latestTriage.study_id,
+      risk_score: Number(latestTriage.risk_score),
+      risk_bucket: latestTriage.risk_bucket,
+      confidence: Number(latestTriage.confidence),
+      roi_heatmap_path: latestTriage.roi_heatmap_path,
+      model_version: latestTriage.model_version,
+      inference_time_ms: latestTriage.inference_time_ms,
+      created_at: latestTriage.created_at
+    } : null,
+    labs: latestLab ? {
+      id: latestLab.id,
+      study_id: latestLab.study_id,
+      co2: latestLab.co2 ? Number(latestLab.co2) : null,
+      ph: latestLab.ph ? Number(latestLab.ph) : null,
+      o2: latestLab.o2 ? Number(latestLab.o2) : null,
+      wbc: latestLab.wbc ? Number(latestLab.wbc) : null,
+      crp: latestLab.crp ? Number(latestLab.crp) : null,
+      procalcitonin: latestLab.procalcitonin ? Number(latestLab.procalcitonin) : null,
+      source: latestLab.source,
+      timestamp: latestLab.timestamp
+    } : null
+  };
   
   return (
     <AppLayout>
@@ -67,9 +131,12 @@ export default function Reviewer() {
             {/* Viewer Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface">
               <div className="flex items-center gap-4">
-                <h2 className="font-mono font-semibold">{item.study.id}</h2>
+                <div>
+                  <h2 className="font-mono font-semibold">{item.study.patient_hash}</h2>
+                  <p className="text-xs text-muted-foreground font-mono">{item.study.id.slice(0, 8)}...</p>
+                </div>
                 {item.triage && (
-                  <BucketBadge bucket={item.triage.riskBucket} />
+                  <BucketBadge bucket={item.triage.risk_bucket} />
                 )}
               </div>
               
@@ -100,7 +167,7 @@ export default function Reviewer() {
                   </div>
                   
                   {/* ROI Overlay */}
-                  {showROI && item.triage && item.triage.riskBucket !== "CLEAR" && (
+                  {showROI && item.triage && item.triage.risk_bucket !== "CLEAR" && (
                     <div 
                       className="absolute top-1/4 right-1/4 w-32 h-32"
                       style={{ opacity: roiOpacity[0] / 100 }}
@@ -129,10 +196,10 @@ export default function Reviewer() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <BucketBadge bucket={item.triage.riskBucket} size="lg" />
+                    <BucketBadge bucket={item.triage.risk_bucket} size="lg" />
                     <RiskScore 
-                      score={item.triage.riskScore}
-                      bucket={item.triage.riskBucket}
+                      score={item.triage.risk_score}
+                      bucket={item.triage.risk_bucket}
                       size="lg"
                     />
                   </div>
@@ -145,7 +212,7 @@ export default function Reviewer() {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Model</p>
-                      <p className="font-mono text-sm">{item.triage.modelVersion}</p>
+                      <p className="font-mono text-sm">{item.triage.model_version}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -199,7 +266,7 @@ export default function Reviewer() {
                   <>
                     <LabFlags labs={item.labs} />
                     <p className="text-xs text-muted-foreground mt-3 pt-3 border-t border-border">
-                      Source: {item.labs.source}
+                      Source: {item.labs.source || 'Unknown'}
                     </p>
                   </>
                 ) : (
@@ -220,10 +287,11 @@ export default function Reviewer() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleFeedback("correct")}
+                    onClick={() => handleFeedback("CORRECT_PRIORITY")}
+                    disabled={submitFeedback.isPending}
                     className={cn(
                       "flex-col h-auto py-3 gap-1",
-                      submittedFeedback === "correct" && "bg-clear/20 border-clear"
+                      submittedFeedback === "CORRECT_PRIORITY" && "bg-clear/20 border-clear"
                     )}
                   >
                     <Check className="w-4 h-4 text-clear" />
@@ -232,10 +300,11 @@ export default function Reviewer() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleFeedback("false_alarm")}
+                    onClick={() => handleFeedback("FALSE_ALARM")}
+                    disabled={submitFeedback.isPending}
                     className={cn(
                       "flex-col h-auto py-3 gap-1",
-                      submittedFeedback === "false_alarm" && "bg-warning/20 border-warning"
+                      submittedFeedback === "FALSE_ALARM" && "bg-warning/20 border-warning"
                     )}
                   >
                     <AlertTriangle className="w-4 h-4 text-warning" />
@@ -244,10 +313,11 @@ export default function Reviewer() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleFeedback("missed")}
+                    onClick={() => handleFeedback("MISSED_URGENCY")}
+                    disabled={submitFeedback.isPending}
                     className={cn(
                       "flex-col h-auto py-3 gap-1",
-                      submittedFeedback === "missed" && "bg-critical/20 border-critical"
+                      submittedFeedback === "MISSED_URGENCY" && "bg-critical/20 border-critical"
                     )}
                   >
                     <AlertCircle className="w-4 h-4 text-critical" />
