@@ -14,7 +14,220 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      documents: {
+        Row: {
+          approved: boolean | null
+          created_at: string
+          doc_type: string
+          file_path: string | null
+          id: string
+          name: string
+          site_id: string | null
+          status: string | null
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          approved?: boolean | null
+          created_at?: string
+          doc_type: string
+          file_path?: string | null
+          id?: string
+          name: string
+          site_id?: string | null
+          status?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          approved?: boolean | null
+          created_at?: string
+          doc_type?: string
+          file_path?: string | null
+          id?: string
+          name?: string
+          site_id?: string | null
+          status?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
+      feedback_events: {
+        Row: {
+          created_at: string
+          feedback_type: Database["public"]["Enums"]["feedback_type"]
+          id: string
+          notes: string | null
+          study_id: string
+          triage_result_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          feedback_type: Database["public"]["Enums"]["feedback_type"]
+          id?: string
+          notes?: string | null
+          study_id: string
+          triage_result_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          feedback_type?: Database["public"]["Enums"]["feedback_type"]
+          id?: string
+          notes?: string | null
+          study_id?: string
+          triage_result_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_events_study_id_fkey"
+            columns: ["study_id"]
+            isOneToOne: false
+            referencedRelation: "studies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_events_triage_result_id_fkey"
+            columns: ["triage_result_id"]
+            isOneToOne: false
+            referencedRelation: "triage_results"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_results: {
+        Row: {
+          co2: number | null
+          crp: number | null
+          id: string
+          o2: number | null
+          ph: number | null
+          procalcitonin: number | null
+          source: string | null
+          study_id: string
+          timestamp: string
+          wbc: number | null
+        }
+        Insert: {
+          co2?: number | null
+          crp?: number | null
+          id?: string
+          o2?: number | null
+          ph?: number | null
+          procalcitonin?: number | null
+          source?: string | null
+          study_id: string
+          timestamp?: string
+          wbc?: number | null
+        }
+        Update: {
+          co2?: number | null
+          crp?: number | null
+          id?: string
+          o2?: number | null
+          ph?: number | null
+          procalcitonin?: number | null
+          source?: string | null
+          study_id?: string
+          timestamp?: string
+          wbc?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_results_study_id_fkey"
+            columns: ["study_id"]
+            isOneToOne: false
+            referencedRelation: "studies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      studies: {
+        Row: {
+          created_at: string
+          file_path: string | null
+          id: string
+          modality: string | null
+          patient_hash: string
+          site_id: string | null
+          status: Database["public"]["Enums"]["study_status"]
+          study_time: string
+          thumbnail_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          modality?: string | null
+          patient_hash: string
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["study_status"]
+          study_time?: string
+          thumbnail_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          modality?: string | null
+          patient_hash?: string
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["study_status"]
+          study_time?: string
+          thumbnail_path?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      triage_results: {
+        Row: {
+          confidence: number
+          created_at: string
+          id: string
+          inference_time_ms: number | null
+          model_version: string | null
+          risk_bucket: Database["public"]["Enums"]["risk_bucket"]
+          risk_score: number
+          roi_heatmap_path: string | null
+          study_id: string
+        }
+        Insert: {
+          confidence: number
+          created_at?: string
+          id?: string
+          inference_time_ms?: number | null
+          model_version?: string | null
+          risk_bucket: Database["public"]["Enums"]["risk_bucket"]
+          risk_score: number
+          roi_heatmap_path?: string | null
+          study_id: string
+        }
+        Update: {
+          confidence?: number
+          created_at?: string
+          id?: string
+          inference_time_ms?: number | null
+          model_version?: string | null
+          risk_bucket?: Database["public"]["Enums"]["risk_bucket"]
+          risk_score?: number
+          roi_heatmap_path?: string | null
+          study_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "triage_results_study_id_fkey"
+            columns: ["study_id"]
+            isOneToOne: false
+            referencedRelation: "studies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +236,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      feedback_type: "CORRECT_PRIORITY" | "FALSE_ALARM" | "MISSED_URGENCY"
+      risk_bucket: "CRITICAL" | "REVIEW" | "CLEAR"
+      study_status:
+        | "PENDING"
+        | "QUEUED"
+        | "PROCESSING"
+        | "REVIEWED"
+        | "ARCHIVED"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +370,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      feedback_type: ["CORRECT_PRIORITY", "FALSE_ALARM", "MISSED_URGENCY"],
+      risk_bucket: ["CRITICAL", "REVIEW", "CLEAR"],
+      study_status: ["PENDING", "QUEUED", "PROCESSING", "REVIEWED", "ARCHIVED"],
+    },
   },
 } as const
