@@ -22,7 +22,7 @@ const randomBucket = (): RiskBucket => {
 };
 
 const randomStatus = (): StudyStatus => {
-  const statuses: StudyStatus[] = ["pending", "triaged", "reviewed", "archived"];
+  const statuses: StudyStatus[] = ["PENDING", "QUEUED", "PROCESSING", "REVIEWED", "ARCHIVED"];
   return statuses[Math.floor(Math.random() * statuses.length)];
 };
 
@@ -56,32 +56,42 @@ export const generateMockWorklistItems = (count: number = 15): WorklistItem[] =>
     const labs = generateLabFlags(bucket);
     const hasLabs = Math.random() > 0.3;
     const studyTime = new Date(Date.now() - Math.random() * 86400000 * 7);
+    const studyId = `STU-${generateId()}`;
     
     items.push({
       study: {
-        id: `STU-${generateId()}`,
-        patientHash: `PAT-${generateId()}`,
-        studyTime,
+        id: studyId,
+        patient_hash: `PAT-${generateId()}`,
+        study_time: studyTime.toISOString(),
         modality: "CXR",
+        file_path: null,
+        thumbnail_path: null,
         status: randomStatus(),
-        createdAt: studyTime,
+        site_id: "pilot-1",
+        created_at: studyTime.toISOString(),
+        updated_at: studyTime.toISOString(),
       },
       triage: {
         id: `TRI-${generateId()}`,
-        studyId: `STU-${generateId()}`,
-        riskScore: randomRiskScore(bucket),
-        riskBucket: bucket,
+        study_id: studyId,
+        risk_score: randomRiskScore(bucket),
+        risk_bucket: bucket,
         confidence: 0.7 + Math.random() * 0.28,
-        modelVersion: "v0.1.2",
-        createdAt: new Date(studyTime.getTime() + 5000),
+        roi_heatmap_path: null,
+        model_version: "v0.1.2",
+        inference_time_ms: Math.floor(Math.random() * 500) + 100,
+        created_at: new Date(studyTime.getTime() + 5000).toISOString(),
       },
       labs: hasLabs ? {
         id: `LAB-${generateId()}`,
-        studyId: `STU-${generateId()}`,
+        study_id: studyId,
         co2: labs.co2,
         ph: labs.ph,
         o2: labs.o2,
-        timestamp: studyTime,
+        wbc: null,
+        crp: null,
+        procalcitonin: null,
+        timestamp: studyTime.toISOString(),
         source: "csv_upload",
       } : null,
     });
@@ -90,11 +100,11 @@ export const generateMockWorklistItems = (count: number = 15): WorklistItem[] =>
   // Sort by risk bucket priority, then by risk score
   return items.sort((a, b) => {
     const bucketOrder = { CRITICAL: 0, REVIEW: 1, CLEAR: 2 };
-    const aOrder = bucketOrder[a.triage?.riskBucket || "CLEAR"];
-    const bOrder = bucketOrder[b.triage?.riskBucket || "CLEAR"];
+    const aOrder = bucketOrder[a.triage?.risk_bucket || "CLEAR"];
+    const bOrder = bucketOrder[b.triage?.risk_bucket || "CLEAR"];
     
     if (aOrder !== bOrder) return aOrder - bOrder;
-    return (b.triage?.riskScore || 0) - (a.triage?.riskScore || 0);
+    return (b.triage?.risk_score || 0) - (a.triage?.risk_score || 0);
   });
 };
 

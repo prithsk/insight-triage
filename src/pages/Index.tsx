@@ -1,15 +1,29 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { WorklistTable } from "@/components/dashboard/WorklistTable";
 import { PreviewPanel } from "@/components/dashboard/PreviewPanel";
 import { UploadButton } from "@/components/dashboard/UploadButton";
 import { QueueStatus } from "@/components/ui/queue-status";
-import { generateMockWorklistItems, mockQueueState } from "@/lib/mock-data";
+import { useRealTimeStudies } from "@/hooks/useRealTimeStudies";
 import { WorklistItem } from "@/lib/types";
+import { Loader2 } from "lucide-react";
 
 export default function Index() {
-  const worklistItems = useMemo(() => generateMockWorklistItems(20), []);
+  const { worklistItems, queueState, isLoading, error } = useRealTimeStudies();
   const [selectedItem, setSelectedItem] = useState<WorklistItem | null>(null);
+  
+  if (error) {
+    return (
+      <AppLayout>
+        <div className="h-[calc(100vh-3.5rem)] flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-destructive text-lg">Failed to load studies</p>
+            <p className="text-muted-foreground text-sm mt-2">{error.message}</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
   
   return (
     <AppLayout>
@@ -24,23 +38,29 @@ export default function Index() {
           </div>
           
           <div className="flex items-center gap-4">
-            <QueueStatus state={mockQueueState} />
+            <QueueStatus state={queueState} />
             <UploadButton />
           </div>
         </div>
         
         {/* Main Content - Two Column Layout */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Left: Worklist (40%) */}
+          {/* Left: Worklist (45%) */}
           <div className="w-[45%] border-r border-border bg-surface">
-            <WorklistTable
-              items={worklistItems}
-              selectedId={selectedItem?.study.id ?? null}
-              onSelect={setSelectedItem}
-            />
+            {isLoading ? (
+              <div className="h-full flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <WorklistTable
+                items={worklistItems}
+                selectedId={selectedItem?.study.id ?? null}
+                onSelect={setSelectedItem}
+              />
+            )}
           </div>
           
-          {/* Right: Preview Panel (60%) */}
+          {/* Right: Preview Panel (55%) */}
           <div className="flex-1 bg-background overflow-auto">
             <PreviewPanel item={selectedItem} />
           </div>

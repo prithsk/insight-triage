@@ -5,9 +5,10 @@ import { LabFlags } from "@/components/ui/lab-flags";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LANGUAGE } from "@/lib/constants";
-import { ExternalLink, Activity, FileSearch } from "lucide-react";
+import { ExternalLink, Activity, FileSearch, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
+import { useRunInference } from "@/hooks/useStudies";
 
 interface PreviewPanelProps {
   item: WorklistItem | null;
@@ -15,6 +16,7 @@ interface PreviewPanelProps {
 
 export function PreviewPanel({ item }: PreviewPanelProps) {
   const navigate = useNavigate();
+  const runInference = useRunInference();
   
   if (!item) {
     return (
@@ -29,19 +31,34 @@ export function PreviewPanel({ item }: PreviewPanelProps) {
   const handleOpenReviewer = () => {
     navigate(`/reviewer?studyId=${item.study.id}`);
   };
+
+  const handleRunInference = () => {
+    runInference.mutate(item.study.id);
+  };
+
+  const formatStudyTime = (timeStr: string) => {
+    try {
+      return format(parseISO(timeStr), "MMMM d, yyyy 'at' HH:mm");
+    } catch {
+      return timeStr;
+    }
+  };
   
   return (
     <div className="h-full flex flex-col p-6 animate-slide-in">
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-semibold font-mono">{item.study.id}</h2>
+          <h2 className="text-xl font-semibold font-mono">{item.study.patient_hash}</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            {format(item.study.studyTime, "MMMM d, yyyy 'at' HH:mm")}
+            {formatStudyTime(item.study.study_time)}
+          </p>
+          <p className="text-xs text-muted-foreground font-mono mt-1">
+            ID: {item.study.id}
           </p>
         </div>
         {item.triage && (
-          <BucketBadge bucket={item.triage.riskBucket} size="lg" />
+          <BucketBadge bucket={item.triage.risk_bucket} size="lg" />
         )}
       </div>
       
@@ -52,11 +69,13 @@ export function PreviewPanel({ item }: PreviewPanelProps) {
           <div className="absolute inset-0 bg-gradient-to-br from-muted to-background opacity-50" />
           <div className="relative z-10 flex flex-col items-center">
             <Activity className="w-12 h-12 text-muted-foreground mb-2" />
-            <span className="text-sm text-muted-foreground">CXR Preview</span>
+            <span className="text-sm text-muted-foreground">
+              {item.study.modality || 'CXR'} Preview
+            </span>
           </div>
           
           {/* ROI Overlay hint */}
-          {item.triage && item.triage.riskBucket !== "CLEAR" && (
+          {item.triage && item.triage.risk_bucket !== "CLEAR" && (
             <div className="absolute top-3 left-3 flex items-center gap-2 bg-overlay-accent/20 backdrop-blur-sm rounded px-2 py-1">
               <div className="w-2 h-2 rounded-full bg-overlay-accent" />
               <span className="text-xs text-overlay-accent font-medium">
@@ -68,7 +87,7 @@ export function PreviewPanel({ item }: PreviewPanelProps) {
       </Card>
       
       {/* Risk Score Card */}
-      {item.triage && (
+      {item.triage ? (
         <Card className="bg-surface border-border mb-4">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
@@ -78,8 +97,8 @@ export function PreviewPanel({ item }: PreviewPanelProps) {
           <CardContent>
             <div className="flex items-center justify-between">
               <RiskScore 
-                score={item.triage.riskScore} 
-                bucket={item.triage.riskBucket}
+                score={item.triage.risk_score} 
+                bucket={item.triage.risk_bucket}
                 size="lg" 
               />
               <div className="text-right">
@@ -89,10 +108,34 @@ export function PreviewPanel({ item }: PreviewPanelProps) {
                 </p>
               </div>
             </div>
-            <div className="mt-3 pt-3 border-t border-border">
-              <p className="text-xs text-muted-foreground">
-                Model: <span className="font-mono">{item.triage.modelVersion}</span>
+            <div className="mt-3 pt-3 border-t border-border flex justify-between text-xs text-muted-foreground">
+              <span>
+                Model: <span className="font-mono">{item.triage.model_version}</span>
+              </span>
+              {item.triage.inference_time_ms && (
+                <span>
+                  Inference: <span className="font-mono">{item.triage.inference_time_ms}ms</span>
+                </span>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="bg-surface border-border mb-4">
+          <CardContent className="py-6">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-4">
+                No triage result yet. Run ML inference to generate risk score.
               </p>
+              <Button 
+                onClick={handleRunInference}
+                disabled={runInference.isPending}
+                variant="outline"
+                className="gap-2"
+              >
+                <Zap className="w-4 h-4" />
+                {runInference.isPending ? 'Running Inference...' : 'Run Inference'}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -109,7 +152,7 @@ export function PreviewPanel({ item }: PreviewPanelProps) {
           <CardContent>
             <LabFlags labs={item.labs} />
             <p className="text-xs text-muted-foreground mt-3 pt-3 border-t border-border">
-              Source: {item.labs.source}
+              Source: {item.labs.source || 'Unknown'}
             </p>
           </CardContent>
         </Card>

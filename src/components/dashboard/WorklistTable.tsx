@@ -4,7 +4,7 @@ import { BucketBadge } from "@/components/ui/bucket-badge";
 import { RiskScore } from "@/components/ui/risk-score";
 import { LabFlags } from "@/components/ui/lab-flags";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Filter } from "lucide-react";
@@ -22,13 +22,15 @@ export function WorklistTable({ items, selectedId, onSelect }: WorklistTableProp
   const [bucketFilter, setBucketFilter] = useState<RiskBucket | "ALL">("ALL");
   
   const filteredItems = items.filter(item => {
-    const matchesSearch = item.study.id.toLowerCase().includes(search.toLowerCase());
-    const matchesBucket = bucketFilter === "ALL" || item.triage?.riskBucket === bucketFilter;
+    const matchesSearch = 
+      item.study.id.toLowerCase().includes(search.toLowerCase()) ||
+      item.study.patient_hash.toLowerCase().includes(search.toLowerCase());
+    const matchesBucket = bucketFilter === "ALL" || item.triage?.risk_bucket === bucketFilter;
     return matchesSearch && matchesBucket;
   });
   
   const getRowClasses = (item: WorklistItem, isSelected: boolean) => {
-    const bucket = item.triage?.riskBucket || "CLEAR";
+    const bucket = item.triage?.risk_bucket || "CLEAR";
     
     return cn(
       "group cursor-pointer transition-all duration-150",
@@ -41,6 +43,14 @@ export function WorklistTable({ items, selectedId, onSelect }: WorklistTableProp
         : "hover:bg-muted/50"
     );
   };
+
+  const formatStudyTime = (timeStr: string) => {
+    try {
+      return format(parseISO(timeStr), "MMM d, HH:mm");
+    } catch {
+      return timeStr;
+    }
+  };
   
   return (
     <div className="flex flex-col h-full">
@@ -50,7 +60,7 @@ export function WorklistTable({ items, selectedId, onSelect }: WorklistTableProp
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search by Study ID..."
+            placeholder="Search by Study ID or Patient..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 bg-background border-border"
@@ -102,25 +112,32 @@ export function WorklistTable({ items, selectedId, onSelect }: WorklistTableProp
                   className={getRowClasses(item, isSelected)}
                 >
                   <td className="py-3 px-4">
-                    <span className="font-mono text-sm font-medium">
-                      {item.study.id}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="font-mono text-sm font-medium">
+                        {item.study.id.slice(0, 8)}...
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {item.study.patient_hash}
+                      </span>
+                    </div>
                   </td>
                   <td className="py-3 px-4">
                     <span className="text-sm text-muted-foreground">
-                      {format(item.study.studyTime, "MMM d, HH:mm")}
+                      {formatStudyTime(item.study.study_time)}
                     </span>
                   </td>
                   <td className="py-3 px-4">
-                    {item.triage && (
-                      <BucketBadge bucket={item.triage.riskBucket} size="sm" />
+                    {item.triage ? (
+                      <BucketBadge bucket={item.triage.risk_bucket} size="sm" />
+                    ) : (
+                      <span className="text-xs text-muted-foreground italic">Pending</span>
                     )}
                   </td>
                   <td className="py-3 px-4">
                     {item.triage && (
                       <RiskScore 
-                        score={item.triage.riskScore} 
-                        bucket={item.triage.riskBucket}
+                        score={item.triage.risk_score} 
+                        bucket={item.triage.risk_bucket}
                         size="sm" 
                       />
                     )}
@@ -135,7 +152,12 @@ export function WorklistTable({ items, selectedId, onSelect }: WorklistTableProp
             {filteredItems.length === 0 && (
               <tr>
                 <td colSpan={5} className="py-12 text-center">
-                  <p className="text-muted-foreground">No studies match your filters</p>
+                  <p className="text-muted-foreground">
+                    {items.length === 0 
+                      ? "No studies in database. Upload a study to get started." 
+                      : "No studies match your filters"
+                    }
+                  </p>
                 </td>
               </tr>
             )}
