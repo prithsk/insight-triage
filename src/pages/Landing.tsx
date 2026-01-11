@@ -32,7 +32,7 @@ const Landing = () => {
             <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
               Contact
             </Button>
-            <Link to="/dashboard">
+            <Link to="/login">
               <Button className="bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20">
                 Sign In
               </Button>
@@ -213,7 +213,7 @@ const Landing = () => {
               <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
                 Join leading radiology practices using Kroix to prioritize critical cases and improve patient outcomes.
               </p>
-              <Link to="/dashboard">
+              <a href="mailto:prithvisk2023@gmail.com?subject=Get Started with Kroix&body=Hi, I'm interested in learning more about Kroix for my radiology practice.">
                 <Button 
                   size="lg" 
                   className="text-lg px-12 py-7 bg-primary hover:bg-primary/90 shadow-xl shadow-primary/30"
@@ -221,7 +221,7 @@ const Landing = () => {
                   Get Started Now
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         </div>
