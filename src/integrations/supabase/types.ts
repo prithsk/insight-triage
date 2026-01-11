@@ -53,6 +53,39 @@ export type Database = {
         }
         Relationships: []
       }
+      embeddings: {
+        Row: {
+          content_hash: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          pinecone_id: string
+          source_id: string | null
+          source_type: string
+          updated_at: string
+        }
+        Insert: {
+          content_hash: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          pinecone_id: string
+          source_id?: string | null
+          source_type: string
+          updated_at?: string
+        }
+        Update: {
+          content_hash?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          pinecone_id?: string
+          source_id?: string | null
+          source_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       feedback_events: {
         Row: {
           created_at: string
@@ -144,6 +177,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      medical_literature: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          id: string
+          source: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          source?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          source?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
