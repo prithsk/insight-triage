@@ -11,6 +11,7 @@ import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { LANGUAGE } from "@/lib/constants";
 import { useStudy, useSubmitFeedback, FeedbackType } from "@/hooks/useStudies";
+import { useDicomImage } from "@/hooks/useDicomImage";
 import { 
   Check, 
   AlertTriangle, 
@@ -21,7 +22,8 @@ import {
   Maximize2,
   Eye,
   Activity,
-  Loader2
+  Loader2,
+  ImageOff
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WorklistItem } from "@/lib/types";
@@ -33,10 +35,15 @@ export default function Reviewer() {
   // Fetch study data from database
   const { data: studyData, isLoading } = useStudy(studyId || undefined);
   
+  // Fetch DICOM image if file_path exists
+  const { imageUrl, isLoading: imageLoading, error: imageError } = useDicomImage(studyData?.file_path || null);
+  
   const [showROI, setShowROI] = useState(true);
   const [roiOpacity, setRoiOpacity] = useState([70]);
   const [feedbackNote, setFeedbackNote] = useState("");
   const [submittedFeedback, setSubmittedFeedback] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
   
   const submitFeedback = useSubmitFeedback();
   
@@ -57,6 +64,14 @@ export default function Reviewer() {
         setTimeout(() => setSubmittedFeedback(null), 2000);
       }
     });
+  };
+
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.25, 3));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.25, 0.5));
+  const handleRotate = () => setRotation(prev => (prev + 90) % 360);
+  const handleReset = () => {
+    setZoom(1);
+    setRotation(0);
   };
 
   if (isLoading) {
@@ -141,44 +156,94 @@ export default function Reviewer() {
               </div>
               
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleZoomIn}>
                   <ZoomIn className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleZoomOut}>
                   <ZoomOut className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleRotate}>
                   <RotateCw className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleReset}>
                   <Maximize2 className="w-4 h-4" />
                 </Button>
+                {zoom !== 1 && (
+                  <span className="text-xs text-muted-foreground ml-2">{(zoom * 100).toFixed(0)}%</span>
+                )}
               </div>
             </div>
             
             {/* DICOM Viewer Area */}
-            <div className="flex-1 relative bg-black flex items-center justify-center">
-              {/* Simulated X-ray */}
-              <div className="w-full h-full max-w-3xl max-h-full p-8 flex items-center justify-center">
-                <div className="relative w-full h-full bg-gradient-to-b from-zinc-900 to-zinc-800 rounded-lg overflow-hidden">
-                  {/* Chest X-ray simulation */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Activity className="w-48 h-48 text-zinc-700" />
+            <div className="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
+              <div 
+                className="w-full h-full max-w-4xl max-h-full p-4 flex items-center justify-center transition-transform duration-200"
+                style={{ 
+                  transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                }}
+              >
+                {imageLoading ? (
+                  <div className="flex flex-col items-center justify-center text-zinc-500">
+                    <Loader2 className="w-12 h-12 animate-spin mb-4" />
+                    <span className="text-sm">Loading image...</span>
                   </div>
-                  
-                  {/* ROI Overlay */}
-                  {showROI && item.triage && item.triage.risk_bucket !== "CLEAR" && (
-                    <div 
-                      className="absolute top-1/4 right-1/4 w-32 h-32"
-                      style={{ opacity: roiOpacity[0] / 100 }}
-                    >
-                      <div className="w-full h-full rounded-full border-2 border-overlay-accent bg-overlay-accent/20 animate-pulse-slow" />
-                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-overlay-accent/90 text-xs font-medium px-2 py-1 rounded whitespace-nowrap">
-                        {LANGUAGE.AREA_OF_INTEREST}
+                ) : imageUrl ? (
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    <img 
+                      src={imageUrl} 
+                      alt="DICOM/Medical Image"
+                      className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                      style={{ 
+                        filter: 'contrast(1.1) brightness(0.95)',
+                      }}
+                    />
+                    
+                    {/* ROI Overlay */}
+                    {showROI && item.triage && item.triage.risk_bucket !== "CLEAR" && (
+                      <div 
+                        className="absolute top-1/4 right-1/4 w-32 h-32 pointer-events-none"
+                        style={{ opacity: roiOpacity[0] / 100 }}
+                      >
+                        <div className="w-full h-full rounded-full border-2 border-overlay-accent bg-overlay-accent/20 animate-pulse-slow" />
+                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-overlay-accent/90 text-xs font-medium px-2 py-1 rounded whitespace-nowrap text-white">
+                          {LANGUAGE.AREA_OF_INTEREST}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="relative w-full h-full bg-gradient-to-b from-zinc-900 to-zinc-800 rounded-lg overflow-hidden flex items-center justify-center">
+                    {imageError ? (
+                      <div className="flex flex-col items-center text-zinc-500">
+                        <ImageOff className="w-16 h-16 mb-4 opacity-50" />
+                        <span className="text-sm">Failed to load image</span>
+                        <span className="text-xs text-zinc-600 mt-1">{imageError}</span>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Placeholder for studies without uploaded files */}
+                        <div className="flex flex-col items-center text-zinc-600">
+                          <Activity className="w-32 h-32 opacity-20" />
+                          <span className="text-sm mt-4">No image file uploaded</span>
+                          <span className="text-xs text-zinc-700 mt-1">Upload a DICOM file to view it here</span>
+                        </div>
+                        
+                        {/* ROI Overlay on placeholder */}
+                        {showROI && item.triage && item.triage.risk_bucket !== "CLEAR" && (
+                          <div 
+                            className="absolute top-1/4 right-1/4 w-32 h-32"
+                            style={{ opacity: roiOpacity[0] / 100 }}
+                          >
+                            <div className="w-full h-full rounded-full border-2 border-overlay-accent bg-overlay-accent/20 animate-pulse-slow" />
+                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-overlay-accent/90 text-xs font-medium px-2 py-1 rounded whitespace-nowrap">
+                              {LANGUAGE.AREA_OF_INTEREST}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
