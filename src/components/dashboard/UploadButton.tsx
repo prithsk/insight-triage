@@ -119,7 +119,7 @@ export function UploadButton() {
           ref={fileInputRef}
           type="file"
           multiple
-          accept=".dcm,.dicom,image/*"
+          accept=".dcm,.dicom,image/png,image/jpeg,image/jpg,.png,.jpg,.jpeg"
           onChange={handleFileSelect}
           className="hidden"
         />
@@ -200,7 +200,7 @@ export function UploadButton() {
         </div>
         
         <p className="text-xs text-muted-foreground mt-4">
-          Supported formats: DICOM (.dcm), medical images (PNG, JPG)
+          Supported formats: DICOM (.dcm), PNG, JPG/JPEG
           <br />
           <span className="text-primary">ML inference runs automatically after upload</span>
         </p>
