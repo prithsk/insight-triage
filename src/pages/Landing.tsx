@@ -26,12 +26,16 @@ const Landing = () => {
             <span className="text-xl font-bold tracking-tight">Kroix</span>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
-              About
-            </Button>
-            <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
-              Contact
-            </Button>
+            <Link to="/about">
+              <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
+                About
+              </Button>
+            </Link>
+            <Link to="/contact">
+              <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
+                Contact
+              </Button>
+            </Link>
             <Link to="/login">
               <Button className="bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20">
                 Sign In

@@ -62,7 +62,7 @@ export default function Index() {
           
           {/* Right: Preview Panel (55%) */}
           <div className="flex-1 bg-background overflow-auto">
-            <PreviewPanel item={selectedItem} />
+            <PreviewPanel item={selectedItem} onDeleted={() => setSelectedItem(null)} />
           </div>
         </div>
       </div>

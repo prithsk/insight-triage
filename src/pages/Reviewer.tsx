@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { BucketBadge } from "@/components/ui/bucket-badge";
 import { RiskScore } from "@/components/ui/risk-score";
@@ -29,8 +29,7 @@ import { cn } from "@/lib/utils";
 import { WorklistItem } from "@/lib/types";
 
 export default function Reviewer() {
-  const [searchParams] = useSearchParams();
-  const studyId = searchParams.get("studyId");
+  const { studyId } = useParams<{ studyId: string }>();
   
   // Fetch study data from database
   const { data: studyData, isLoading } = useStudy(studyId || undefined);

@@ -219,3 +219,49 @@ export function useSubmitFeedback() {
     }
   });
 }
+
+export function useDeleteStudy() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (studyId: string) => {
+      // First, get the study to find the file path
+      const { data: study, error: fetchError } = await supabase
+        .from('studies')
+        .select('file_path')
+        .eq('id', studyId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Delete associated records first (due to foreign keys)
+      await supabase.from('feedback_events').delete().eq('study_id', studyId);
+      await supabase.from('triage_results').delete().eq('study_id', studyId);
+      await supabase.from('lab_results').delete().eq('study_id', studyId);
+
+      // Delete the study record
+      const { error: deleteError } = await supabase
+        .from('studies')
+        .delete()
+        .eq('id', studyId);
+
+      if (deleteError) throw deleteError;
+
+      // Delete the file from storage if it exists
+      if (study?.file_path) {
+        await supabase.storage
+          .from('dicom-files')
+          .remove([study.file_path]);
+      }
+
+      return studyId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['studies'] });
+      toast.success('Study deleted successfully');
+    },
+    onError: (error) => {
+      toast.error(`Failed to delete study: ${error.message}`);
+    }
+  });
+}

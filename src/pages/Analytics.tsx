@@ -42,7 +42,7 @@ export default function Analytics() {
   
   return (
     <AppLayout>
-      <div className="h-[calc(100vh-3.5rem)] flex flex-col overflow-auto">
+      <div className="h-[calc(100vh-3.5rem)] flex flex-col overflow-hidden">
         {/* Page Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface">
           <div>
@@ -115,22 +115,22 @@ export default function Analytics() {
         </div>
         
         {/* Charts */}
-        <div className="flex-1 px-6 pb-6">
+        <div className="flex-1 px-6 pb-6 min-h-0 overflow-hidden">
           <Tabs defaultValue="mttr" className="h-full flex flex-col">
-            <TabsList className="grid w-full max-w-md grid-cols-3 bg-muted">
+            <TabsList className="grid w-full max-w-md grid-cols-3 bg-muted flex-shrink-0">
               <TabsTrigger value="mttr">Time to Review</TabsTrigger>
               <TabsTrigger value="throughput">Throughput</TabsTrigger>
               <TabsTrigger value="overrides">Overrides</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="mttr" className="flex-1 mt-4">
-              <Card className="h-full bg-surface border-border">
-                <CardHeader>
+            <TabsContent value="mttr" className="flex-1 mt-4 min-h-0">
+              <Card className="h-full bg-surface border-border flex flex-col">
+                <CardHeader className="flex-shrink-0">
                   <CardTitle className="text-sm font-medium">
                     Mean Time to Review (Critical Bucket) - Last 7 Days
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="h-[calc(100%-4rem)]">
+                <CardContent className="flex-1 min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={mttrData}>
                       <defs>
@@ -171,14 +171,14 @@ export default function Analytics() {
               </Card>
             </TabsContent>
             
-            <TabsContent value="throughput" className="flex-1 mt-4">
-              <Card className="h-full bg-surface border-border">
-                <CardHeader>
+            <TabsContent value="throughput" className="flex-1 mt-4 min-h-0">
+              <Card className="h-full bg-surface border-border flex flex-col">
+                <CardHeader className="flex-shrink-0">
                   <CardTitle className="text-sm font-medium">
                     Scans Reviewed per Hour - Last 7 Days
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="h-[calc(100%-4rem)]">
+                <CardContent className="flex-1 min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={throughputData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 25%, 20%)" />
@@ -212,14 +212,14 @@ export default function Analytics() {
               </Card>
             </TabsContent>
             
-            <TabsContent value="overrides" className="flex-1 mt-4">
-              <Card className="h-full bg-surface border-border">
-                <CardHeader>
+            <TabsContent value="overrides" className="flex-1 mt-4 min-h-0">
+              <Card className="h-full bg-surface border-border flex flex-col">
+                <CardHeader className="flex-shrink-0">
                   <CardTitle className="text-sm font-medium">
                     Priority Override Rate (%) - Last 7 Days
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="h-[calc(100%-4rem)]">
+                <CardContent className="flex-1 min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={overrideData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 25%, 20%)" />
