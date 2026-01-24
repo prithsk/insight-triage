@@ -56,6 +56,7 @@ export default function Index() {
                 items={worklistItems}
                 selectedId={selectedItem?.study.id ?? null}
                 onSelect={setSelectedItem}
+                onBulkDeleted={() => setSelectedItem(null)}
               />
             )}
           </div>
