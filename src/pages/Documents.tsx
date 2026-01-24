@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useUploadMultipleDocuments } from "@/hooks/useUploadDocument";
 import { format } from "date-fns";
+import { sampleDocuments, MockDocument } from "@/lib/mock-documents";
 
 interface Document {
   id: string;
@@ -39,6 +40,8 @@ interface Document {
   file_path: string | null;
   approved: boolean;
 }
+
+type CombinedDocument = Document | MockDocument;
 
 function useDocuments() {
   return useQuery({
@@ -56,7 +59,7 @@ function useDocuments() {
 }
 
 export default function Documents() {
-  const { data: documents = [], isLoading } = useDocuments();
+  const { data: dbDocuments = [], isLoading } = useDocuments();
   const [search, setSearch] = useState("");
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -65,7 +68,15 @@ export default function Documents() {
   
   const uploadMutation = useUploadMultipleDocuments();
   
-  const filteredDocs = documents.filter(doc =>
+  // Combine real documents with sample documents (samples shown when no real docs match)
+  const allDocuments: CombinedDocument[] = useMemo(() => {
+    // Filter out sample docs that have the same name as real docs
+    const realNames = new Set(dbDocuments.map(d => d.name.toLowerCase()));
+    const filteredSamples = sampleDocuments.filter(s => !realNames.has(s.name.toLowerCase()));
+    return [...dbDocuments, ...filteredSamples];
+  }, [dbDocuments]);
+  
+  const filteredDocs = allDocuments.filter(doc =>
     doc.name.toLowerCase().includes(search.toLowerCase())
   );
   
@@ -136,8 +147,8 @@ export default function Documents() {
     }
   };
 
-  const approvedCount = documents.filter(d => d.approved || d.status === 'APPROVED').length;
-  const pendingCount = documents.filter(d => !d.approved && (d.status === 'PENDING' || d.status === 'PROCESSING')).length;
+  const approvedCount = allDocuments.filter(d => d.approved || d.status === 'APPROVED').length;
+  const pendingCount = allDocuments.filter(d => !d.approved && (d.status === 'PENDING' || d.status === 'PROCESSING')).length;
   
   return (
     <AppLayout>
@@ -254,7 +265,7 @@ export default function Documents() {
                     <FileText className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">{documents.length}</p>
+                    <p className="text-2xl font-bold">{allDocuments.length}</p>
                     <p className="text-xs text-muted-foreground">Total Documents</p>
                   </div>
                 </div>
@@ -318,7 +329,7 @@ export default function Documents() {
                 </div>
               ) : filteredDocs.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
-                  {documents.length === 0 
+                  {allDocuments.length === 0 
                     ? "No documents uploaded yet. Click 'Upload Document' to get started."
                     : "No documents match your search."
                   }
