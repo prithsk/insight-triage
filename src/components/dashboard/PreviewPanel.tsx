@@ -5,18 +5,33 @@ import { LabFlags } from "@/components/ui/lab-flags";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LANGUAGE } from "@/lib/constants";
-import { ExternalLink, Activity, FileSearch, Zap } from "lucide-react";
+import { ExternalLink, Activity, FileSearch, Zap, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format, parseISO } from "date-fns";
-import { useRunInference } from "@/hooks/useStudies";
+import { useRunInference, useDeleteStudy } from "@/hooks/useStudies";
+import { useDicomImage } from "@/hooks/useDicomImage";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface PreviewPanelProps {
   item: WorklistItem | null;
+  onDeleted?: () => void;
 }
 
-export function PreviewPanel({ item }: PreviewPanelProps) {
+export function PreviewPanel({ item, onDeleted }: PreviewPanelProps) {
   const navigate = useNavigate();
   const runInference = useRunInference();
+  const deleteStudy = useDeleteStudy();
+  const { imageUrl } = useDicomImage(item?.study.file_path || null);
   
   if (!item) {
     return (
@@ -29,11 +44,19 @@ export function PreviewPanel({ item }: PreviewPanelProps) {
   }
   
   const handleOpenReviewer = () => {
-    navigate(`/reviewer?studyId=${item.study.id}`);
+    navigate(`/reviewer/${item.study.id}`);
   };
 
   const handleRunInference = () => {
     runInference.mutate(item.study.id);
+  };
+
+  const handleDelete = () => {
+    deleteStudy.mutate(item.study.id, {
+      onSuccess: () => {
+        onDeleted?.();
+      }
+    });
   };
 
   const formatStudyTime = (timeStr: string) => {
@@ -62,26 +85,37 @@ export function PreviewPanel({ item }: PreviewPanelProps) {
         )}
       </div>
       
-      {/* Preview Image Placeholder */}
+      {/* Preview Image */}
       <Card className="bg-muted/30 border-border mb-6 overflow-hidden">
-        <div className="aspect-[4/3] flex items-center justify-center bg-background/50 relative">
-          {/* Simulated X-ray thumbnail */}
-          <div className="absolute inset-0 bg-gradient-to-br from-muted to-background opacity-50" />
-          <div className="relative z-10 flex flex-col items-center">
-            <Activity className="w-12 h-12 text-muted-foreground mb-2" />
-            <span className="text-sm text-muted-foreground">
-              {item.study.modality || 'CXR'} Preview
-            </span>
-          </div>
-          
-          {/* ROI Overlay hint */}
-          {item.triage && item.triage.risk_bucket !== "CLEAR" && (
-            <div className="absolute top-3 left-3 flex items-center gap-2 bg-overlay-accent/20 backdrop-blur-sm rounded px-2 py-1">
-              <div className="w-2 h-2 rounded-full bg-overlay-accent" />
-              <span className="text-xs text-overlay-accent font-medium">
-                {LANGUAGE.AREA_OF_INTEREST}
-              </span>
-            </div>
+        <div className="aspect-[4/3] flex items-center justify-center bg-black relative">
+          {imageUrl ? (
+            <>
+              <img 
+                src={imageUrl} 
+                alt="Study preview" 
+                className="max-w-full max-h-full object-contain"
+                style={{ filter: 'contrast(1.1) brightness(0.95)' }}
+              />
+              {/* ROI Overlay hint */}
+              {item.triage && item.triage.risk_bucket !== "CLEAR" && (
+                <div className="absolute top-3 left-3 flex items-center gap-2 bg-overlay-accent/20 backdrop-blur-sm rounded px-2 py-1">
+                  <div className="w-2 h-2 rounded-full bg-overlay-accent" />
+                  <span className="text-xs text-overlay-accent font-medium">
+                    {LANGUAGE.AREA_OF_INTEREST}
+                  </span>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="absolute inset-0 bg-gradient-to-br from-muted to-background opacity-50" />
+              <div className="relative z-10 flex flex-col items-center">
+                <Activity className="w-12 h-12 text-muted-foreground mb-2" />
+                <span className="text-sm text-muted-foreground">
+                  {item.study.modality || 'CXR'} Preview
+                </span>
+              </div>
+            </>
           )}
         </div>
       </Card>
@@ -159,7 +193,7 @@ export function PreviewPanel({ item }: PreviewPanelProps) {
       )}
       
       {/* Actions */}
-      <div className="mt-auto">
+      <div className="mt-auto space-y-3">
         <Button 
           onClick={handleOpenReviewer}
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
@@ -168,6 +202,37 @@ export function PreviewPanel({ item }: PreviewPanelProps) {
           Open in Reviewer
           <ExternalLink className="w-4 h-4 ml-2" />
         </Button>
+        
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button 
+              variant="outline" 
+              className="w-full border-destructive/50 text-destructive hover:bg-destructive/10"
+              size="sm"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Study
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this study?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete the study, associated triage results, lab values, 
+                and any uploaded files. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleDelete}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                {deleteStudy.isPending ? 'Deleting...' : 'Delete Study'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
