@@ -1,8 +1,57 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Activity, Brain, Zap, Shield, BarChart3, ArrowRight, Sparkles } from "lucide-react";
+import { Activity, Brain, Zap, Shield, BarChart3, ArrowRight, Sparkles, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Landing = () => {
+  const [isContactOpen, setIsContactOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    institution: "",
+    message: "Hi, I'm interested in learning more about Kroix for my radiology practice.",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase.functions.invoke("send-contact-email", {
+        body: formData,
+      });
+
+      if (error) throw error;
+
+      toast.success("Message sent! We'll get back to you within 24 hours.");
+      setFormData({
+        name: "",
+        email: "",
+        institution: "",
+        message: "Hi, I'm interested in learning more about Kroix for my radiology practice.",
+      });
+      setIsContactOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send message. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
       {/* Hero Section */}
@@ -219,15 +268,78 @@ const Landing = () => {
               <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
                 Join leading radiology practices using Kroix to prioritize critical cases and improve patient outcomes.
               </p>
-              <a href="mailto:prithvisk2023@gmail.com?subject=Get Started with Kroix&body=Hi, I'm interested in learning more about Kroix for my radiology practice.">
-                <Button 
-                  size="lg" 
-                  className="text-lg px-12 py-7 bg-primary hover:bg-primary/90 shadow-xl shadow-primary/30"
-                >
-                  Get Started Now
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </a>
+              <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    size="lg" 
+                    className="text-lg px-12 py-7 bg-primary hover:bg-primary/90 shadow-xl shadow-primary/30"
+                  >
+                    Get Started Now
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Get Started with Kroix</DialogTitle>
+                    <DialogDescription>
+                      Fill out the form below and we'll get back to you within 24 hours.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="contact-name">Name</Label>
+                      <Input
+                        id="contact-name"
+                        placeholder="Dr. Jane Smith"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="contact-email">Email</Label>
+                      <Input
+                        id="contact-email"
+                        type="email"
+                        placeholder="jane@hospital.org"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="contact-institution">Institution (Optional)</Label>
+                      <Input
+                        id="contact-institution"
+                        placeholder="General Hospital"
+                        value={formData.institution}
+                        onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="contact-message">Message</Label>
+                      <Textarea
+                        id="contact-message"
+                        placeholder="Tell us about your radiology workflow..."
+                        value={formData.message}
+                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                        required
+                        rows={3}
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        "Send Message"
+                      )}
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>
