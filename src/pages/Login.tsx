@@ -48,13 +48,11 @@ export default function Login() {
           <div className="flex justify-center">
             <div className="flex items-center gap-2 text-primary">
               <Activity className="h-8 w-8" />
-              <span className="text-2xl font-bold">TriageAI</span>
+              <span className="text-2xl font-bold">Kroix</span>
             </div>
           </div>
           <CardTitle className="text-2xl">Welcome back</CardTitle>
-          <CardDescription>
-            Enter your credentials to access your worklist
-          </CardDescription>
+          <CardDescription>Enter your credentials to access your worklist</CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
