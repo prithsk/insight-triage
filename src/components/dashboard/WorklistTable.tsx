@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { WorklistItem, RiskBucket } from "@/lib/types";
 import { BucketBadge } from "@/components/ui/bucket-badge";
 import { RiskScore } from "@/components/ui/risk-score";
@@ -8,7 +8,7 @@ import { format, parseISO } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Filter, Trash2 } from "lucide-react";
+import { Search, Filter, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useDeleteStudy } from "@/hooks/useStudies";
 import { toast } from "sonner";
 import {
@@ -22,6 +22,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface WorklistTableProps {
   items: WorklistItem[];
@@ -30,22 +37,76 @@ interface WorklistTableProps {
   onBulkDeleted?: () => void;
 }
 
+type SortField = "priority" | "score" | "time" | "studyId";
+type SortDirection = "asc" | "desc";
+
 const bucketFilters: (RiskBucket | "ALL")[] = ["ALL", "CRITICAL", "REVIEW", "CLEAR"];
+
+const sortOptions: { value: SortField; label: string }[] = [
+  { value: "priority", label: "Priority" },
+  { value: "score", label: "Score" },
+  { value: "time", label: "Time" },
+  { value: "studyId", label: "Study ID" },
+];
 
 export function WorklistTable({ items, selectedId, onSelect, onBulkDeleted }: WorklistTableProps) {
   const [search, setSearch] = useState("");
   const [bucketFilter, setBucketFilter] = useState<RiskBucket | "ALL">("ALL");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
+  const [sortField, setSortField] = useState<SortField>("priority");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const deleteStudy = useDeleteStudy();
-  
-  const filteredItems = items.filter(item => {
-    const matchesSearch = 
-      item.study.id.toLowerCase().includes(search.toLowerCase()) ||
-      item.study.patient_hash.toLowerCase().includes(search.toLowerCase());
-    const matchesBucket = bucketFilter === "ALL" || item.triage?.risk_bucket === bucketFilter;
-    return matchesSearch && matchesBucket;
-  });
+
+  const filteredAndSortedItems = useMemo(() => {
+    // First filter
+    const filtered = items.filter(item => {
+      const matchesSearch = 
+        item.study.id.toLowerCase().includes(search.toLowerCase()) ||
+        item.study.patient_hash.toLowerCase().includes(search.toLowerCase());
+      const matchesBucket = bucketFilter === "ALL" || item.triage?.risk_bucket === bucketFilter;
+      return matchesSearch && matchesBucket;
+    });
+
+    // Then sort
+    const bucketOrder = { CRITICAL: 0, REVIEW: 1, CLEAR: 2 };
+    
+    return [...filtered].sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortField) {
+        case "priority": {
+          const aBucket = a.triage?.risk_bucket;
+          const bBucket = b.triage?.risk_bucket;
+          if (!aBucket && !bBucket) comparison = 0;
+          else if (!aBucket) comparison = 1;
+          else if (!bBucket) comparison = -1;
+          else comparison = bucketOrder[aBucket] - bucketOrder[bBucket];
+          break;
+        }
+        case "score": {
+          const aScore = a.triage?.risk_score ?? -1;
+          const bScore = b.triage?.risk_score ?? -1;
+          comparison = aScore - bScore;
+          break;
+        }
+        case "time": {
+          const aTime = new Date(a.study.study_time).getTime();
+          const bTime = new Date(b.study.study_time).getTime();
+          comparison = aTime - bTime;
+          break;
+        }
+        case "studyId": {
+          comparison = a.study.id.localeCompare(b.study.id);
+          break;
+        }
+      }
+      
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+  }, [items, search, bucketFilter, sortField, sortDirection]);
+
+  const filteredItems = filteredAndSortedItems;
   
   const getRowClasses = (item: WorklistItem, isSelected: boolean) => {
     const bucket = item.triage?.risk_bucket || "CLEAR";
@@ -122,19 +183,55 @@ export function WorklistTable({ items, selectedId, onSelect, onBulkDeleted }: Wo
 
   const allSelected = filteredItems.length > 0 && selectedIds.size === filteredItems.length;
   
+  const toggleSortDirection = () => {
+    setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Filters */}
       <div className="p-4 border-b border-border space-y-3">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by Study ID or Patient..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-background border-border"
-          />
+        {/* Search and Sort */}
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by Study ID or Patient..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 bg-background border-border"
+            />
+          </div>
+          
+          {/* Sort Controls */}
+          <div className="flex items-center gap-1">
+            <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
+              <SelectTrigger className="w-[120px] h-9 text-xs">
+                <ArrowUpDown className="w-3 h-3 mr-1" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {sortOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value} className="text-xs">
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9"
+              onClick={toggleSortDirection}
+              title={sortDirection === "asc" ? "Ascending" : "Descending"}
+            >
+              {sortDirection === "asc" ? (
+                <ArrowUp className="w-4 h-4" />
+              ) : (
+                <ArrowDown className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
         </div>
         
         {/* Bucket filter + Bulk actions */}
