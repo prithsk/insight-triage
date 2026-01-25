@@ -80,7 +80,7 @@ export function WorklistCard({ item, isSelected, isChecked, onSelect, onCheck }:
       {/* Priority Badge */}
       {config && (
         <div className={cn(
-          "absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[12px] font-medium",
+          "absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono text-[12px] font-medium",
           config.bgColor, config.textColor, "border", config.borderColor
         )}>
           <Icon className="w-3.5 h-3.5" />
