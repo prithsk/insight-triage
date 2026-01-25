@@ -1,9 +1,16 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { generateMTTRData, generateThroughputData, generateOverrideData } from "@/lib/mock-data";
+import { 
+  generateMTTRData, 
+  generateThroughputData, 
+  generateOverrideData,
+  generateMTTRDataBaseline,
+  generateThroughputDataBaseline,
+  generateOverrideDataBaseline,
+} from "@/lib/mock-data";
 import { 
   LineChart, 
   Line, 
@@ -26,19 +33,36 @@ import {
   ArrowDownRight,
 } from "lucide-react";
 
+type ViewMode = "with-kroix" | "without-kroix";
+
 export default function Analytics() {
+  const [viewMode, setViewMode] = useState<ViewMode>("with-kroix");
+  
+  // With Kroix data
   const mttrData = useMemo(() => generateMTTRData(), []);
   const throughputData = useMemo(() => generateThroughputData(), []);
   const overrideData = useMemo(() => generateOverrideData(), []);
   
+  // Without Kroix (baseline) data
+  const mttrDataBaseline = useMemo(() => generateMTTRDataBaseline(), []);
+  const throughputDataBaseline = useMemo(() => generateThroughputDataBaseline(), []);
+  const overrideDataBaseline = useMemo(() => generateOverrideDataBaseline(), []);
+  
+  // Select data based on view mode
+  const activeMTTR = viewMode === "with-kroix" ? mttrData : mttrDataBaseline;
+  const activeThroughput = viewMode === "with-kroix" ? throughputData : throughputDataBaseline;
+  const activeOverride = viewMode === "with-kroix" ? overrideData : overrideDataBaseline;
+  
   // Calculate summary stats
-  const avgMTTR = (mttrData.reduce((a, b) => a + b.value, 0) / mttrData.length).toFixed(2);
-  const avgThroughput = Math.round(throughputData.reduce((a, b) => a + b.value, 0) / throughputData.length);
-  const avgOverride = Math.round(overrideData.reduce((a, b) => a + b.value, 0) / overrideData.length);
+  const avgMTTR = (activeMTTR.reduce((a, b) => a + b.value, 0) / activeMTTR.length).toFixed(2);
+  const avgThroughput = Math.round(activeThroughput.reduce((a, b) => a + b.value, 0) / activeThroughput.length);
+  const avgOverride = Math.round(activeOverride.reduce((a, b) => a + b.value, 0) / activeOverride.length);
   
   // Trend calculations (compare last vs first)
-  const mttrTrend = mttrData[mttrData.length - 1].value - mttrData[0].value;
-  const throughputTrend = throughputData[throughputData.length - 1].value - throughputData[0].value;
+  const mttrTrend = activeMTTR[activeMTTR.length - 1].value - activeMTTR[0].value;
+  const throughputTrend = activeThroughput[activeThroughput.length - 1].value - activeThroughput[0].value;
+  
+  const isWithKroix = viewMode === "with-kroix";
   
   return (
     <AppLayout>
@@ -52,10 +76,36 @@ export default function Analytics() {
             </p>
           </div>
           
-          <Button variant="outline" className="gap-2">
-            <Download className="w-4 h-4" />
-            Export CSV
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* View Mode Toggle */}
+            <div className="flex items-center bg-muted rounded-lg p-1">
+              <button
+                onClick={() => setViewMode("with-kroix")}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === "with-kroix"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                With Kroix
+              </button>
+              <button
+                onClick={() => setViewMode("without-kroix")}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === "without-kroix"
+                    ? "bg-muted-foreground/20 text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Without Kroix
+              </button>
+            </div>
+            
+            <Button variant="outline" className="gap-2">
+              <Download className="w-4 h-4" />
+              Export CSV
+            </Button>
+          </div>
         </div>
         
         {/* Summary Cards */}
@@ -74,7 +124,9 @@ export default function Analytics() {
               </div>
               <div className="flex items-center gap-2 mt-4">
                 <Clock className="w-4 h-4 text-primary" />
-                <span className="text-xs text-muted-foreground">Mean Time to Review</span>
+                <span className="text-xs text-muted-foreground">
+                  Mean Time to Review {isWithKroix ? "(AI-assisted)" : "(Manual)"}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -93,7 +145,9 @@ export default function Analytics() {
               </div>
               <div className="flex items-center gap-2 mt-4">
                 <TrendingUp className="w-4 h-4 text-primary" />
-                <span className="text-xs text-muted-foreground">Scans per hour</span>
+                <span className="text-xs text-muted-foreground">
+                  Scans per hour {isWithKroix ? "(AI-assisted)" : "(Manual)"}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -108,7 +162,9 @@ export default function Analytics() {
               </div>
               <div className="flex items-center gap-2 mt-4">
                 <RotateCcw className="w-4 h-4 text-primary" />
-                <span className="text-xs text-muted-foreground">Priority corrections</span>
+                <span className="text-xs text-muted-foreground">
+                  Priority corrections {isWithKroix ? "(AI-assisted)" : "(Manual re-queue)"}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -127,16 +183,19 @@ export default function Analytics() {
               <Card className="h-full bg-surface border-border flex flex-col">
                 <CardHeader className="flex-shrink-0">
                   <CardTitle className="text-sm font-medium">
-                    Mean Time to Review (Critical Bucket) - Last 7 Days
+                    Mean Time to Review (Critical Bucket) - Last 7 Days 
+                    <span className={`ml-2 px-2 py-0.5 rounded text-xs ${isWithKroix ? 'bg-primary/20 text-primary' : 'bg-muted-foreground/20 text-muted-foreground'}`}>
+                      {isWithKroix ? "With Kroix" : "Without Kroix"}
+                    </span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="flex-1 min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={mttrData}>
+                    <AreaChart data={activeMTTR}>
                       <defs>
                         <linearGradient id="mttrGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0}/>
+                          <stop offset="5%" stopColor={isWithKroix ? "hsl(217, 91%, 60%)" : "hsl(0, 60%, 50%)"} stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor={isWithKroix ? "hsl(217, 91%, 60%)" : "hsl(0, 60%, 50%)"} stopOpacity={0}/>
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 25%, 20%)" />
@@ -149,6 +208,7 @@ export default function Analytics() {
                         stroke="hsl(218, 15%, 65%)"
                         tick={{ fill: 'hsl(218, 15%, 65%)', fontSize: 12 }}
                         unit="m"
+                        domain={isWithKroix ? [0, 4] : [0, 10]}
                       />
                       <Tooltip 
                         contentStyle={{ 
@@ -161,7 +221,7 @@ export default function Analytics() {
                       <Area 
                         type="monotone" 
                         dataKey="value" 
-                        stroke="hsl(217, 91%, 60%)" 
+                        stroke={isWithKroix ? "hsl(217, 91%, 60%)" : "hsl(0, 60%, 50%)"} 
                         fill="url(#mttrGradient)"
                         strokeWidth={2}
                       />
@@ -176,11 +236,14 @@ export default function Analytics() {
                 <CardHeader className="flex-shrink-0">
                   <CardTitle className="text-sm font-medium">
                     Scans Reviewed per Hour - Last 7 Days
+                    <span className={`ml-2 px-2 py-0.5 rounded text-xs ${isWithKroix ? 'bg-primary/20 text-primary' : 'bg-muted-foreground/20 text-muted-foreground'}`}>
+                      {isWithKroix ? "With Kroix" : "Without Kroix"}
+                    </span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="flex-1 min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={throughputData}>
+                    <LineChart data={activeThroughput}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 25%, 20%)" />
                       <XAxis 
                         dataKey="date" 
@@ -190,6 +253,7 @@ export default function Analytics() {
                       <YAxis 
                         stroke="hsl(218, 15%, 65%)"
                         tick={{ fill: 'hsl(218, 15%, 65%)', fontSize: 12 }}
+                        domain={isWithKroix ? [20, 40] : [0, 20]}
                       />
                       <Tooltip 
                         contentStyle={{ 
@@ -202,9 +266,9 @@ export default function Analytics() {
                       <Line 
                         type="monotone" 
                         dataKey="value" 
-                        stroke="hsl(142, 71%, 45%)" 
+                        stroke={isWithKroix ? "hsl(142, 71%, 45%)" : "hsl(32, 95%, 50%)"} 
                         strokeWidth={2}
-                        dot={{ fill: 'hsl(142, 71%, 45%)' }}
+                        dot={{ fill: isWithKroix ? 'hsl(142, 71%, 45%)' : 'hsl(32, 95%, 50%)' }}
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -217,11 +281,14 @@ export default function Analytics() {
                 <CardHeader className="flex-shrink-0">
                   <CardTitle className="text-sm font-medium">
                     Priority Override Rate (%) - Last 7 Days
+                    <span className={`ml-2 px-2 py-0.5 rounded text-xs ${isWithKroix ? 'bg-primary/20 text-primary' : 'bg-muted-foreground/20 text-muted-foreground'}`}>
+                      {isWithKroix ? "With Kroix" : "Without Kroix"}
+                    </span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="flex-1 min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={overrideData}>
+                    <BarChart data={activeOverride}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 25%, 20%)" />
                       <XAxis 
                         dataKey="date" 
@@ -232,6 +299,7 @@ export default function Analytics() {
                         stroke="hsl(218, 15%, 65%)"
                         tick={{ fill: 'hsl(218, 15%, 65%)', fontSize: 12 }}
                         unit="%"
+                        domain={isWithKroix ? [0, 20] : [0, 40]}
                       />
                       <Tooltip 
                         contentStyle={{ 
@@ -243,7 +311,7 @@ export default function Analytics() {
                       />
                       <Bar 
                         dataKey="value" 
-                        fill="hsl(32, 95%, 50%)" 
+                        fill={isWithKroix ? "hsl(32, 95%, 50%)" : "hsl(0, 60%, 50%)"} 
                         radius={[4, 4, 0, 0]}
                       />
                     </BarChart>
