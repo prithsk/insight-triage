@@ -332,12 +332,7 @@ export default function Index() {
                   selectedItem && "max-h-[calc(100vh-280px)] overflow-y-auto scrollbar-clinical pr-2"
                 )}>
                   {filteredAndSortedItems.length > 0 ? (
-                    <div className={cn(
-                      "grid gap-4 transition-all duration-300",
-                      selectedItem 
-                        ? "grid-cols-1 xl:grid-cols-2" 
-                        : "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                    )}>
+                    <div className="flex flex-col gap-3">
                       {filteredAndSortedItems.map(item => (
                         <WorklistCard
                           key={item.study.id}
