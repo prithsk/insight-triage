@@ -339,6 +339,7 @@ export default function Index() {
                           item={item}
                           isSelected={selectedItem?.study.id === item.study.id}
                           isChecked={selectedIds.has(item.study.id)}
+                          isMinimized={!!selectedItem}
                           onSelect={() => setSelectedItem(
                             selectedItem?.study.id === item.study.id ? null : item
                           )}
