@@ -31,17 +31,7 @@ export function StudyPreview({ item, onDeleted }: StudyPreviewProps) {
   const { imageUrl } = useDicomImage(item?.study.file_path || null);
   
   if (!item) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center p-8">
-        <div className="w-20 h-20 rounded-2xl bg-landing-bg flex items-center justify-center mb-6">
-          <FileSearch className="w-10 h-10 text-landing-muted" />
-        </div>
-        <h3 className="font-serif text-[24px] text-landing-heading mb-2">No Study Selected</h3>
-        <p className="text-[15px] text-landing-body text-center max-w-sm">
-          Select a study from the worklist to view details and open in the reviewer
-        </p>
-      </div>
-    );
+    return null;
   }
   
   const handleOpenReviewer = () => {
@@ -90,7 +80,7 @@ export function StudyPreview({ item, onDeleted }: StudyPreviewProps) {
           {/* Priority badge */}
           {item.triage && (
             <div className={cn(
-              "px-4 py-2 rounded-xl text-[14px] font-medium",
+              "px-4 py-2 rounded-xl font-mono text-[14px] font-medium",
               bucket === "CRITICAL" && "bg-red-50 text-red-700 border border-red-200",
               bucket === "REVIEW" && "bg-amber-50 text-amber-700 border border-amber-200",
               bucket === "CLEAR" && "bg-emerald-50 text-emerald-700 border border-emerald-200",
