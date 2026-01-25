@@ -7,13 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Activity, Loader2 } from "lucide-react";
-import { 
-  validateEmail, 
+import {
+  validateEmail,
   sanitizeString,
-  detectSQLInjection, 
-  detectXSS, 
+  detectSQLInjection,
+  detectXSS,
   checkRateLimit,
-  logSecurityEvent 
+  logSecurityEvent,
 } from "@/lib/security";
 
 export default function Signup() {
@@ -28,16 +28,16 @@ export default function Signup() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Rate limiting: 3 signups per 5 minutes
-    const rateLimit = checkRateLimit('signup', 3, 300000);
+    const rateLimit = checkRateLimit("signup", 3, 300000);
     if (!rateLimit.allowed) {
       toast({
         variant: "destructive",
         title: "Too many attempts",
         description: `Please wait ${Math.ceil(rateLimit.resetInMs / 1000)} seconds before trying again.`,
       });
-      logSecurityEvent('rate_limit', { action: 'signup' });
+      logSecurityEvent("rate_limit", { action: "signup" });
       return;
     }
 
@@ -66,7 +66,7 @@ export default function Signup() {
     const inputs = [displayName, specialty, institution, password];
     for (const input of inputs) {
       if (detectSQLInjection(input) || detectXSS(input)) {
-        logSecurityEvent('sql_injection', { action: 'signup' });
+        logSecurityEvent("sql_injection", { action: "signup" });
         toast({
           variant: "destructive",
           title: "Invalid input",
@@ -104,17 +104,19 @@ export default function Signup() {
       });
     } else {
       // Update profile with additional fields
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         await supabase
           .from("profiles")
-          .update({ 
-            specialty: sanitizedSpecialty, 
-            institution: sanitizedInstitution 
+          .update({
+            specialty: sanitizedSpecialty,
+            institution: sanitizedInstitution,
           })
           .eq("user_id", user.id);
       }
-      
+
       toast({
         title: "Account created!",
         description: "Welcome to Kroix.",
@@ -132,13 +134,11 @@ export default function Signup() {
           <div className="flex justify-center">
             <div className="flex items-center gap-2 text-primary">
               <Activity className="h-8 w-8" />
-              <span className="text-2xl font-bold">TriageAI</span>
+              <span className="text-2xl font-bold">Kroix</span>
             </div>
           </div>
           <CardTitle className="text-2xl">Create an account</CardTitle>
-          <CardDescription>
-            Join TriageAI to access AI-powered radiology triage
-          </CardDescription>
+          <CardDescription>Join Kroix to access instant AI-powered radiology triage</CardDescription>
         </CardHeader>
         <form onSubmit={handleSignup}>
           <CardContent className="space-y-4">
