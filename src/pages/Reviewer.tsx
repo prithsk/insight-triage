@@ -488,9 +488,9 @@ export default function Reviewer() {
                   <Slider
                     value={roiOpacity}
                     onValueChange={setRoiOpacity}
-                    min={20}
+                    min={0}
                     max={100}
-                    step={10}
+                    step={1}
                     className="w-full"
                   />
                 </div>
