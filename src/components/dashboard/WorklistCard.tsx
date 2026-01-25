@@ -76,23 +76,23 @@ export function WorklistCard({ item, isSelected, isChecked, isMinimized = false,
           />
         </div>
 
-        {/* Study ID - Always visible */}
-        <div className="shrink-0 w-[220px]">
-          <p className="font-mono text-[13px] text-landing-muted truncate">
-            {item.study.id}
-          </p>
-        </div>
-        
-        {/* Patient Hash - Animated hide when minimized */}
+        {/* Study ID (Medical ID) - Animated hide when minimized */}
         <div 
           className={cn(
             "shrink-0 transition-all duration-300 overflow-hidden",
             isMinimized 
               ? "w-0 opacity-0" 
-              : "w-[180px] opacity-100"
+              : "w-[220px] opacity-100"
           )}
         >
-          <h3 className="font-serif text-[16px] font-medium text-landing-heading truncate whitespace-nowrap">
+          <p className="font-mono text-[13px] text-landing-muted truncate whitespace-nowrap">
+            {item.study.id}
+          </p>
+        </div>
+        
+        {/* Patient Hash - Always visible */}
+        <div className="shrink-0 w-[160px]">
+          <h3 className="font-serif text-[16px] font-medium text-landing-heading truncate">
             {item.study.patient_hash}
           </h3>
         </div>
@@ -110,7 +110,21 @@ export function WorklistCard({ item, isSelected, isChecked, isMinimized = false,
           </span>
         )}
 
-        {/* Spacer - distributes remaining space */}
+        {/* Spacer for even distribution */}
+        <div className="flex-1" />
+
+        {/* Priority Badge - between CXR and risk score */}
+        {config && (
+          <div className={cn(
+            "flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono text-[12px] font-medium shrink-0",
+            config.bgColor, config.textColor, "border", config.borderColor
+          )}>
+            <Icon className="w-3.5 h-3.5" />
+            {config.label}
+          </div>
+        )}
+
+        {/* Spacer for even distribution */}
         <div className="flex-1" />
 
         {/* Risk Score */}
@@ -143,16 +157,8 @@ export function WorklistCard({ item, isSelected, isChecked, isMinimized = false,
           </div>
         )}
 
-        {/* Priority Badge */}
-        {config && (
-          <div className={cn(
-            "flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono text-[12px] font-medium shrink-0",
-            config.bgColor, config.textColor, "border", config.borderColor
-          )}>
-            <Icon className="w-3.5 h-3.5" />
-            {config.label}
-          </div>
-        )}
+        {/* End spacer for padding after risk score */}
+        <div className="w-2 shrink-0" />
       </div>
     </div>
   );
