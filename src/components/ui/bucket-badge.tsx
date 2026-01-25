@@ -23,7 +23,7 @@ export function BucketBadge({ bucket, size = "md", className }: BucketBadgeProps
   return (
     <span
       className={cn(
-        "inline-flex items-center font-semibold rounded uppercase tracking-wider",
+        "inline-flex items-center font-mono font-semibold rounded uppercase tracking-wider",
         sizeClasses[size],
         bucketStyles[bucket],
         className

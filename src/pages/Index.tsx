@@ -220,7 +220,7 @@ export default function Index() {
                       key={filter}
                       onClick={() => setBucketFilter(filter)}
                       className={cn(
-                        "px-3 py-1.5 rounded-[8px] text-[13px] font-medium transition-colors",
+                        "px-3 py-1.5 rounded-[8px] font-mono text-[13px] font-medium transition-colors",
                         bucketFilter === filter 
                           ? "bg-landing-primary text-white" 
                           : "bg-landing-bg text-landing-body hover:bg-landing-primary/15 hover:text-landing-primary"
