@@ -8,6 +8,7 @@ import {
   Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -64,8 +65,10 @@ export function AppLayout({ children }: AppLayoutProps) {
           })}
         </nav>
         
-        {/* Right side - Queue status */}
+        {/* Right side - Theme toggle & status */}
         <div className="ml-auto flex items-center gap-4">
+          <ThemeToggle />
+          <div className="h-5 w-px bg-border" />
           <div className="flex items-center gap-2 text-sm">
             <span className="w-2 h-2 rounded-full bg-clear animate-pulse" />
             <span className="text-muted-foreground">System Active</span>
