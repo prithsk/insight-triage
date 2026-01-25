@@ -9,7 +9,6 @@ import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Reviewer from "./pages/Reviewer";
 import Analytics from "./pages/Analytics";
-import Documents from "./pages/Documents";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
@@ -39,7 +38,6 @@ const App = () => (
             <Route path="/reviewer" element={<ProtectedRoute><Reviewer /></ProtectedRoute>} />
             <Route path="/reviewer/:studyId" element={<ProtectedRoute><Reviewer /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-            <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
