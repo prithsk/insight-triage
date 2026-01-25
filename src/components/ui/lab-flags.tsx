@@ -93,24 +93,24 @@ export function LabFlags({ labs, compact = false, className }: LabFlagsProps) {
         
         return (
           <div key={item.type} className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">{item.label}</span>
+            <span className="text-sm text-landing-muted">{item.label}</span>
             <div className="flex items-center gap-2">
               <span className={cn(
                 "font-mono text-sm font-medium",
-                isAbnormal && (status?.status === "high" || status?.status === "elevated") && "text-critical",
-                isAbnormal && status?.status === "low" && "text-warning",
-                !isAbnormal && "text-foreground"
+                isAbnormal && (status?.status === "high" || status?.status === "elevated") && "text-red-600",
+                isAbnormal && status?.status === "low" && "text-amber-600",
+                !isAbnormal && "text-landing-heading"
               )}>
                 {item.value?.toFixed(item.type === "ph" || item.type === "procalcitonin" ? 2 : item.type === "wbc" || item.type === "crp" ? 1 : 0) ?? "—"}
                 {item.value !== null && item.unit && (
-                  <span className="text-muted-foreground ml-1 text-xs">{item.unit}</span>
+                  <span className="text-landing-muted ml-1 text-xs">{item.unit}</span>
                 )}
               </span>
               {isAbnormal && (
                 <span className={cn(
-                  "text-xs",
-                  (status?.status === "high" || status?.status === "elevated") && "text-critical",
-                  status?.status === "low" && "text-warning"
+                  "text-xs font-medium",
+                  (status?.status === "high" || status?.status === "elevated") && "text-red-600",
+                  status?.status === "low" && "text-amber-600"
                 )}>
                   {status?.label}
                 </span>
