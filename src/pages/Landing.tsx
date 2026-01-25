@@ -566,7 +566,7 @@ const Landing = () => {
                   <span className="text-xl font-serif text-landing-heading">Faster MTTR</span>
                 </div>
               </div>
-              <p className="text-sm text-landing-primary pl-14">Reduce diagnostic delays.</p>
+              <p className="text-sm text-landing-primary">Reduce diagnostic delays.</p>
             </div>
 
             {/* Metric 2 */}
@@ -580,7 +580,7 @@ const Landing = () => {
                   <span className="text-xl font-serif text-landing-heading">Throughput Increase</span>
                 </div>
               </div>
-              <p className="text-sm text-landing-primary pl-14">Process more studies per shift.</p>
+              <p className="text-sm text-landing-primary">Process more studies per shift.</p>
             </div>
 
             {/* Metric 3 */}
@@ -594,7 +594,7 @@ const Landing = () => {
                   <span className="text-xl font-serif text-landing-heading">Critical Detection</span>
                 </div>
               </div>
-              <p className="text-sm text-landing-primary pl-14">High-acuity respiratory findings.</p>
+              <p className="text-sm text-landing-primary">High-acuity respiratory findings.</p>
             </div>
 
             {/* Metric 4 */}
@@ -608,7 +608,7 @@ const Landing = () => {
                   <span className="text-xl font-serif text-landing-heading">Inference Time</span>
                 </div>
               </div>
-              <p className="text-sm text-landing-primary pl-14">Lightning-fast AI processing.</p>
+              <p className="text-sm text-landing-primary">Lightning-fast AI processing.</p>
             </div>
           </div>
 
