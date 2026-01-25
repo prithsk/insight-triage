@@ -97,8 +97,11 @@ export function WorklistCard({ item, isSelected, isChecked, isMinimized = false,
           </h3>
         </div>
         
-        {/* Time */}
-        <div className="shrink-0 flex items-center gap-1.5 text-[13px] text-landing-body">
+        {/* Time - reduce gap when minimized */}
+        <div className={cn(
+          "shrink-0 flex items-center text-[13px] text-landing-body transition-all duration-300",
+          isMinimized ? "gap-1 ml-0" : "gap-1.5"
+        )}>
           <Clock className="w-3.5 h-3.5 text-landing-muted" />
           {formatStudyTime(item.study.study_time)}
         </div>
