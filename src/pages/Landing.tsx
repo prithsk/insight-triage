@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, Clock, TrendingUp, Target, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Dialog,
@@ -15,6 +15,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+
+// Feature images
+import featureAnalysis from "@/assets/landing/feature-analysis.jpg";
+import featureSpeed from "@/assets/landing/feature-speed.jpg";
+import featureAccuracy from "@/assets/landing/feature-accuracy.jpg";
+import workflowDicom from "@/assets/landing/workflow-dicom.jpg";
+import workflowReport from "@/assets/landing/workflow-report.jpg";
 
 const Landing = () => {
   const [isContactOpen, setIsContactOpen] = useState(false);
@@ -63,7 +70,7 @@ const Landing = () => {
       />
 
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-40 px-8 py-6">
+      <nav className="fixed top-0 left-0 right-0 z-40 px-8 py-6 bg-landing-bg/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-2xl font-serif font-semibold text-landing-heading tracking-tight">
@@ -245,19 +252,23 @@ const Landing = () => {
                 </li>
               </ul>
             </div>
-            <div className="relative h-[400px] rounded-2xl overflow-hidden bg-gradient-to-br from-landing-bg to-[#E8EBE4]">
-              <div className="absolute inset-0 flex items-center justify-center opacity-40">
-                <div className="w-64 h-80 rounded-lg bg-gradient-to-b from-landing-primary/10 to-transparent blur-sm" />
-              </div>
+            <div className="relative h-[400px] rounded-2xl overflow-hidden">
+              <img 
+                src={featureAnalysis} 
+                alt="AI-powered chest X-ray analysis visualization" 
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
 
           {/* Feature 2 */}
           <div className="grid lg:grid-cols-2 gap-16 items-center mb-32">
-            <div className="order-2 lg:order-1 relative h-[400px] rounded-2xl overflow-hidden bg-gradient-to-br from-[#E8EBE4] to-landing-bg">
-              <div className="absolute inset-0 flex items-center justify-center opacity-40">
-                <div className="w-64 h-80 rounded-lg bg-gradient-to-b from-landing-secondary/10 to-transparent blur-sm" />
-              </div>
+            <div className="order-2 lg:order-1 relative h-[400px] rounded-2xl overflow-hidden">
+              <img 
+                src={featureSpeed} 
+                alt="Real-time processing visualization" 
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="order-1 lg:order-2 max-w-lg">
               <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
@@ -313,16 +324,18 @@ const Landing = () => {
                 </li>
               </ul>
             </div>
-            <div className="relative h-[400px] rounded-2xl overflow-hidden bg-gradient-to-br from-landing-bg to-[#E8EBE4]">
-              <div className="absolute inset-0 flex items-center justify-center opacity-40">
-                <div className="w-64 h-80 rounded-lg bg-gradient-to-b from-landing-primary/10 to-transparent blur-sm" />
-              </div>
+            <div className="relative h-[400px] rounded-2xl overflow-hidden">
+              <img 
+                src={featureAccuracy} 
+                alt="Clinical accuracy visualization" 
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Workflow Section - Mecha style */}
+      {/* Workflow Section - With actual images */}
       <section className="py-24 px-8 bg-landing-bg">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
@@ -334,51 +347,56 @@ const Landing = () => {
             </h2>
           </div>
           
-          {/* Workflow strip */}
-          <div className="flex items-center justify-center gap-8 lg:gap-16">
-            {/* Input */}
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-20 h-20 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-white flex items-center justify-center">
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="text-landing-muted">
-                  <rect x="4" y="4" width="24" height="24" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                  <circle cx="16" cy="16" r="6" stroke="currentColor" strokeWidth="1.5" />
-                </svg>
+          {/* Workflow strip with images */}
+          <div className="flex items-center justify-center gap-6 lg:gap-12">
+            {/* Input - DICOM */}
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-white overflow-hidden">
+                <img 
+                  src={workflowDicom} 
+                  alt="DICOM chest X-ray scan" 
+                  className="w-full h-full object-cover"
+                />
               </div>
               <span className="text-[14px] text-landing-body">DICOM Scan</span>
             </div>
 
             {/* Arrow */}
-            <div className="hidden sm:block">
+            <div className="hidden sm:block flex-shrink-0">
               <svg width="48" height="24" viewBox="0 0 48 24" fill="none" className="text-landing-muted">
                 <path d="M0 12H44M44 12L38 6M44 12L38 18" stroke="currentColor" strokeWidth="1.5" />
               </svg>
             </div>
 
             {/* AI */}
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-20 h-20 rounded-2xl border border-landing-primary/20 bg-landing-primary/5 flex items-center justify-center">
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="text-landing-primary">
-                  <circle cx="16" cy="16" r="10" stroke="currentColor" strokeWidth="1.5" />
-                  <circle cx="16" cy="16" r="4" fill="currentColor" />
-                </svg>
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-2xl border border-landing-primary/20 bg-landing-primary/5 flex items-center justify-center">
+                <div className="text-center">
+                  <svg width="40" height="40" viewBox="0 0 32 32" fill="none" className="text-landing-primary mx-auto mb-2">
+                    <circle cx="16" cy="16" r="10" stroke="currentColor" strokeWidth="1.5" />
+                    <circle cx="16" cy="16" r="4" fill="currentColor" />
+                  </svg>
+                  <span className="text-landing-primary text-xs font-medium">Processing</span>
+                </div>
               </div>
               <span className="text-[14px] text-landing-primary font-medium">Kroix AI</span>
             </div>
 
             {/* Arrow */}
-            <div className="hidden sm:block">
+            <div className="hidden sm:block flex-shrink-0">
               <svg width="48" height="24" viewBox="0 0 48 24" fill="none" className="text-landing-muted">
                 <path d="M0 12H44M44 12L38 6M44 12L38 18" stroke="currentColor" strokeWidth="1.5" />
               </svg>
             </div>
 
-            {/* Output */}
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-20 h-20 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-white flex items-center justify-center">
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="text-landing-muted">
-                  <rect x="4" y="4" width="24" height="24" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                  <path d="M8 12H24M8 16H20M8 20H16" stroke="currentColor" strokeWidth="1.5" />
-                </svg>
+            {/* Output - Report */}
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-white overflow-hidden">
+                <img 
+                  src={workflowReport} 
+                  alt="Priority triage report" 
+                  className="w-full h-full object-cover"
+                />
               </div>
               <span className="text-[14px] text-landing-body">Priority Report</span>
             </div>
@@ -386,50 +404,81 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Social Proof Section */}
+      {/* Clinical Impact Section - Replaces testimonials */}
       <section className="py-32 px-8 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-20">
             <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
-              Testimonials
+              Clinical Impact
             </span>
-            <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading tracking-[-0.01em]">
-              Trusted by Leading Institutions
+            <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading tracking-[-0.01em] mb-6">
+              Measurable Outcomes
             </h2>
+            <p className="text-lg text-landing-body max-w-2xl mx-auto">
+              Real performance metrics that demonstrate the value of AI-assisted triage in clinical workflows.
+            </p>
           </div>
 
+          {/* Metrics Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
+            {/* Metric 1 */}
+            <div className="text-center p-8 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-landing-bg/50">
+              <div className="w-12 h-12 rounded-xl bg-landing-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Clock className="w-6 h-6 text-landing-primary" />
+              </div>
+              <div className="text-4xl font-serif font-medium text-landing-heading mb-2">40%</div>
+              <div className="text-landing-body text-[15px]">Faster Mean Time to Review</div>
+            </div>
+
+            {/* Metric 2 */}
+            <div className="text-center p-8 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-landing-bg/50">
+              <div className="w-12 h-12 rounded-xl bg-landing-primary/10 flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="w-6 h-6 text-landing-primary" />
+              </div>
+              <div className="text-4xl font-serif font-medium text-landing-heading mb-2">25%</div>
+              <div className="text-landing-body text-[15px]">Increase in Throughput</div>
+            </div>
+
+            {/* Metric 3 */}
+            <div className="text-center p-8 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-landing-bg/50">
+              <div className="w-12 h-12 rounded-xl bg-landing-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Target className="w-6 h-6 text-landing-primary" />
+              </div>
+              <div className="text-4xl font-serif font-medium text-landing-heading mb-2">95%</div>
+              <div className="text-landing-body text-[15px]">Critical Case Detection</div>
+            </div>
+
+            {/* Metric 4 */}
+            <div className="text-center p-8 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-landing-bg/50">
+              <div className="w-12 h-12 rounded-xl bg-landing-primary/10 flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-6 h-6 text-landing-primary" />
+              </div>
+              <div className="text-4xl font-serif font-medium text-landing-heading mb-2">&lt;5s</div>
+              <div className="text-landing-body text-[15px]">Average Inference Time</div>
+            </div>
+          </div>
+
+          {/* Value Propositions */}
           <div className="grid md:grid-cols-3 gap-12">
-            {/* Quote 1 */}
-            <div className="space-y-6">
-              <p className="text-lg text-landing-heading leading-relaxed">
-                "Kroix transformed our radiology workflow. Critical cases now surface immediately, and our MTTR has improved by 35%."
+            <div className="space-y-4">
+              <h3 className="font-serif text-xl text-landing-heading">Reduce Delayed Diagnoses</h3>
+              <p className="text-landing-body leading-relaxed">
+                Critical respiratory findings are automatically surfaced, ensuring high-acuity cases receive immediate attention rather than waiting in FIFO queues.
               </p>
-              <div>
-                <p className="text-landing-heading font-medium">Dr. Sarah Chen</p>
-                <p className="text-landing-muted text-[14px]">Chief of Radiology, Metro Health</p>
-              </div>
             </div>
 
-            {/* Quote 2 */}
-            <div className="space-y-6">
-              <p className="text-lg text-landing-heading leading-relaxed">
-                "The accuracy is remarkable. We've seen a significant reduction in delayed diagnoses for respiratory conditions."
+            <div className="space-y-4">
+              <h3 className="font-serif text-xl text-landing-heading">Optimize Radiologist Time</h3>
+              <p className="text-landing-body leading-relaxed">
+                Focus cognitive effort where it matters most. Kroix handles the initial triage, allowing radiologists to concentrate on interpretation and diagnosis.
               </p>
-              <div>
-                <p className="text-landing-heading font-medium">Dr. Michael Torres</p>
-                <p className="text-landing-muted text-[14px]">Pulmonologist, University Medical Center</p>
-              </div>
             </div>
 
-            {/* Quote 3 */}
-            <div className="space-y-6">
-              <p className="text-lg text-landing-heading leading-relaxed">
-                "Implementation was seamless. Our team adopted Kroix within days, and the ROI was measurable within weeks."
+            <div className="space-y-4">
+              <h3 className="font-serif text-xl text-landing-heading">Quantify Workflow Improvements</h3>
+              <p className="text-landing-body leading-relaxed">
+                Built-in analytics track MTTR, throughput, and accuracy metrics—providing clear ROI data for department leadership and administration.
               </p>
-              <div>
-                <p className="text-landing-heading font-medium">Dr. Emily Park</p>
-                <p className="text-landing-muted text-[14px]">Director of Medical Imaging, Regional Health</p>
-              </div>
             </div>
           </div>
         </div>
