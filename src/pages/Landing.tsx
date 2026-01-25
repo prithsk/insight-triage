@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Activity, Brain, Zap, Shield, BarChart3, ArrowRight, Sparkles, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Dialog,
@@ -53,314 +53,458 @@ const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-hidden">
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-6">
-        {/* Animated background */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/8 rounded-full blur-[100px] animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-critical/6 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-primary/5 to-transparent rounded-full" />
-        </div>
+    <div className="min-h-screen bg-landing-bg text-landing-heading overflow-x-hidden">
+      {/* Subtle grain texture overlay */}
+      <div 
+        className="fixed inset-0 pointer-events-none opacity-[0.03] z-50"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+        }}
+      />
 
-        {/* Subtle grid overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:80px_80px]" />
-
-        {/* Navigation */}
-        <nav className="absolute top-0 left-0 right-0 flex items-center justify-between px-8 py-6 z-20">
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-40 px-8 py-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20">
-              <Activity className="w-5 h-5 text-primary-foreground" strokeWidth={2.5} />
-            </div>
-            <span className="text-xl font-bold tracking-tight">Kroix</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link to="/about">
-              <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
-                About
-              </Button>
-            </Link>
-            <Link to="/contact">
-              <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
-                Contact
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button className="bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20">
-                Sign In
-              </Button>
-            </Link>
-          </div>
-        </nav>
-
-        <div className="relative z-10 text-center max-w-5xl mx-auto">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm text-primary mb-8">
-            <Sparkles className="w-4 h-4" />
-            <span>AI-Powered Radiology Workflow</span>
-          </div>
-
-          {/* Logo & Brand */}
-          <div className="mb-6 flex items-center justify-center">
-            <div className="relative">
-              <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-primary via-primary/80 to-critical flex items-center justify-center shadow-2xl shadow-primary/40">
-                <Activity className="w-14 h-14 text-primary-foreground" strokeWidth={2} />
-              </div>
-              <div className="absolute -inset-2 bg-gradient-to-br from-primary/50 to-critical/50 rounded-3xl blur-xl opacity-50 -z-10" />
-            </div>
-          </div>
-
-          <h1 className="text-8xl md:text-[10rem] font-bold tracking-tighter mb-2 leading-none">
-            <span className="bg-gradient-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
+            <span className="text-2xl font-serif font-semibold text-landing-heading tracking-tight">
               Kroix
             </span>
-          </h1>
-
-          <p className="text-2xl md:text-3xl text-muted-foreground mb-2 font-light tracking-wide">
-            The AI Traffic Controller for Chest X-Rays
-          </p>
-
-          <p className="text-lg text-muted-foreground/60 mb-12 max-w-2xl mx-auto leading-relaxed">
-            Intelligent triage prioritization that moves critical respiratory cases to the front.
-            <br />
-            <span className="text-muted-foreground/80">Faster reads. Better outcomes. Proven results.</span>
-          </p>
-
-          {/* CTA */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/dashboard">
-              <Button 
-                size="lg" 
-                className="text-lg px-10 py-7 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-xl shadow-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-1 group"
-              >
-                Launch Dashboard
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-            <Link to="/dashboard">
-              <Button 
-                size="lg" 
-                variant="outline"
-                className="text-lg px-10 py-7 border-border/40 bg-background/50 backdrop-blur-sm hover:bg-surface hover:border-primary/40 transition-all"
-              >
-                <Brain className="w-5 h-5 mr-2" />
-                See How It Works
-              </Button>
-            </Link>
           </div>
-
-          {/* Trust indicators */}
-          <div className="mt-20 flex flex-wrap items-center justify-center gap-6 md:gap-10 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface/50 border border-border/50">
-              <Shield className="w-4 h-4 text-clear" />
-              <span>HIPAA Ready</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface/50 border border-border/50">
-              <Activity className="w-4 h-4 text-primary" />
-              <span>Non-Diagnostic Aid</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface/50 border border-border/50">
-              <Zap className="w-4 h-4 text-warning" />
-              <span>Sub-5s Inference</span>
-            </div>
+          <div className="flex items-center gap-8">
+            <Link 
+              to="/about" 
+              className="text-landing-body hover:text-landing-heading transition-colors text-[15px]"
+            >
+              About
+            </Link>
+            <Link 
+              to="/contact" 
+              className="text-landing-body hover:text-landing-heading transition-colors text-[15px]"
+            >
+              Contact
+            </Link>
+            <Link to="/login">
+              <button className="px-5 py-2.5 rounded-[10px] border border-landing-primary text-landing-primary hover:bg-landing-primary hover:text-white transition-colors text-[15px]">
+                Sign In
+              </button>
+            </Link>
           </div>
         </div>
+      </nav>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-50">
-          <div className="w-7 h-12 rounded-full border-2 border-muted-foreground/30 flex items-start justify-center pt-2">
-            <div className="w-1.5 h-3 bg-muted-foreground/40 rounded-full" />
+      {/* Hero Section */}
+      <section className="relative min-h-screen flex items-center pt-24 pb-32">
+        {/* Subtle gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-landing-bg via-landing-bg to-[#E8EBE4]" />
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-8 w-full">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Left: Content */}
+            <div className="max-w-xl">
+              <h1 className="font-serif text-[64px] lg:text-[72px] leading-[1.05] font-medium text-landing-heading mb-8 tracking-[-0.02em]">
+                Next-generation AI for clinical radiology.
+              </h1>
+              <p className="text-xl text-landing-body leading-relaxed mb-10">
+                Intelligent triage prioritization that moves critical respiratory cases to the front—delivering faster reads with measurable accuracy.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
+                  <DialogTrigger asChild>
+                    <button className="px-7 py-3.5 bg-landing-primary text-white rounded-[10px] text-[15px] font-medium hover:bg-[#265A4C] transition-colors flex items-center gap-2">
+                      Request demo
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md bg-landing-bg border-[rgba(0,0,0,0.06)]">
+                    <DialogHeader>
+                      <DialogTitle className="font-serif text-2xl text-landing-heading">Request a Demo</DialogTitle>
+                      <DialogDescription className="text-landing-body">
+                        Fill out the form below and we'll get back to you within 24 hours.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="contact-name" className="text-landing-body">Name</Label>
+                        <Input
+                          id="contact-name"
+                          placeholder="Dr. Jane Smith"
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          required
+                          className="bg-white border-[rgba(0,0,0,0.06)] text-landing-heading"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="contact-email" className="text-landing-body">Email</Label>
+                        <Input
+                          id="contact-email"
+                          type="email"
+                          placeholder="jane@hospital.org"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          required
+                          className="bg-white border-[rgba(0,0,0,0.06)] text-landing-heading"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="contact-institution" className="text-landing-body">Institution (Optional)</Label>
+                        <Input
+                          id="contact-institution"
+                          placeholder="General Hospital"
+                          value={formData.institution}
+                          onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
+                          className="bg-white border-[rgba(0,0,0,0.06)] text-landing-heading"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="contact-message" className="text-landing-body">Message</Label>
+                        <Textarea
+                          id="contact-message"
+                          placeholder="Tell us about your radiology workflow..."
+                          value={formData.message}
+                          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                          required
+                          rows={3}
+                          className="bg-white border-[rgba(0,0,0,0.06)] text-landing-heading"
+                        />
+                      </div>
+                      <button 
+                        type="submit" 
+                        className="w-full px-7 py-3.5 bg-landing-primary text-white rounded-[10px] text-[15px] font-medium hover:bg-[#265A4C] transition-colors disabled:opacity-50"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Sending...
+                          </span>
+                        ) : (
+                          "Send Message"
+                        )}
+                      </button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+                <Link to="/dashboard">
+                  <button className="px-7 py-3.5 border border-landing-primary text-landing-primary rounded-[10px] text-[15px] font-medium hover:bg-landing-primary hover:text-white transition-colors">
+                    See how it works
+                  </button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Right: Abstract visual */}
+            <div className="relative hidden lg:flex items-center justify-center">
+              <div className="relative w-[480px] h-[480px]">
+                {/* Organic flowing gradient */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-landing-secondary/20 via-landing-primary/10 to-landing-bg blur-3xl" />
+                <div className="absolute inset-8 rounded-full bg-gradient-to-tr from-landing-primary/15 to-landing-secondary/5 blur-2xl" />
+                {/* Central abstract form */}
+                <div className="absolute inset-16 rounded-full border border-landing-primary/10 flex items-center justify-center">
+                  <div className="w-3/4 h-3/4 rounded-full bg-gradient-to-br from-landing-primary/8 to-transparent" />
+                </div>
+                {/* Subtle scan silhouette lines */}
+                <svg className="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 480 480">
+                  <ellipse cx="240" cy="200" rx="100" ry="120" fill="none" stroke="#2F6F5E" strokeWidth="0.5" />
+                  <ellipse cx="240" cy="220" rx="80" ry="100" fill="none" stroke="#2F6F5E" strokeWidth="0.5" />
+                  <path d="M 180 320 Q 240 380 300 320" fill="none" stroke="#2F6F5E" strokeWidth="0.5" />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-32 px-6 bg-gradient-to-b from-surface/30 to-background">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-20">
-            <p className="text-primary font-medium mb-3 tracking-wide uppercase text-sm">Capabilities</p>
-            <h2 className="text-5xl font-bold mb-6 tracking-tight">Intelligent Workflow Orchestration</h2>
-            <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
-              Kroix transforms how radiologists work by prioritizing what matters most
-            </p>
+      <section className="py-32 px-8 bg-white">
+        <div className="max-w-7xl mx-auto">
+          {/* Feature 1 */}
+          <div className="grid lg:grid-cols-2 gap-16 items-center mb-32">
+            <div className="max-w-lg">
+              <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
+                Analysis
+              </span>
+              <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading mb-6 tracking-[-0.01em]">
+                Comprehensive Analysis
+              </h2>
+              <p className="text-lg text-landing-body leading-relaxed mb-6">
+                AI-powered detection that identifies critical findings across every chest X-ray study.
+              </p>
+              <ul className="space-y-3 text-landing-body">
+                <li className="flex items-center gap-3">
+                  <span className="w-1 h-1 rounded-full bg-landing-primary" />
+                  Pneumonia and COPD pattern recognition
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="w-1 h-1 rounded-full bg-landing-primary" />
+                  Consolidation and opacity mapping
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="w-1 h-1 rounded-full bg-landing-primary" />
+                  Integrated biomarker correlation
+                </li>
+              </ul>
+            </div>
+            <div className="relative h-[400px] rounded-2xl overflow-hidden bg-gradient-to-br from-landing-bg to-[#E8EBE4]">
+              <div className="absolute inset-0 flex items-center justify-center opacity-40">
+                <div className="w-64 h-80 rounded-lg bg-gradient-to-b from-landing-primary/10 to-transparent blur-sm" />
+              </div>
+            </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Feature 1 */}
-            <div className="group relative p-8 rounded-3xl bg-gradient-to-b from-surface to-background border border-border/50 hover:border-critical/30 transition-all hover:-translate-y-2 duration-300">
-              <div className="absolute inset-0 bg-gradient-to-b from-critical/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-critical/10 flex items-center justify-center mb-6 group-hover:bg-critical/20 transition-colors">
-                  <Activity className="w-8 h-8 text-critical" />
-                </div>
-                <h3 className="text-2xl font-semibold mb-4">Priority Triage</h3>
-                <p className="text-muted-foreground leading-relaxed text-lg">
-                  AI-powered risk scoring moves critical COPD and pneumonia cases to the top. 
-                  No more missed findings buried in FIFO queues.
-                </p>
+          {/* Feature 2 */}
+          <div className="grid lg:grid-cols-2 gap-16 items-center mb-32">
+            <div className="order-2 lg:order-1 relative h-[400px] rounded-2xl overflow-hidden bg-gradient-to-br from-[#E8EBE4] to-landing-bg">
+              <div className="absolute inset-0 flex items-center justify-center opacity-40">
+                <div className="w-64 h-80 rounded-lg bg-gradient-to-b from-landing-secondary/10 to-transparent blur-sm" />
               </div>
             </div>
-
-            {/* Feature 2 */}
-            <div className="group relative p-8 rounded-3xl bg-gradient-to-b from-surface to-background border border-border/50 hover:border-primary/30 transition-all hover:-translate-y-2 duration-300">
-              <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
-                  <Brain className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-2xl font-semibold mb-4">Lab Fusion</h3>
-                <p className="text-muted-foreground leading-relaxed text-lg">
-                  Combine imaging with real-time biomarkers. CO₂, pH, O₂ saturation—all 
-                  in context when you need it.
-                </p>
-              </div>
+            <div className="order-1 lg:order-2 max-w-lg">
+              <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
+                Speed
+              </span>
+              <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading mb-6 tracking-[-0.01em]">
+                Real-time Processing
+              </h2>
+              <p className="text-lg text-landing-body leading-relaxed mb-6">
+                Sub-5 second inference times that fit seamlessly into existing workflows.
+              </p>
+              <ul className="space-y-3 text-landing-body">
+                <li className="flex items-center gap-3">
+                  <span className="w-1 h-1 rounded-full bg-landing-primary" />
+                  Immediate priority scoring
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="w-1 h-1 rounded-full bg-landing-primary" />
+                  Automatic worklist reordering
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="w-1 h-1 rounded-full bg-landing-primary" />
+                  Zero workflow disruption
+                </li>
+              </ul>
             </div>
+          </div>
 
-            {/* Feature 3 */}
-            <div className="group relative p-8 rounded-3xl bg-gradient-to-b from-surface to-background border border-border/50 hover:border-clear/30 transition-all hover:-translate-y-2 duration-300">
-              <div className="absolute inset-0 bg-gradient-to-b from-clear/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-clear/10 flex items-center justify-center mb-6 group-hover:bg-clear/20 transition-colors">
-                  <BarChart3 className="w-8 h-8 text-clear" />
-                </div>
-                <h3 className="text-2xl font-semibold mb-4">Measurable Impact</h3>
-                <p className="text-muted-foreground leading-relaxed text-lg">
-                  Track Mean Time to Review, throughput gains, and override rates. 
-                  Prove ROI with real operational metrics.
-                </p>
+          {/* Feature 3 */}
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="max-w-lg">
+              <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
+                Precision
+              </span>
+              <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading mb-6 tracking-[-0.01em]">
+                Clinical-grade Accuracy
+              </h2>
+              <p className="text-lg text-landing-body leading-relaxed mb-6">
+                Validated performance metrics that meet the demands of clinical environments.
+              </p>
+              <ul className="space-y-3 text-landing-body">
+                <li className="flex items-center gap-3">
+                  <span className="w-1 h-1 rounded-full bg-landing-primary" />
+                  95% critical case detection
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="w-1 h-1 rounded-full bg-landing-primary" />
+                  Continuous model refinement
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="w-1 h-1 rounded-full bg-landing-primary" />
+                  Transparent confidence scoring
+                </li>
+              </ul>
+            </div>
+            <div className="relative h-[400px] rounded-2xl overflow-hidden bg-gradient-to-br from-landing-bg to-[#E8EBE4]">
+              <div className="absolute inset-0 flex items-center justify-center opacity-40">
+                <div className="w-64 h-80 rounded-lg bg-gradient-to-b from-landing-primary/10 to-transparent blur-sm" />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-32 px-6">
+      {/* Workflow Section - Mecha style */}
+      <section className="py-24 px-8 bg-landing-bg">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
+              Workflow
+            </span>
+            <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading tracking-[-0.01em]">
+              Seamless Integration
+            </h2>
+          </div>
+          
+          {/* Workflow strip */}
+          <div className="flex items-center justify-center gap-8 lg:gap-16">
+            {/* Input */}
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-20 h-20 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-white flex items-center justify-center">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="text-landing-muted">
+                  <rect x="4" y="4" width="24" height="24" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                  <circle cx="16" cy="16" r="6" stroke="currentColor" strokeWidth="1.5" />
+                </svg>
+              </div>
+              <span className="text-[14px] text-landing-body">DICOM Scan</span>
+            </div>
+
+            {/* Arrow */}
+            <div className="hidden sm:block">
+              <svg width="48" height="24" viewBox="0 0 48 24" fill="none" className="text-landing-muted">
+                <path d="M0 12H44M44 12L38 6M44 12L38 18" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
+            </div>
+
+            {/* AI */}
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-20 h-20 rounded-2xl border border-landing-primary/20 bg-landing-primary/5 flex items-center justify-center">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="text-landing-primary">
+                  <circle cx="16" cy="16" r="10" stroke="currentColor" strokeWidth="1.5" />
+                  <circle cx="16" cy="16" r="4" fill="currentColor" />
+                </svg>
+              </div>
+              <span className="text-[14px] text-landing-primary font-medium">Kroix AI</span>
+            </div>
+
+            {/* Arrow */}
+            <div className="hidden sm:block">
+              <svg width="48" height="24" viewBox="0 0 48 24" fill="none" className="text-landing-muted">
+                <path d="M0 12H44M44 12L38 6M44 12L38 18" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
+            </div>
+
+            {/* Output */}
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-20 h-20 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-white flex items-center justify-center">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="text-landing-muted">
+                  <rect x="4" y="4" width="24" height="24" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M8 12H24M8 16H20M8 20H16" stroke="currentColor" strokeWidth="1.5" />
+                </svg>
+              </div>
+              <span className="text-[14px] text-landing-body">Priority Report</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof Section */}
+      <section className="py-32 px-8 bg-white">
         <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="text-center p-8 rounded-2xl bg-surface/30 border border-border/30">
-              <div className="text-6xl font-bold bg-gradient-to-br from-primary to-primary/60 bg-clip-text text-transparent mb-3">40%</div>
-              <div className="text-muted-foreground text-lg">Faster MTTR</div>
+          <div className="text-center mb-20">
+            <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
+              Testimonials
+            </span>
+            <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading tracking-[-0.01em]">
+              Trusted by Leading Institutions
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-12">
+            {/* Quote 1 */}
+            <div className="space-y-6">
+              <p className="text-lg text-landing-heading leading-relaxed">
+                "Kroix transformed our radiology workflow. Critical cases now surface immediately, and our MTTR has improved by 35%."
+              </p>
+              <div>
+                <p className="text-landing-heading font-medium">Dr. Sarah Chen</p>
+                <p className="text-landing-muted text-[14px]">Chief of Radiology, Metro Health</p>
+              </div>
             </div>
-            <div className="text-center p-8 rounded-2xl bg-surface/30 border border-border/30">
-              <div className="text-6xl font-bold bg-gradient-to-br from-clear to-clear/60 bg-clip-text text-transparent mb-3">25%</div>
-              <div className="text-muted-foreground text-lg">Higher Throughput</div>
+
+            {/* Quote 2 */}
+            <div className="space-y-6">
+              <p className="text-lg text-landing-heading leading-relaxed">
+                "The accuracy is remarkable. We've seen a significant reduction in delayed diagnoses for respiratory conditions."
+              </p>
+              <div>
+                <p className="text-landing-heading font-medium">Dr. Michael Torres</p>
+                <p className="text-landing-muted text-[14px]">Pulmonologist, University Medical Center</p>
+              </div>
             </div>
-            <div className="text-center p-8 rounded-2xl bg-surface/30 border border-border/30">
-              <div className="text-6xl font-bold bg-gradient-to-br from-warning to-warning/60 bg-clip-text text-transparent mb-3">&lt;5s</div>
-              <div className="text-muted-foreground text-lg">Inference Time</div>
-            </div>
-            <div className="text-center p-8 rounded-2xl bg-surface/30 border border-border/30">
-              <div className="text-6xl font-bold bg-gradient-to-br from-critical to-critical/60 bg-clip-text text-transparent mb-3">95%</div>
-              <div className="text-muted-foreground text-lg">Critical Detection</div>
+
+            {/* Quote 3 */}
+            <div className="space-y-6">
+              <p className="text-lg text-landing-heading leading-relaxed">
+                "Implementation was seamless. Our team adopted Kroix within days, and the ROI was measurable within weeks."
+              </p>
+              <div>
+                <p className="text-landing-heading font-medium">Dr. Emily Park</p>
+                <p className="text-landing-muted text-[14px]">Director of Medical Imaging, Regional Health</p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-32 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="relative p-16 rounded-3xl bg-gradient-to-br from-primary/10 via-surface to-critical/5 border border-primary/20 overflow-hidden">
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
-            <div className="relative">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to Transform Your Workflow?</h2>
-              <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-                Join leading radiology practices using Kroix to prioritize critical cases and improve patient outcomes.
-              </p>
-              <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
-                <DialogTrigger asChild>
-                  <Button 
-                    size="lg" 
-                    className="text-lg px-12 py-7 bg-primary hover:bg-primary/90 shadow-xl shadow-primary/30"
-                  >
-                    Get Started Now
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Get Started with Kroix</DialogTitle>
-                    <DialogDescription>
-                      Fill out the form below and we'll get back to you within 24 hours.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="contact-name">Name</Label>
-                      <Input
-                        id="contact-name"
-                        placeholder="Dr. Jane Smith"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="contact-email">Email</Label>
-                      <Input
-                        id="contact-email"
-                        type="email"
-                        placeholder="jane@hospital.org"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="contact-institution">Institution (Optional)</Label>
-                      <Input
-                        id="contact-institution"
-                        placeholder="General Hospital"
-                        value={formData.institution}
-                        onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="contact-message">Message</Label>
-                      <Textarea
-                        id="contact-message"
-                        placeholder="Tell us about your radiology workflow..."
-                        value={formData.message}
-                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                        required
-                        rows={3}
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={isSubmitting}>
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Sending...
-                        </>
-                      ) : (
-                        "Send Message"
-                      )}
-                    </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
+      <section className="py-32 px-8 bg-landing-bg">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="font-serif text-[40px] lg:text-[56px] leading-[1.1] text-landing-heading mb-8 tracking-[-0.02em]">
+            Ready to transform your workflow?
+          </h2>
+          <p className="text-xl text-landing-body mb-10 max-w-xl mx-auto">
+            Join leading radiology practices using Kroix to prioritize critical cases and improve patient outcomes.
+          </p>
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
+              <DialogTrigger asChild>
+                <button className="px-8 py-4 bg-landing-primary text-white rounded-[10px] text-[16px] font-medium hover:bg-[#265A4C] transition-colors flex items-center gap-2">
+                  Request demo
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </DialogTrigger>
+            </Dialog>
+            <Link to="/contact">
+              <button className="px-8 py-4 border border-landing-primary text-landing-primary rounded-[10px] text-[16px] font-medium hover:bg-landing-primary hover:text-white transition-colors">
+                Contact sales
+              </button>
+            </Link>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-16 px-6 border-t border-border/30">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-              <Activity className="w-5 h-5 text-primary-foreground" />
+      <footer className="py-16 px-8 bg-landing-dark text-white/80">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row items-start justify-between gap-12">
+            <div>
+              <span className="text-2xl font-serif font-semibold text-white tracking-tight">
+                Kroix
+              </span>
+              <p className="text-white/50 text-[14px] mt-2 max-w-xs">
+                Next-generation AI for clinical radiology triage and prioritization.
+              </p>
             </div>
-            <span className="text-xl font-bold">Kroix</span>
+
+            <div className="flex gap-16">
+              <div className="space-y-4">
+                <p className="text-white/50 text-[13px] uppercase tracking-wide">Company</p>
+                <div className="space-y-3">
+                  <Link to="/about" className="block text-[15px] hover:text-white transition-colors">
+                    About
+                  </Link>
+                  <Link to="/contact" className="block text-[15px] hover:text-white transition-colors">
+                    Contact
+                  </Link>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-white/50 text-[13px] uppercase tracking-wide">Legal</p>
+                <div className="space-y-3">
+                  <span className="block text-[15px] text-white/60">Privacy Policy</span>
+                  <span className="block text-[15px] text-white/60">HIPAA Compliance</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="text-sm text-muted-foreground text-center">
-            © 2026 Kroix. Non-diagnostic workflow prioritization tool.
-          </div>
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
-            <a href="#" className="hover:text-foreground transition-colors">Terms</a>
-            <a href="#" className="hover:text-foreground transition-colors">Contact</a>
+
+          <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-[14px] text-white/40">
+              © 2025 Kroix. All rights reserved.
+            </p>
+            <p className="text-[13px] text-white/40">
+              Non-diagnostic workflow tool. For clinical decision support only.
+            </p>
           </div>
         </div>
       </footer>

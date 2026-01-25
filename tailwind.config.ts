@@ -15,6 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        serif: ['Playfair Display', 'Georgia', 'serif'],
         mono: ['IBM Plex Mono', 'monospace'],
       },
       colors: {
@@ -69,6 +70,17 @@ export default {
           foreground: "hsl(var(--clear-foreground))",
         },
         "overlay-accent": "hsl(var(--overlay-accent))",
+        // Landing page eco palette
+        landing: {
+          bg: "#F6F7F4",
+          dark: "#1E2A26",
+          primary: "#2F6F5E",
+          secondary: "#4B7F6A",
+          accent: "#C89F65",
+          heading: "#1B1F1D",
+          body: "#4A5A54",
+          muted: "#7C8B85",
+        },
         // Chart colors
         chart: {
           1: "hsl(var(--chart-1))",
