@@ -6,6 +6,47 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Security headers
+const securityHeaders = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+};
+
+// Input validation
+function isValidUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
+function isValidBase64(str: string): boolean {
+  if (!str || str.length > 50 * 1024 * 1024) return false; // Max 50MB
+  const base64Regex = /^[A-Za-z0-9+/=]+$/;
+  return base64Regex.test(str);
+}
+
+// Rate limiting
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+
+function checkRateLimit(key: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  
+  if (!entry || now >= entry.resetTime) {
+    rateLimitMap.set(key, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return true;
+  }
+  
+  if (entry.count >= RATE_LIMIT_MAX) {
+    return false;
+  }
+  
+  entry.count++;
+  return true;
+}
+
 // Clinical correlation between pneumonia severity and lab values
 interface ClinicalFindings {
   risk_score: number;
@@ -24,91 +65,60 @@ interface ClinicalFindings {
 
 // Generate lab values clinically correlated with pneumonia severity
 function generateCorrelatedLabValues(riskScore: number, riskBucket: string): ClinicalFindings['lab_values'] {
-  // Risk score is 0-1, higher = worse
   const severity = riskScore;
   
-  // CO2: Normal 35-45 mmHg
-  // Severe pneumonia causes CO2 retention (hypercapnia) due to poor gas exchange
   let co2: number;
   if (severity >= 0.65) {
-    // Critical: CO2 retention 48-60 mmHg
     co2 = 48 + (severity - 0.65) * 34 + (Math.random() - 0.5) * 4;
   } else if (severity >= 0.3) {
-    // Review: Mild elevation 44-50 mmHg
     co2 = 44 + ((severity - 0.3) / 0.35) * 6 + (Math.random() - 0.5) * 3;
   } else {
-    // Clear: Normal 36-44 mmHg
     co2 = 36 + (severity / 0.3) * 8 + (Math.random() - 0.5) * 3;
   }
   
-  // pH: Normal 7.35-7.45
-  // Severe pneumonia causes respiratory acidosis (low pH) from CO2 buildup
   let ph: number;
   if (severity >= 0.65) {
-    // Critical: Acidosis 7.20-7.32
     ph = 7.32 - (severity - 0.65) * 0.34;
   } else if (severity >= 0.3) {
-    // Review: Borderline 7.32-7.38
     ph = 7.38 - ((severity - 0.3) / 0.35) * 0.06;
   } else {
-    // Clear: Normal 7.38-7.45
     ph = 7.45 - (severity / 0.3) * 0.07;
   }
   ph += (Math.random() - 0.5) * 0.02;
   
-  // O2 Saturation: Normal >95%
-  // Pneumonia causes hypoxemia due to V/Q mismatch and shunting
   let o2: number;
   if (severity >= 0.65) {
-    // Critical: Severe hypoxia 78-88%
     o2 = 88 - (severity - 0.65) * 28 - Math.random() * 4;
   } else if (severity >= 0.3) {
-    // Review: Mild hypoxia 88-94%
     o2 = 94 - ((severity - 0.3) / 0.35) * 6 - Math.random() * 2;
   } else {
-    // Clear: Normal 95-99%
     o2 = 99 - (severity / 0.3) * 4;
   }
   
-  // WBC: Normal 4-11 x10^9/L
-  // Bacterial pneumonia typically elevates WBC (leukocytosis)
   let wbc: number;
   if (severity >= 0.65) {
-    // Critical: High 16-28
     wbc = 16 + (severity - 0.65) * 34 + Math.random() * 4;
   } else if (severity >= 0.3) {
-    // Review: Elevated 11-18
     wbc = 11 + ((severity - 0.3) / 0.35) * 7 + Math.random() * 2;
   } else {
-    // Clear: Normal 5-11
     wbc = 5 + (severity / 0.3) * 6 + Math.random() * 2;
   }
   
-  // CRP: Normal <3 mg/L
-  // Inflammatory marker highly elevated in pneumonia
   let crp: number;
   if (severity >= 0.65) {
-    // Critical: Very high 50-200 mg/L
     crp = 50 + (severity - 0.65) * 428 + Math.random() * 30;
   } else if (severity >= 0.3) {
-    // Review: Elevated 10-60 mg/L  
     crp = 10 + ((severity - 0.3) / 0.35) * 50 + Math.random() * 10;
   } else {
-    // Clear: Normal/Low 0.5-8 mg/L
     crp = 0.5 + (severity / 0.3) * 8 + Math.random() * 2;
   }
   
-  // Procalcitonin: Normal <0.1 ng/mL
-  // Highly specific for bacterial infection/pneumonia
   let procalcitonin: number;
   if (severity >= 0.65) {
-    // Critical: High 2-15 ng/mL (sepsis range)
     procalcitonin = 2 + (severity - 0.65) * 37 + Math.random() * 3;
   } else if (severity >= 0.3) {
-    // Review: Elevated 0.25-3 ng/mL
     procalcitonin = 0.25 + ((severity - 0.3) / 0.35) * 2.75 + Math.random() * 0.5;
   } else {
-    // Clear: Normal 0.02-0.2 ng/mL
     procalcitonin = 0.02 + (severity / 0.3) * 0.18 + Math.random() * 0.05;
   }
   
@@ -122,11 +132,9 @@ function generateCorrelatedLabValues(riskScore: number, riskBucket: string): Cli
   };
 }
 
-// Generate ROI heatmap data based on findings
 function generateROIHeatmap(findings: string[]): string {
   const regions: { x: number; y: number; intensity: number; label: string }[] = [];
   
-  // Map findings to anatomical regions
   for (const finding of findings) {
     if (finding.toLowerCase().includes('right') || finding.toLowerCase().includes('rll') || finding.toLowerCase().includes('rul')) {
       regions.push({ x: 0.3, y: 0.4, intensity: 0.8, label: 'right_lung' });
@@ -149,7 +157,6 @@ function generateROIHeatmap(findings: string[]): string {
     }
   }
   
-  // Add default regions if none found
   if (regions.length === 0) {
     regions.push({ x: 0.5, y: 0.4, intensity: 0.3, label: 'clear' });
   }
@@ -157,7 +164,6 @@ function generateROIHeatmap(findings: string[]): string {
   return btoa(JSON.stringify(regions));
 }
 
-// Use Lovable AI Vision to analyze chest X-ray
 async function analyzeChestXRay(imageBase64: string, apiKey: string): Promise<ClinicalFindings> {
   const startTime = Date.now();
   
@@ -231,7 +237,6 @@ IMPORTANT: Be precise. A normal chest X-ray should score 0.05-0.15. Severe bilat
     
     console.log('AI Response:', content);
     
-    // Parse the JSON from the response
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       throw new Error('Could not parse AI response');
@@ -240,7 +245,6 @@ IMPORTANT: Be precise. A normal chest X-ray should score 0.05-0.15. Severe bilat
     const analysis = JSON.parse(jsonMatch[0]);
     const riskScore = Math.max(0, Math.min(1, parseFloat(analysis.risk_score) || 0.5));
     
-    // Determine risk bucket
     let riskBucket: 'CRITICAL' | 'REVIEW' | 'CLEAR';
     if (riskScore >= 0.65) {
       riskBucket = 'CRITICAL';
@@ -250,13 +254,9 @@ IMPORTANT: Be precise. A normal chest X-ray should score 0.05-0.15. Severe bilat
       riskBucket = 'CLEAR';
     }
     
-    // Calculate confidence based on how definitive the findings are
     const findings = analysis.findings || [];
     const confidence = 0.75 + (findings.length > 0 ? 0.15 : 0) + (Math.random() * 0.1);
     
-    const inferenceTime = Date.now() - startTime;
-    
-    // Generate clinically correlated lab values
     const labValues = generateCorrelatedLabValues(riskScore, riskBucket);
     
     return {
@@ -272,7 +272,6 @@ IMPORTANT: Be precise. A normal chest X-ray should score 0.05-0.15. Severe bilat
   }
 }
 
-// Fallback to simulated inference if AI fails
 function fallbackInference(): ClinicalFindings {
   const random = Math.random();
   let risk_score: number;
@@ -306,18 +305,48 @@ function fallbackInference(): ClinicalFindings {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { study_id, image_data } = await req.json();
+    // Rate limiting by authorization header
+    const authHeader = req.headers.get('authorization') || 'anonymous';
+    const rateLimitKey = authHeader.substring(0, 20);
     
+    if (!checkRateLimit(rateLimitKey)) {
+      console.warn(`[SECURITY] Rate limit exceeded for key: ${rateLimitKey}`);
+      return new Response(
+        JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const body = await req.json();
+    const { study_id, image_data } = body;
+    
+    // Validate study_id
     if (!study_id) {
       return new Response(
         JSON.stringify({ error: 'study_id is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (!isValidUUID(study_id)) {
+      console.warn(`[SECURITY] Invalid study_id format: ${study_id.substring(0, 20)}...`);
+      return new Response(
+        JSON.stringify({ error: 'Invalid study_id format' }),
+        { status: 400, headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate image_data if provided
+    if (image_data && !isValidBase64(image_data)) {
+      console.warn(`[SECURITY] Invalid image_data format`);
+      return new Response(
+        JSON.stringify({ error: 'Invalid image data format' }),
+        { status: 400, headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -330,12 +359,10 @@ serve(async (req) => {
     let result: ClinicalFindings;
     let imageBase64: string | null = null;
     
-    // Try to fetch the image from storage if not provided
     if (!image_data && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
       try {
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
         
-        // Get the study's file path
         const { data: study, error: studyError } = await supabase
           .from('studies')
           .select('file_path')
@@ -345,13 +372,11 @@ serve(async (req) => {
         if (study?.file_path) {
           console.log(`Fetching image from storage: ${study.file_path}`);
           
-          // Download the image
           const { data: fileData, error: downloadError } = await supabase.storage
             .from('dicom-files')
             .download(study.file_path);
           
           if (fileData && !downloadError) {
-            // Convert to base64
             const arrayBuffer = await fileData.arrayBuffer();
             const bytes = new Uint8Array(arrayBuffer);
             let binary = '';
@@ -373,7 +398,6 @@ serve(async (req) => {
     
     const startTime = Date.now();
     
-    // Use AI vision if we have the image and API key
     if (imageBase64 && LOVABLE_API_KEY) {
       try {
         result = await analyzeChestXRay(imageBase64, LOVABLE_API_KEY);
@@ -407,15 +431,15 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify(response),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Inference error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Inference failed';
     return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'An error occurred during analysis' }),
+      { status: 500, headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

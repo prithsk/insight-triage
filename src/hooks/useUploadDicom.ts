@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { fileUploadSchema, logSecurityEvent, checkRateLimit } from "@/lib/security";
 
 interface UploadResult {
   studyId: string;
@@ -12,14 +13,63 @@ interface UploadResult {
   };
 }
 
+// Allowed file types and extensions
+const ALLOWED_EXTENSIONS = ['.dcm', '.dicom', '.jpg', '.jpeg', '.png', '.webp'];
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
+function validateFile(file: File): { valid: boolean; error?: string } {
+  // Check file size
+  if (file.size > MAX_FILE_SIZE) {
+    return { valid: false, error: 'File size must be less than 50MB' };
+  }
+  
+  // Check file extension
+  const fileName = file.name.toLowerCase();
+  const hasValidExtension = ALLOWED_EXTENSIONS.some(ext => fileName.endsWith(ext));
+  if (!hasValidExtension) {
+    return { valid: false, error: 'Invalid file type. Allowed: DICOM, JPEG, PNG, WebP' };
+  }
+  
+  // Check for double extensions (e.g., .jpg.exe)
+  const parts = fileName.split('.');
+  if (parts.length > 2) {
+    const suspiciousExtensions = ['.exe', '.bat', '.cmd', '.sh', '.ps1', '.js', '.html', '.php'];
+    for (const ext of suspiciousExtensions) {
+      if (fileName.includes(ext)) {
+        logSecurityEvent('validation_failure', { 
+          type: 'suspicious_file_extension', 
+          filename: fileName.substring(0, 50) 
+        });
+        return { valid: false, error: 'Invalid file type' };
+      }
+    }
+  }
+  
+  return { valid: true };
+}
+
 export function useUploadDicom() {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async (file: File): Promise<UploadResult> => {
-      // Generate unique file path
+      // Rate limiting: max 10 uploads per minute
+      const rateLimit = checkRateLimit('dicom-upload', 10, 60 * 1000);
+      if (!rateLimit.allowed) {
+        throw new Error('Upload rate limit exceeded. Please wait a moment.');
+      }
+      
+      // Validate file
+      const validation = validateFile(file);
+      if (!validation.valid) {
+        throw new Error(validation.error);
+      }
+      
+      // Generate unique file path with sanitized name
       const timestamp = Date.now();
-      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const sanitizedName = file.name
+        .replace(/[^a-zA-Z0-9.-]/g, '_')
+        .substring(0, 100); // Limit filename length
       const filePath = `uploads/${timestamp}_${sanitizedName}`;
       
       // 1. Upload file to storage
