@@ -233,8 +233,8 @@ export default function Index() {
                       className={cn(
                         "px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors",
                         bucketFilter === filter 
-                          ? "bg-landing-primary text-white" 
-                          : "text-landing-body hover:bg-landing-bg"
+                          ? "bg-landing-primary/15 text-landing-primary border border-landing-primary/30" 
+                          : "text-landing-body hover:bg-landing-primary/10 hover:text-landing-primary"
                       )}
                     >
                       {filter}
@@ -248,13 +248,17 @@ export default function Index() {
               {/* Sort */}
               <div className="flex items-center gap-1">
                 <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
-                  <SelectTrigger className="w-[120px] h-9 text-[13px] border-[rgba(0,0,0,0.06)] rounded-lg">
+                  <SelectTrigger className="w-[120px] h-9 text-[13px] border-[rgba(0,0,0,0.06)] rounded-lg bg-white text-landing-body hover:border-landing-primary/50 hover:bg-landing-primary/5 transition-colors">
                     <ArrowUpDown className="w-3 h-3 mr-1" />
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-[rgba(0,0,0,0.06)]">
+                  <SelectContent className="bg-white border-[rgba(0,0,0,0.06)] z-50">
                     {sortOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value} className="text-[13px]">
+                      <SelectItem 
+                        key={option.value} 
+                        value={option.value} 
+                        className="text-[13px] text-landing-body hover:bg-landing-primary/10 hover:text-landing-primary focus:bg-landing-primary/10 focus:text-landing-primary cursor-pointer"
+                      >
                         {option.label}
                       </SelectItem>
                     ))}
@@ -262,7 +266,7 @@ export default function Index() {
                 </Select>
                 <button
                   onClick={toggleSortDirection}
-                  className="h-9 w-9 flex items-center justify-center rounded-lg border border-[rgba(0,0,0,0.06)] text-landing-body hover:bg-landing-bg transition-colors"
+                  className="h-9 w-9 flex items-center justify-center rounded-lg border border-[rgba(0,0,0,0.06)] bg-white text-landing-body hover:bg-landing-primary/10 hover:text-landing-primary hover:border-landing-primary/30 transition-colors"
                   title={sortDirection === "asc" ? "Ascending" : "Descending"}
                 >
                   {sortDirection === "asc" ? (
