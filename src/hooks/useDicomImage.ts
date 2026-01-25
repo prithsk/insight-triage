@@ -23,12 +23,23 @@ export function useDicomImage(filePath: string | null) {
           .createSignedUrl(filePath, 3600);
 
         if (signedUrlError) {
+          console.error('Signed URL error:', signedUrlError);
+          // Provide more specific error messages
+          if (signedUrlError.message?.includes('not found')) {
+            throw new Error('File not found in storage');
+          } else if (signedUrlError.message?.includes('permission') || signedUrlError.message?.includes('policy')) {
+            throw new Error('Storage access denied - check bucket policies');
+          }
           throw signedUrlError;
+        }
+
+        if (!data?.signedUrl) {
+          throw new Error('No signed URL returned');
         }
 
         setImageUrl(data.signedUrl);
       } catch (err) {
-        console.error('Failed to fetch image:', err);
+        console.error('Failed to fetch image:', err, 'File path:', filePath);
         setError(err instanceof Error ? err.message : 'Failed to load image');
         setImageUrl(null);
       } finally {
