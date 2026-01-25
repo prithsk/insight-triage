@@ -120,7 +120,8 @@ export function WorklistCard({ item, isSelected, isChecked, isMinimized = false,
         {config && (
           <div className={cn(
             "flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono text-[12px] font-medium shrink-0",
-            config.bgColor, config.textColor, "border", config.borderColor
+            config.bgColor, config.textColor, "border", config.borderColor,
+            isMinimized && "w-[85px] justify-center"
           )}>
             <Icon className="w-3.5 h-3.5" />
             {config.label}
