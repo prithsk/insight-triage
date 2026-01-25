@@ -121,7 +121,7 @@ export const generateMTTRData = (): AnalyticsMetric[] => {
     date.setDate(date.getDate() - i);
     data.push({
       date: date.toISOString().split('T')[0],
-      value: Math.round(8 + Math.random() * 15), // minutes
+      value: Math.round((1 + Math.random() * 1.9) * 10) / 10, // minutes (under 3)
     });
   }
   return data;
