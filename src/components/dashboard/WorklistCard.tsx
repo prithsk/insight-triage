@@ -8,6 +8,7 @@ interface WorklistCardProps {
   item: WorklistItem;
   isSelected: boolean;
   isChecked: boolean;
+  isMinimized?: boolean;
   onSelect: () => void;
   onCheck: (checked: boolean) => void;
 }
@@ -42,7 +43,7 @@ const bucketConfig: Record<RiskBucket, {
   },
 };
 
-export function WorklistCard({ item, isSelected, isChecked, onSelect, onCheck }: WorklistCardProps) {
+export function WorklistCard({ item, isSelected, isChecked, isMinimized = false, onSelect, onCheck }: WorklistCardProps) {
   const bucket = item.triage?.risk_bucket;
   const config = bucket ? bucketConfig[bucket] : null;
   const Icon = config?.icon || Activity;
@@ -59,13 +60,13 @@ export function WorklistCard({ item, isSelected, isChecked, onSelect, onCheck }:
     <div
       onClick={onSelect}
       className={cn(
-        "group relative bg-white rounded-xl border px-4 py-3 cursor-pointer transition-all duration-200 overflow-hidden",
+        "group relative bg-white rounded-xl border px-5 py-4 cursor-pointer transition-all duration-200 overflow-hidden",
         isSelected 
           ? "border-landing-primary ring-2 ring-landing-primary/20" 
           : "border-[rgba(0,0,0,0.06)] hover:border-landing-primary/30"
       )}
     >
-      <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-center gap-4">
         {/* Checkbox */}
         <div onClick={(e) => e.stopPropagation()} className="shrink-0">
           <Checkbox 
@@ -75,40 +76,47 @@ export function WorklistCard({ item, isSelected, isChecked, onSelect, onCheck }:
           />
         </div>
 
-        {/* Study ID */}
-        <div className="shrink-0 hidden xl:block">
-          <p className="font-mono text-[12px] text-landing-muted w-[200px] truncate">
+        {/* Study ID - Always visible */}
+        <div className="shrink-0 w-[220px]">
+          <p className="font-mono text-[13px] text-landing-muted truncate">
             {item.study.id}
           </p>
         </div>
         
-        {/* Patient Hash */}
-        <div className="shrink-0 min-w-[100px] max-w-[160px]">
-          <h3 className="font-serif text-[15px] font-medium text-landing-heading truncate">
+        {/* Patient Hash - Animated hide when minimized */}
+        <div 
+          className={cn(
+            "shrink-0 transition-all duration-300 overflow-hidden",
+            isMinimized 
+              ? "w-0 opacity-0" 
+              : "w-[180px] opacity-100"
+          )}
+        >
+          <h3 className="font-serif text-[16px] font-medium text-landing-heading truncate whitespace-nowrap">
             {item.study.patient_hash}
           </h3>
         </div>
         
         {/* Time */}
-        <div className="shrink-0 hidden sm:flex items-center gap-1.5 text-[12px] text-landing-body">
-          <Clock className="w-3 h-3 text-landing-muted" />
+        <div className="shrink-0 flex items-center gap-1.5 text-[13px] text-landing-body">
+          <Clock className="w-3.5 h-3.5 text-landing-muted" />
           {formatStudyTime(item.study.study_time)}
         </div>
         
         {/* Modality */}
         {item.study.modality && (
-          <span className="shrink-0 hidden md:inline-block px-1.5 py-0.5 bg-landing-bg rounded text-[11px] text-landing-body">
+          <span className="shrink-0 px-2 py-0.5 bg-landing-bg rounded text-[12px] text-landing-body">
             {item.study.modality}
           </span>
         )}
 
-        {/* Spacer */}
-        <div className="flex-1 min-w-2" />
+        {/* Spacer - distributes remaining space */}
+        <div className="flex-1" />
 
         {/* Risk Score */}
         {item.triage ? (
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="w-16 h-1.5 bg-landing-bg rounded-full overflow-hidden hidden sm:block">
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="w-20 h-1.5 bg-landing-bg rounded-full overflow-hidden">
               <div 
                 className={cn(
                   "h-full rounded-full transition-all duration-500",
@@ -120,7 +128,7 @@ export function WorklistCard({ item, isSelected, isChecked, onSelect, onCheck }:
               />
             </div>
             <span className={cn(
-              "font-mono text-[12px] font-semibold",
+              "font-mono text-[13px] font-semibold w-10 text-right",
               bucket === "CRITICAL" && "text-red-600",
               bucket === "REVIEW" && "text-amber-600",
               bucket === "CLEAR" && "text-emerald-600",
@@ -129,20 +137,20 @@ export function WorklistCard({ item, isSelected, isChecked, onSelect, onCheck }:
             </span>
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <div className="w-2 h-2 rounded-full bg-landing-muted animate-pulse" />
-            <span className="text-[11px] text-landing-muted italic">Pending</span>
+            <span className="text-[12px] text-landing-muted italic">Pending...</span>
           </div>
         )}
 
         {/* Priority Badge */}
         {config && (
           <div className={cn(
-            "flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-[11px] font-medium shrink-0",
+            "flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono text-[12px] font-medium shrink-0",
             config.bgColor, config.textColor, "border", config.borderColor
           )}>
-            <Icon className="w-3 h-3" />
-            <span className="hidden sm:inline">{config.label}</span>
+            <Icon className="w-3.5 h-3.5" />
+            {config.label}
           </div>
         )}
       </div>
