@@ -15,6 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        serif: ['Playfair Display', 'Georgia', 'serif'],
         mono: ['IBM Plex Mono', 'monospace'],
       },
       colors: {
@@ -110,12 +111,27 @@ export default {
           "0%": { transform: "translateX(-10px)", opacity: "0" },
           "100%": { transform: "translateX(0)", opacity: "1" },
         },
+        "shimmer": {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
+        "glow-pulse": {
+          "0%, 100%": { boxShadow: "0 0 20px hsl(var(--primary) / 0.4)" },
+          "50%": { boxShadow: "0 0 40px hsl(var(--primary) / 0.6)" },
+        },
+        "float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-slow": "pulse-slow 2s ease-in-out infinite",
         "slide-in": "slide-in 0.3s ease-out",
+        "shimmer": "shimmer 2s linear infinite",
+        "glow-pulse": "glow-pulse 2s ease-in-out infinite",
+        "float": "float 3s ease-in-out infinite",
       },
     },
   },

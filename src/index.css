@@ -2,49 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
-/* Kroix Design System - Clinical, High-Contrast, Dark-Mode First */
+/* Kroix Design System - Mecha Health Inspired, Warm Charcoal, Orange Accent */
 
 @layer base {
   /* Light Mode - Clinical, Clean */
   :root.light {
     /* Core Surfaces */
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
-    
+    --background: 30 15% 95%;
+    --foreground: 24 10% 15%;
+
     --surface: 0 0% 100%;
-    --surface-foreground: 222 47% 11%;
-    
+    --surface-foreground: 24 10% 15%;
+
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 24 10% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 24 10% 15%;
 
-    /* Brand - Clinical Blue */
-    --primary: 217 91% 50%;
+    /* Brand - Orange/Coral */
+    --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary - Muted Surface */
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 30 15% 92%;
+    --secondary-foreground: 24 10% 15%;
 
     /* Muted - Subdued Elements */
-    --muted: 210 40% 94%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 30 15% 90%;
+    --muted-foreground: 24 10% 45%;
 
     /* Accent */
-    --accent: 210 40% 94%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 30 15% 90%;
+    --accent-foreground: 24 10% 15%;
 
-    /* Urgency Colors - Critical Medical Palette */
+    /* Urgency Colors - Critical Medical Palette (preserved) */
     --critical: 0 84% 50%;
     --critical-foreground: 0 0% 100%;
-    
+
     --warning: 32 95% 44%;
     --warning-foreground: 0 0% 100%;
-    
+
     --clear: 142 71% 35%;
     --clear-foreground: 0 0% 100%;
 
@@ -56,70 +56,70 @@
     --destructive-foreground: 0 0% 100%;
 
     /* Borders & Inputs */
-    --border: 214 32% 85%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 50%;
+    --border: 30 10% 85%;
+    --input: 30 10% 90%;
+    --ring: 24 95% 53%;
 
-    --radius: 0.5rem;
+    --radius: 0.625rem;
 
     /* Sidebar */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 217 91% 50%;
+    --sidebar-foreground: 24 10% 15%;
+    --sidebar-primary: 24 95% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 85%;
-    --sidebar-ring: 217 91% 50%;
+    --sidebar-accent: 30 15% 92%;
+    --sidebar-accent-foreground: 24 10% 15%;
+    --sidebar-border: 30 10% 85%;
+    --sidebar-ring: 24 95% 53%;
 
     /* Chart Colors */
-    --chart-1: 217 91% 50%;
+    --chart-1: 24 95% 53%;
     --chart-2: 142 71% 35%;
     --chart-3: 32 95% 44%;
     --chart-4: 0 84% 50%;
     --chart-5: 262 83% 50%;
   }
 
-  /* Dark Mode - Default Clinical */
+  /* Dark Mode - Warm Charcoal + Orange Accent */
   :root, :root.dark {
-    /* Core Surfaces */
-    --background: 220 30% 6%;
-    --foreground: 216 33% 93%;
-    
-    --surface: 220 30% 10%;
-    --surface-foreground: 216 33% 93%;
-    
-    --card: 220 30% 10%;
-    --card-foreground: 216 33% 93%;
+    /* Core Surfaces - Warm Charcoal */
+    --background: 24 10% 8%;
+    --foreground: 30 15% 92%;
 
-    --popover: 220 30% 12%;
-    --popover-foreground: 216 33% 93%;
+    --surface: 24 10% 11%;
+    --surface-foreground: 30 15% 92%;
 
-    /* Brand - Clinical Blue */
-    --primary: 217 91% 60%;
-    --primary-foreground: 220 30% 6%;
+    --card: 24 10% 11%;
+    --card-foreground: 30 15% 92%;
+
+    --popover: 24 10% 13%;
+    --popover-foreground: 30 15% 92%;
+
+    /* Brand - Orange/Coral #F97316 */
+    --primary: 24 95% 53%;
+    --primary-foreground: 24 10% 8%;
 
     /* Secondary - Muted Surface */
-    --secondary: 220 25% 16%;
-    --secondary-foreground: 216 33% 93%;
+    --secondary: 24 8% 16%;
+    --secondary-foreground: 30 15% 92%;
 
     /* Muted - Subdued Elements */
-    --muted: 220 20% 18%;
-    --muted-foreground: 218 15% 65%;
+    --muted: 24 8% 18%;
+    --muted-foreground: 24 10% 60%;
 
     /* Accent */
-    --accent: 220 25% 20%;
-    --accent-foreground: 216 33% 93%;
+    --accent: 24 8% 20%;
+    --accent-foreground: 30 15% 92%;
 
-    /* Urgency Colors - Critical Medical Palette */
+    /* Urgency Colors - Critical Medical Palette (preserved for safety) */
     --critical: 0 84% 60%;
     --critical-foreground: 0 0% 100%;
-    
+
     --warning: 32 95% 50%;
-    --warning-foreground: 220 30% 6%;
-    
+    --warning-foreground: 24 10% 8%;
+
     --clear: 142 71% 45%;
-    --clear-foreground: 220 30% 6%;
+    --clear-foreground: 24 10% 8%;
 
     /* ROI Overlay Accent - Safety Orange */
     --overlay-accent: 24 100% 50%;
@@ -128,25 +128,25 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Borders & Inputs */
-    --border: 220 25% 20%;
-    --input: 220 25% 16%;
-    --ring: 217 91% 60%;
+    /* Borders & Inputs - Translucent white */
+    --border: 24 8% 18%;
+    --input: 24 8% 16%;
+    --ring: 24 95% 53%;
 
-    --radius: 0.5rem;
+    --radius: 0.625rem;
 
     /* Sidebar */
-    --sidebar-background: 220 30% 8%;
-    --sidebar-foreground: 216 33% 93%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 220 30% 6%;
-    --sidebar-accent: 220 25% 14%;
-    --sidebar-accent-foreground: 216 33% 93%;
-    --sidebar-border: 220 25% 18%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-background: 24 10% 9%;
+    --sidebar-foreground: 30 15% 92%;
+    --sidebar-primary: 24 95% 53%;
+    --sidebar-primary-foreground: 24 10% 8%;
+    --sidebar-accent: 24 8% 14%;
+    --sidebar-accent-foreground: 30 15% 92%;
+    --sidebar-border: 24 8% 18%;
+    --sidebar-ring: 24 95% 53%;
 
-    /* Chart Colors */
-    --chart-1: 217 91% 60%;
+    /* Chart Colors - Orange primary */
+    --chart-1: 24 95% 53%;
     --chart-2: 142 71% 45%;
     --chart-3: 32 95% 50%;
     --chart-4: 0 84% 60%;
@@ -171,6 +171,11 @@
   .font-mono {
     font-family: 'IBM Plex Mono', monospace;
   }
+
+  /* Serif headings - Playfair Display */
+  .font-serif {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
 }
 
 @layer components {
@@ -178,11 +183,11 @@
   .badge-critical {
     @apply bg-critical text-critical-foreground;
   }
-  
+
   .badge-warning {
     @apply bg-warning text-warning-foreground;
   }
-  
+
   .badge-clear {
     @apply bg-clear text-clear-foreground;
   }
@@ -191,11 +196,11 @@
   .urgency-stripe-critical {
     @apply border-l-4 border-l-critical;
   }
-  
+
   .urgency-stripe-warning {
     @apply border-l-4 border-l-warning;
   }
-  
+
   .urgency-stripe-clear {
     @apply border-l-4 border-l-clear;
   }
@@ -205,13 +210,40 @@
     @apply bg-card border border-border rounded-lg;
   }
 
+  /* Glassmorphism Card */
+  .glass-card {
+    @apply backdrop-blur-md border shadow-lg;
+    background: hsl(var(--card) / 0.7);
+    border-color: hsl(0 0% 100% / 0.05);
+    box-shadow:
+      inset 0 1px 1px hsl(0 0% 100% / 0.05),
+      0 4px 24px hsl(0 0% 0% / 0.2);
+  }
+
+  /* Glassmorphism Navigation */
+  .glass-nav {
+    @apply backdrop-blur-xl border-b;
+    background: hsl(var(--surface) / 0.8);
+    border-color: hsl(0 0% 100% / 0.05);
+  }
+
   /* Glow effects for hover states */
   .hover-glow {
     @apply transition-all duration-200;
   }
-  
+
   .hover-glow:hover {
-    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.3), 0 4px 20px hsl(var(--primary) / 0.1);
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.3), 0 4px 20px hsl(var(--primary) / 0.15);
+  }
+
+  /* Orange glow for primary buttons */
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.4), 0 0 40px hsl(var(--primary) / 0.2);
+  }
+
+  /* Warm hover glow for rows */
+  .hover-glow-warm:hover {
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2), 0 4px 16px hsl(var(--primary) / 0.08);
   }
 
   /* Disclaimer bar */
@@ -223,7 +255,7 @@
   .status-pulse {
     @apply relative;
   }
-  
+
   .status-pulse::before {
     content: '';
     @apply absolute inset-0 rounded-full animate-ping opacity-75;
@@ -234,6 +266,16 @@
   .skeleton-loading {
     @apply animate-pulse bg-muted rounded;
   }
+
+  /* Pill badge shape */
+  .pill-badge {
+    @apply rounded-full px-3 py-1 text-xs font-medium;
+  }
+
+  /* Active nav pill indicator */
+  .nav-pill-active {
+    @apply rounded-full bg-primary/15 text-primary border border-primary/20;
+  }
 }
 
 @layer utilities {
@@ -242,7 +284,7 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
@@ -252,17 +294,44 @@
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--border)) transparent;
   }
-  
+
   .scrollbar-clinical::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   .scrollbar-clinical::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   .scrollbar-clinical::-webkit-scrollbar-thumb {
     background-color: hsl(var(--border));
     border-radius: 3px;
+  }
+
+  /* Dot-matrix background texture */
+  .bg-dot-pattern {
+    background-image: radial-gradient(
+      hsl(var(--foreground) / 0.03) 1px,
+      transparent 1px
+    );
+    background-size: 24px 24px;
+  }
+
+  /* Subtle grid pattern */
+  .bg-grid-pattern {
+    background-image:
+      linear-gradient(hsl(0 0% 100% / 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(0 0% 100% / 0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Text gradient utility */
+  .text-gradient-primary {
+    @apply bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent;
+  }
+
+  /* Translucent border */
+  .border-translucent {
+    border-color: hsl(0 0% 100% / 0.05);
   }
 }
