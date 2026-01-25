@@ -1,8 +1,5 @@
 import { useMemo, useState } from "react";
-import { AppLayout } from "@/components/layout/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { 
   generateMTTRData, 
   generateThroughputData, 
@@ -31,12 +28,16 @@ import {
   Download,
   ArrowUpRight,
   ArrowDownRight,
+  BarChart3,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type ViewMode = "with-kroix" | "without-kroix";
+type ChartTab = "mttr" | "throughput" | "overrides";
 
 export default function Analytics() {
   const [viewMode, setViewMode] = useState<ViewMode>("with-kroix");
+  const [activeTab, setActiveTab] = useState<ChartTab>("mttr");
   
   // With Kroix data
   const mttrData = useMemo(() => generateMTTRData(), []);
@@ -118,265 +119,292 @@ export default function Analytics() {
     link.click();
     document.body.removeChild(link);
   };
+
+  const tabs: { id: ChartTab; label: string }[] = [
+    { id: "mttr", label: "Time to Review" },
+    { id: "throughput", label: "Throughput" },
+    { id: "overrides", label: "Overrides" },
+  ];
   
   return (
-    <AppLayout>
-      <div className="h-[calc(100vh-3.5rem)] flex flex-col overflow-hidden">
+    <DashboardLayout>
+      <div className="min-h-[calc(100vh-72px)]">
         {/* Page Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface">
-          <div>
-            <h1 className="text-xl font-semibold">Operational Analytics</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Track workflow improvements and pilot metrics
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            {/* View Mode Toggle */}
-            <div className="flex items-center bg-muted rounded-lg p-1">
-              <button
-                onClick={() => setViewMode("with-kroix")}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === "with-kroix"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+        <section className="px-8 py-10 border-b border-[rgba(0,0,0,0.06)]">
+          <div className="max-w-[1600px] mx-auto">
+            <div className="flex items-start justify-between">
+              <div>
+                <h1 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading tracking-[-0.01em]">
+                  Operational <span className="text-landing-primary">Analytics</span>
+                </h1>
+                <p className="text-[17px] text-landing-body mt-3 max-w-xl">
+                  Track workflow improvements and pilot metrics. Compare <em>AI-assisted</em> performance against baseline.
+                </p>
+              </div>
+              
+              <button 
+                onClick={handleExportCSV}
+                className="px-5 py-2.5 bg-landing-primary text-white rounded-[10px] text-[14px] font-medium hover:bg-[#265A4C] transition-colors flex items-center gap-2"
               >
-                With Kroix
-              </button>
-              <button
-                onClick={() => setViewMode("without-kroix")}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === "without-kroix"
-                    ? "bg-muted-foreground/20 text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Without Kroix
+                <Download className="w-4 h-4" />
+                Export CSV
               </button>
             </div>
             
-            <Button variant="outline" className="gap-2" onClick={handleExportCSV}>
-              <Download className="w-4 h-4" />
-              Export CSV
-            </Button>
+            {/* View Mode Toggle */}
+            <div className="flex items-center gap-4 mt-8">
+              <span className="text-[13px] text-landing-muted uppercase tracking-wide">Compare</span>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setViewMode("with-kroix")}
+                  className={cn(
+                    "px-4 py-2 rounded-[10px] text-[14px] font-medium transition-colors",
+                    viewMode === "with-kroix" 
+                      ? "bg-landing-primary text-white" 
+                      : "bg-landing-bg text-landing-body hover:bg-landing-primary/15 hover:text-landing-primary"
+                  )}
+                >
+                  With Kroix
+                </button>
+                <button
+                  onClick={() => setViewMode("without-kroix")}
+                  className={cn(
+                    "px-4 py-2 rounded-[10px] text-[14px] font-medium transition-colors",
+                    viewMode === "without-kroix" 
+                      ? "bg-landing-muted text-white" 
+                      : "bg-landing-bg text-landing-body hover:bg-landing-muted/15 hover:text-landing-muted"
+                  )}
+                >
+                  Without Kroix
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
         
         {/* Summary Cards */}
-        <div className="grid grid-cols-3 gap-4 p-6">
-          <Card className="bg-surface border-border">
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Avg. Time to Review (Critical)</p>
-                  <p className="text-3xl font-bold font-mono mt-1">{avgMTTR}m</p>
+        <section className="px-8 py-8 border-b border-[rgba(0,0,0,0.06)]">
+          <div className="max-w-[1600px] mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* MTTR Card */}
+              <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.06)] p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-[13px] text-landing-muted">Avg. Time to Review (Critical)</p>
+                    <p className="text-[36px] font-serif font-medium text-landing-heading mt-1">{avgMTTR}<span className="text-[20px] text-landing-muted ml-1">min</span></p>
+                  </div>
+                  <div className={cn(
+                    "flex items-center gap-1 text-[13px] font-medium px-2 py-1 rounded-lg",
+                    mttrTrend < 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
+                  )}>
+                    {mttrTrend < 0 ? <ArrowDownRight className="w-3.5 h-3.5" /> : <ArrowUpRight className="w-3.5 h-3.5" />}
+                    {Math.abs(mttrTrend).toFixed(2)}m
+                  </div>
                 </div>
-                <div className={`flex items-center gap-1 text-sm ${mttrTrend < 0 ? 'text-clear' : 'text-critical'}`}>
-                  {mttrTrend < 0 ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
-                  {Math.abs(mttrTrend).toFixed(2)}m
-                </div>
-              </div>
-              <div className="flex items-center gap-2 mt-4">
-                <Clock className="w-4 h-4 text-primary" />
-                <span className="text-xs text-muted-foreground">
-                  Mean Time to Review {isWithKroix ? "(AI-assisted)" : "(Manual)"}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-surface border-border">
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Avg. Throughput</p>
-                  <p className="text-3xl font-bold font-mono mt-1">{avgThroughput}</p>
-                </div>
-                <div className={`flex items-center gap-1 text-sm ${throughputTrend > 0 ? 'text-clear' : 'text-critical'}`}>
-                  {throughputTrend > 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-                  {Math.abs(throughputTrend)}
+                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)]">
+                  <Clock className="w-4 h-4 text-landing-primary" />
+                  <span className="text-[13px] text-landing-muted">
+                    Mean Time to Review {isWithKroix ? "(AI-assisted)" : "(Manual)"}
+                  </span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 mt-4">
-                <TrendingUp className="w-4 h-4 text-primary" />
-                <span className="text-xs text-muted-foreground">
-                  Scans per hour {isWithKroix ? "(AI-assisted)" : "(Manual)"}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-surface border-border">
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Override Rate</p>
-                  <p className="text-3xl font-bold font-mono mt-1">{avgOverride}%</p>
+              
+              {/* Throughput Card */}
+              <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.06)] p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-[13px] text-landing-muted">Avg. Throughput</p>
+                    <p className="text-[36px] font-serif font-medium text-landing-heading mt-1">{avgThroughput}<span className="text-[20px] text-landing-muted ml-1">scans/hr</span></p>
+                  </div>
+                  <div className={cn(
+                    "flex items-center gap-1 text-[13px] font-medium px-2 py-1 rounded-lg",
+                    throughputTrend > 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
+                  )}>
+                    {throughputTrend > 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+                    {Math.abs(throughputTrend)}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)]">
+                  <TrendingUp className="w-4 h-4 text-landing-primary" />
+                  <span className="text-[13px] text-landing-muted">
+                    Scans per hour {isWithKroix ? "(AI-assisted)" : "(Manual)"}
+                  </span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 mt-4">
-                <RotateCcw className="w-4 h-4 text-primary" />
-                <span className="text-xs text-muted-foreground">
-                  Priority corrections {isWithKroix ? "(AI-assisted)" : "(Manual re-queue)"}
-                </span>
+              
+              {/* Override Rate Card */}
+              <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.06)] p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-[13px] text-landing-muted">Override Rate</p>
+                    <p className="text-[36px] font-serif font-medium text-landing-heading mt-1">{avgOverride}<span className="text-[20px] text-landing-muted ml-1">%</span></p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)]">
+                  <RotateCcw className="w-4 h-4 text-landing-primary" />
+                  <span className="text-[13px] text-landing-muted">
+                    Priority corrections {isWithKroix ? "(AI-assisted)" : "(Manual re-queue)"}
+                  </span>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </div>
+        </section>
         
-        {/* Charts */}
-        <div className="flex-1 px-6 pb-6 min-h-0 overflow-hidden">
-          <Tabs defaultValue="mttr" className="h-full flex flex-col">
-            <TabsList className="grid w-full max-w-md grid-cols-3 bg-muted flex-shrink-0">
-              <TabsTrigger value="mttr">Time to Review</TabsTrigger>
-              <TabsTrigger value="throughput">Throughput</TabsTrigger>
-              <TabsTrigger value="overrides">Overrides</TabsTrigger>
-            </TabsList>
+        {/* Charts Section */}
+        <section className="px-8 py-8">
+          <div className="max-w-[1600px] mx-auto">
+            {/* Chart Tabs */}
+            <div className="flex items-center gap-2 mb-6">
+              <BarChart3 className="w-4 h-4 text-landing-muted" />
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "px-4 py-2 rounded-[10px] text-[14px] font-medium transition-colors",
+                    activeTab === tab.id 
+                      ? "bg-landing-primary text-white" 
+                      : "bg-landing-bg text-landing-body hover:bg-landing-primary/15 hover:text-landing-primary"
+                  )}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
             
-            <TabsContent value="mttr" className="flex-1 mt-4 min-h-0">
-              <Card className="h-full bg-surface border-border flex flex-col">
-                <CardHeader className="flex-shrink-0">
-                  <CardTitle className="text-sm font-medium">
-                    Mean Time to Review (Critical Bucket) - Last 7 Days 
-                    <span className={`ml-2 px-2 py-0.5 rounded text-xs ${isWithKroix ? 'bg-primary/20 text-primary' : 'bg-muted-foreground/20 text-muted-foreground'}`}>
-                      {isWithKroix ? "With Kroix" : "Without Kroix"}
-                    </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex-1 min-h-0">
+            {/* Chart Container */}
+            <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.06)] p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-serif text-[18px] text-landing-heading">
+                  {activeTab === "mttr" && "Mean Time to Review (Critical Bucket)"}
+                  {activeTab === "throughput" && "Scans Reviewed per Hour"}
+                  {activeTab === "overrides" && "Priority Override Rate"}
+                  <span className="text-[14px] text-landing-muted font-sans ml-2">— Last 7 Days</span>
+                </h3>
+                <span className={cn(
+                  "px-3 py-1 rounded-lg text-[12px] font-medium",
+                  isWithKroix 
+                    ? "bg-landing-primary/10 text-landing-primary" 
+                    : "bg-landing-muted/20 text-landing-muted"
+                )}>
+                  {isWithKroix ? "With Kroix" : "Without Kroix"}
+                </span>
+              </div>
+              
+              <div className="h-[400px]">
+                {activeTab === "mttr" && (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={activeMTTR}>
                       <defs>
                         <linearGradient id="mttrGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={isWithKroix ? "hsl(217, 91%, 60%)" : "hsl(0, 60%, 50%)"} stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor={isWithKroix ? "hsl(217, 91%, 60%)" : "hsl(0, 60%, 50%)"} stopOpacity={0}/>
+                          <stop offset="5%" stopColor={isWithKroix ? "#2F6F5E" : "#dc2626"} stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor={isWithKroix ? "#2F6F5E" : "#dc2626"} stopOpacity={0}/>
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 25%, 20%)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
                       <XAxis 
                         dataKey="date" 
-                        stroke="hsl(218, 15%, 65%)"
-                        tick={{ fill: 'hsl(218, 15%, 65%)', fontSize: 12 }}
+                        stroke="#9CA3AF"
+                        tick={{ fill: '#6B7280', fontSize: 12 }}
                       />
                       <YAxis 
-                        stroke="hsl(218, 15%, 65%)"
-                        tick={{ fill: 'hsl(218, 15%, 65%)', fontSize: 12 }}
+                        stroke="#9CA3AF"
+                        tick={{ fill: '#6B7280', fontSize: 12 }}
                         unit="m"
                         domain={isWithKroix ? [0, 4] : [0, 10]}
                       />
                       <Tooltip 
                         contentStyle={{ 
-                          backgroundColor: 'hsl(220, 30%, 10%)', 
-                          border: '1px solid hsl(220, 25%, 20%)',
-                          borderRadius: '8px',
+                          backgroundColor: 'white', 
+                          border: '1px solid rgba(0,0,0,0.06)',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                         }}
-                        labelStyle={{ color: 'hsl(216, 33%, 93%)' }}
+                        labelStyle={{ color: '#1F2937', fontWeight: 500 }}
                       />
                       <Area 
                         type="monotone" 
                         dataKey="value" 
-                        stroke={isWithKroix ? "hsl(217, 91%, 60%)" : "hsl(0, 60%, 50%)"} 
+                        stroke={isWithKroix ? "#2F6F5E" : "#dc2626"} 
                         fill="url(#mttrGradient)"
                         strokeWidth={2}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="throughput" className="flex-1 mt-4 min-h-0">
-              <Card className="h-full bg-surface border-border flex flex-col">
-                <CardHeader className="flex-shrink-0">
-                  <CardTitle className="text-sm font-medium">
-                    Scans Reviewed per Hour - Last 7 Days
-                    <span className={`ml-2 px-2 py-0.5 rounded text-xs ${isWithKroix ? 'bg-primary/20 text-primary' : 'bg-muted-foreground/20 text-muted-foreground'}`}>
-                      {isWithKroix ? "With Kroix" : "Without Kroix"}
-                    </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex-1 min-h-0">
+                )}
+                
+                {activeTab === "throughput" && (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={activeThroughput}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 25%, 20%)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
                       <XAxis 
                         dataKey="date" 
-                        stroke="hsl(218, 15%, 65%)"
-                        tick={{ fill: 'hsl(218, 15%, 65%)', fontSize: 12 }}
+                        stroke="#9CA3AF"
+                        tick={{ fill: '#6B7280', fontSize: 12 }}
                       />
                       <YAxis 
-                        stroke="hsl(218, 15%, 65%)"
-                        tick={{ fill: 'hsl(218, 15%, 65%)', fontSize: 12 }}
+                        stroke="#9CA3AF"
+                        tick={{ fill: '#6B7280', fontSize: 12 }}
                         domain={isWithKroix ? [20, 40] : [0, 20]}
                       />
                       <Tooltip 
                         contentStyle={{ 
-                          backgroundColor: 'hsl(220, 30%, 10%)', 
-                          border: '1px solid hsl(220, 25%, 20%)',
-                          borderRadius: '8px',
+                          backgroundColor: 'white', 
+                          border: '1px solid rgba(0,0,0,0.06)',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                         }}
-                        labelStyle={{ color: 'hsl(216, 33%, 93%)' }}
+                        labelStyle={{ color: '#1F2937', fontWeight: 500 }}
                       />
                       <Line 
                         type="monotone" 
                         dataKey="value" 
-                        stroke={isWithKroix ? "hsl(142, 71%, 45%)" : "hsl(32, 95%, 50%)"} 
+                        stroke={isWithKroix ? "#10b981" : "#f59e0b"} 
                         strokeWidth={2}
-                        dot={{ fill: isWithKroix ? 'hsl(142, 71%, 45%)' : 'hsl(32, 95%, 50%)' }}
+                        dot={{ fill: isWithKroix ? '#10b981' : '#f59e0b', strokeWidth: 0 }}
                       />
                     </LineChart>
                   </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="overrides" className="flex-1 mt-4 min-h-0">
-              <Card className="h-full bg-surface border-border flex flex-col">
-                <CardHeader className="flex-shrink-0">
-                  <CardTitle className="text-sm font-medium">
-                    Priority Override Rate (%) - Last 7 Days
-                    <span className={`ml-2 px-2 py-0.5 rounded text-xs ${isWithKroix ? 'bg-primary/20 text-primary' : 'bg-muted-foreground/20 text-muted-foreground'}`}>
-                      {isWithKroix ? "With Kroix" : "Without Kroix"}
-                    </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex-1 min-h-0">
+                )}
+                
+                {activeTab === "overrides" && (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={activeOverride}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 25%, 20%)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
                       <XAxis 
                         dataKey="date" 
-                        stroke="hsl(218, 15%, 65%)"
-                        tick={{ fill: 'hsl(218, 15%, 65%)', fontSize: 12 }}
+                        stroke="#9CA3AF"
+                        tick={{ fill: '#6B7280', fontSize: 12 }}
                       />
                       <YAxis 
-                        stroke="hsl(218, 15%, 65%)"
-                        tick={{ fill: 'hsl(218, 15%, 65%)', fontSize: 12 }}
+                        stroke="#9CA3AF"
+                        tick={{ fill: '#6B7280', fontSize: 12 }}
                         unit="%"
                         domain={isWithKroix ? [0, 20] : [0, 40]}
                       />
                       <Tooltip 
                         contentStyle={{ 
-                          backgroundColor: 'hsl(220, 30%, 10%)', 
-                          border: '1px solid hsl(220, 25%, 20%)',
-                          borderRadius: '8px',
+                          backgroundColor: 'white', 
+                          border: '1px solid rgba(0,0,0,0.06)',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                         }}
-                        labelStyle={{ color: 'hsl(216, 33%, 93%)' }}
+                        labelStyle={{ color: '#1F2937', fontWeight: 500 }}
                       />
                       <Bar 
                         dataKey="value" 
-                        fill={isWithKroix ? "hsl(32, 95%, 50%)" : "hsl(0, 60%, 50%)"} 
-                        radius={[4, 4, 0, 0]}
+                        fill={isWithKroix ? "#f59e0b" : "#dc2626"} 
+                        radius={[6, 6, 0, 0]}
                       />
                     </BarChart>
                   </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
-    </AppLayout>
+    </DashboardLayout>
   );
 }
