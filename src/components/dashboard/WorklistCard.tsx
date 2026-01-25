@@ -130,7 +130,15 @@ export function WorklistCard({ item, isSelected, isChecked, isMinimized = false,
         {/* Risk Score */}
         {item.triage ? (
           <div className="flex items-center gap-3 shrink-0">
-            <div className="w-20 h-1.5 bg-landing-bg rounded-full overflow-hidden">
+            {/* Risk bar - Animated hide when minimized */}
+            <div 
+              className={cn(
+                "h-1.5 bg-landing-bg rounded-full overflow-hidden transition-all duration-300",
+                isMinimized 
+                  ? "w-0 opacity-0" 
+                  : "w-20 opacity-100"
+              )}
+            >
               <div 
                 className={cn(
                   "h-full rounded-full transition-all duration-500",
