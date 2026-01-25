@@ -32,7 +32,7 @@ export default function Analytics() {
   const overrideData = useMemo(() => generateOverrideData(), []);
   
   // Calculate summary stats
-  const avgMTTR = Math.round(mttrData.reduce((a, b) => a + b.value, 0) / mttrData.length);
+  const avgMTTR = (mttrData.reduce((a, b) => a + b.value, 0) / mttrData.length).toFixed(2);
   const avgThroughput = Math.round(throughputData.reduce((a, b) => a + b.value, 0) / throughputData.length);
   const avgOverride = Math.round(overrideData.reduce((a, b) => a + b.value, 0) / overrideData.length);
   
@@ -69,7 +69,7 @@ export default function Analytics() {
                 </div>
                 <div className={`flex items-center gap-1 text-sm ${mttrTrend < 0 ? 'text-clear' : 'text-critical'}`}>
                   {mttrTrend < 0 ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
-                  {Math.abs(mttrTrend)}m
+                  {Math.abs(mttrTrend).toFixed(2)}m
                 </div>
               </div>
               <div className="flex items-center gap-2 mt-4">
