@@ -54,24 +54,32 @@ export function LabFlags({ labs, compact = false, className }: LabFlagsProps) {
     .filter(item => item.status && item.status.status !== "normal");
   
   if (compact) {
-    // Show only abnormal flags as badges
-    if (flaggedItems.length === 0) return null;
-    
+    // Show all biomarkers inline with status colors
     return (
-      <div className={cn("flex items-center gap-1", className)}>
-        {flaggedItems.map(item => (
-          <span
-            key={item.type}
-            className={cn(
-              "text-[10px] font-medium px-1.5 py-0.5 rounded",
-              item.status?.status === "high" && "bg-critical/20 text-critical",
-              item.status?.status === "elevated" && "bg-warning/20 text-warning",
-              item.status?.status === "low" && "bg-warning/20 text-warning"
-            )}
-          >
-            {item.label}{item.status?.label}
-          </span>
-        ))}
+      <div className={cn("flex flex-wrap items-center gap-1", className)}>
+        {items.map(item => {
+          const status = getLabStatus(item.type, item.value);
+          const isAbnormal = status && status.status !== "normal";
+          
+          if (item.value === null) return null;
+          
+          return (
+            <span
+              key={item.type}
+              className={cn(
+                "text-[10px] font-medium px-1.5 py-0.5 rounded whitespace-nowrap",
+                isAbnormal && status?.status === "high" && "bg-critical/20 text-critical",
+                isAbnormal && status?.status === "elevated" && "bg-warning/20 text-warning",
+                isAbnormal && status?.status === "low" && "bg-warning/20 text-warning",
+                !isAbnormal && "bg-muted text-muted-foreground"
+              )}
+              title={`${item.label}: ${item.value?.toFixed(item.type === "ph" || item.type === "procalcitonin" ? 2 : item.type === "wbc" || item.type === "crp" ? 1 : 0)} ${item.unit}`}
+            >
+              {item.label}
+              {isAbnormal && status?.label}
+            </span>
+          );
+        })}
       </div>
     );
   }
