@@ -37,13 +37,13 @@ import workflowReport from "@/assets/landing/workflow-report.jpg";
 
 // Animated Ellipses Component - Removed as per user request
 
-// Generate mock data for throughput comparison
+// Generate mock data for throughput comparison (scans per day for landing page)
 const generateThroughputData = () => {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   return days.map((day) => ({
     day,
-    withKroix: Math.floor(Math.random() * 15) + 35,
-    withoutKroix: Math.floor(Math.random() * 10) + 18,
+    withKroix: Math.floor(Math.random() * 8) + 28, // 28-35 scans/day
+    withoutKroix: Math.floor(Math.random() * 7) + 12, // 12-18 scans/day
   }));
 };
 

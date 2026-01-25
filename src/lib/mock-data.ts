@@ -114,6 +114,7 @@ export const mockQueueState: QueueState = {
   lastUpdated: new Date(),
 };
 
+// Analytics data generators - With Kroix
 export const generateMTTRData = (): AnalyticsMetric[] => {
   const data: AnalyticsMetric[] = [];
   for (let i = 6; i >= 0; i--) {
@@ -121,7 +122,7 @@ export const generateMTTRData = (): AnalyticsMetric[] => {
     date.setDate(date.getDate() - i);
     data.push({
       date: date.toISOString().split('T')[0],
-      value: Math.round((1 + Math.random() * 1.9) * 10) / 10, // minutes (under 3)
+      value: Math.round((1 + Math.random() * 1.9) * 10) / 10, // 1-2.9 minutes
     });
   }
   return data;
@@ -134,7 +135,7 @@ export const generateThroughputData = (): AnalyticsMetric[] => {
     date.setDate(date.getDate() - i);
     data.push({
       date: date.toISOString().split('T')[0],
-      value: Math.round(12 + Math.random() * 8), // scans per hour
+      value: Math.round(28 + Math.random() * 7), // 28-35 scans per hour
     });
   }
   return data;
@@ -147,7 +148,47 @@ export const generateOverrideData = (): AnalyticsMetric[] => {
     date.setDate(date.getDate() - i);
     data.push({
       date: date.toISOString().split('T')[0],
-      value: Math.round(Math.random() * 12), // override percentage
+      value: Math.round(Math.random() * 12), // 0-12% override rate
+    });
+  }
+  return data;
+};
+
+// Analytics data generators - Without Kroix (baseline)
+export const generateMTTRDataBaseline = (): AnalyticsMetric[] => {
+  const data: AnalyticsMetric[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    data.push({
+      date: date.toISOString().split('T')[0],
+      value: Math.round((5 + Math.random() * 2.5) * 10) / 10, // 5-7.5 minutes
+    });
+  }
+  return data;
+};
+
+export const generateThroughputDataBaseline = (): AnalyticsMetric[] => {
+  const data: AnalyticsMetric[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    data.push({
+      date: date.toISOString().split('T')[0],
+      value: Math.round(8 + Math.random() * 7), // 8-15 scans per hour
+    });
+  }
+  return data;
+};
+
+export const generateOverrideDataBaseline = (): AnalyticsMetric[] => {
+  const data: AnalyticsMetric[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    data.push({
+      date: date.toISOString().split('T')[0],
+      value: Math.round(20 + Math.random() * 10), // 20-30% override rate
     });
   }
   return data;
