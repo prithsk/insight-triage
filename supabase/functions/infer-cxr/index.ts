@@ -161,30 +161,35 @@ function generateROIHeatmap(findings: string[]): string {
 async function analyzeChestXRay(imageBase64: string, apiKey: string): Promise<ClinicalFindings> {
   const startTime = Date.now();
   
-  const systemPrompt = `You are an expert radiologist AI assistant specialized in chest X-ray analysis for pneumonia detection.
+  const systemPrompt = `You are an expert radiologist AI specialized in chest X-ray pneumonia detection. Your role is to provide ACCURATE and DIFFERENTIATED risk assessments.
 
-Analyze the provided chest X-ray image and assess for signs of pneumonia. Consider:
+CRITICAL: Do NOT default to middle scores (0.3-0.4). Carefully analyze the image and provide an accurate score based on what you actually see:
+
+SCORING CRITERIA:
+- 0.00-0.15: CLEAR - Completely normal chest X-ray, clear lung fields, no opacities
+- 0.16-0.29: CLEAR - Minimal non-specific findings, essentially normal
+- 0.30-0.45: REVIEW (Low) - Subtle findings, mild interstitial changes, needs correlation
+- 0.46-0.64: REVIEW (Moderate) - Clear abnormalities, patchy opacities, unilateral involvement
+- 0.65-0.79: CRITICAL (High) - Significant consolidation, bilateral involvement, air bronchograms
+- 0.80-1.00: CRITICAL (Severe) - Extensive bilateral consolidation, ARDS pattern, near-complete opacification
+
+ANALYZE FOR:
 1. Consolidation patterns (lobar, bronchopneumonia, interstitial)
-2. Air bronchograms
+2. Air bronchograms (indicates alveolar filling)
 3. Silhouette sign (obscured heart/diaphragm borders)
 4. Pleural effusions
-5. Lung opacity distribution (unilateral vs bilateral)
-6. Pattern of infiltrates (patchy, diffuse, focal)
-7. Severity indicators (extent of lung involvement)
+5. Distribution (unilateral vs bilateral - bilateral is more severe)
+6. Extent of lung involvement (percentage of lung affected)
+7. Ground-glass vs solid opacities
 
-Provide your analysis in the following JSON format:
+OUTPUT FORMAT (JSON only, no markdown):
 {
-  "risk_score": <number 0.0-1.0 where 0 is normal, 1 is severe>,
-  "findings": [<array of specific radiological findings>],
-  "severity_rationale": "<brief explanation of severity assessment>"
+  "risk_score": <precise decimal 0.00-1.00>,
+  "findings": ["finding 1", "finding 2", ...],
+  "severity_rationale": "explanation"
 }
 
-Risk Score Guidelines:
-- 0.0-0.29 (CLEAR): Normal or minimal findings, no significant pathology
-- 0.30-0.64 (REVIEW): Mild to moderate findings requiring clinical correlation
-- 0.65-1.0 (CRITICAL): Severe findings requiring urgent attention
-
-Be accurate and clinically relevant. If the image shows a relatively clear chest with minimal opacities, score it appropriately low. If there are significant consolidations, infiltrates, or bilateral involvement, score higher.`;
+IMPORTANT: Be precise. A normal chest X-ray should score 0.05-0.15. Severe bilateral pneumonia should score 0.75-0.95. Avoid clustering all scores around 0.35.`;
 
   try {
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -200,7 +205,7 @@ Be accurate and clinically relevant. If the image shows a relatively clear chest
           { 
             role: 'user', 
             content: [
-              { type: 'text', text: 'Analyze this chest X-ray for pneumonia and provide your assessment in JSON format.' },
+              { type: 'text', text: 'Analyze this chest X-ray image. Provide a precise risk_score based on actual pneumonia severity observed. Return ONLY valid JSON, no markdown code blocks.' },
               { 
                 type: 'image_url', 
                 image_url: { 
@@ -211,7 +216,7 @@ Be accurate and clinically relevant. If the image shows a relatively clear chest
           }
         ],
         max_tokens: 1000,
-        temperature: 0.3,
+        temperature: 0.2,
       }),
     });
 
