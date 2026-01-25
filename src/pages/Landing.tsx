@@ -553,48 +553,62 @@ const Landing = () => {
             </p>
           </div>
 
-          {/* 2x2 Metrics Grid with varied heights - short/tall pattern reversed on second row */}
-          <div className="grid md:grid-cols-2 gap-4 mb-20 max-w-3xl mx-auto items-start">
-            {/* Row 1: Short left, Tall right */}
-            {/* Metric 1 - Shorter */}
-            <div className="text-center p-4 rounded-xl border border-landing-primary/20 bg-landing-bg/50 self-start">
-              <div className="w-8 h-8 rounded-md border border-landing-primary/20 flex items-center justify-center mx-auto mb-2">
-                <Clock className="w-4 h-4 text-landing-primary" />
+          {/* 2x2 Metrics Grid - uniform rectangles */}
+          <div className="grid md:grid-cols-2 gap-6 mb-20 max-w-4xl mx-auto">
+            {/* Metric 1 */}
+            <div className="flex items-center justify-between p-6 rounded-xl border border-landing-primary/20 bg-landing-bg/50">
+              <div>
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-3xl font-serif font-medium text-landing-heading">40%</span>
+                  <span className="text-xl font-serif text-landing-heading">Faster MTTR</span>
+                </div>
+                <p className="text-sm text-landing-primary">Reduce diagnostic delays.</p>
               </div>
-              <div className="text-3xl font-serif font-medium text-landing-heading mb-1">40%</div>
-              <div className="text-landing-heading font-medium text-sm">Faster Mean Time to Review</div>
-              <p className="text-landing-muted text-xs mt-1">Reduce diagnostic delays.</p>
+              <div className="w-10 h-10 rounded-md border border-landing-primary/20 flex items-center justify-center flex-shrink-0 ml-4">
+                <Clock className="w-6 h-6 text-landing-primary" />
+              </div>
             </div>
 
-            {/* Metric 2 - Taller */}
-            <div className="text-center p-4 pb-6 rounded-xl border border-landing-primary/20 bg-landing-bg/50 self-start">
-              <div className="w-8 h-8 rounded-md border border-landing-primary/20 flex items-center justify-center mx-auto mb-2">
-                <TrendingUp className="w-4 h-4 text-landing-primary" />
+            {/* Metric 2 */}
+            <div className="flex items-center justify-between p-6 rounded-xl border border-landing-primary/20 bg-landing-bg/50">
+              <div>
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-3xl font-serif font-medium text-landing-heading">25%</span>
+                  <span className="text-xl font-serif text-landing-heading">Throughput Increase</span>
+                </div>
+                <p className="text-sm text-landing-primary">Process more studies per shift.</p>
               </div>
-              <div className="text-3xl font-serif font-medium text-landing-heading mb-1">25%</div>
-              <div className="text-landing-heading font-medium text-sm mb-1">Increase in Throughput</div>
-              <p className="text-landing-muted text-xs">Process more studies per shift without compromising quality.</p>
+              <div className="w-10 h-10 rounded-md border border-landing-primary/20 flex items-center justify-center flex-shrink-0 ml-4">
+                <TrendingUp className="w-6 h-6 text-landing-primary" />
+              </div>
             </div>
 
-            {/* Row 2: Tall left, Short right */}
-            {/* Metric 3 - Taller */}
-            <div className="text-center p-4 pb-6 rounded-xl border border-landing-primary/20 bg-landing-bg/50 self-start">
-              <div className="w-8 h-8 rounded-md border border-landing-primary/20 flex items-center justify-center mx-auto mb-2">
-                <Target className="w-4 h-4 text-landing-primary" />
+            {/* Metric 3 */}
+            <div className="flex items-center justify-between p-6 rounded-xl border border-landing-primary/20 bg-landing-bg/50">
+              <div>
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-3xl font-serif font-medium text-landing-heading">95%</span>
+                  <span className="text-xl font-serif text-landing-heading">Critical Detection</span>
+                </div>
+                <p className="text-sm text-landing-primary">High-acuity respiratory findings.</p>
               </div>
-              <div className="text-3xl font-serif font-medium text-landing-heading mb-1">95%</div>
-              <div className="text-landing-heading font-medium text-sm mb-1">Critical Case Detection</div>
-              <p className="text-landing-muted text-xs">Validated sensitivity for high-acuity respiratory findings.</p>
+              <div className="w-10 h-10 rounded-md border border-landing-primary/20 flex items-center justify-center flex-shrink-0 ml-4">
+                <Target className="w-6 h-6 text-landing-primary" />
+              </div>
             </div>
 
-            {/* Metric 4 - Shorter */}
-            <div className="text-center p-4 rounded-xl border border-landing-primary/20 bg-landing-bg/50 self-start">
-              <div className="w-8 h-8 rounded-md border border-landing-primary/20 flex items-center justify-center mx-auto mb-2">
-                <Zap className="w-4 h-4 text-landing-primary" />
+            {/* Metric 4 */}
+            <div className="flex items-center justify-between p-6 rounded-xl border border-landing-primary/20 bg-landing-bg/50">
+              <div>
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-3xl font-serif font-medium text-landing-heading">&lt;5s</span>
+                  <span className="text-xl font-serif text-landing-heading">Inference Time</span>
+                </div>
+                <p className="text-sm text-landing-primary">Lightning-fast AI processing.</p>
               </div>
-              <div className="text-3xl font-serif font-medium text-landing-heading mb-1">&lt;5s</div>
-              <div className="text-landing-heading font-medium text-sm">Average Inference Time</div>
-              <p className="text-landing-muted text-xs mt-1">Lightning-fast AI inference.</p>
+              <div className="w-10 h-10 rounded-md border border-landing-primary/20 flex items-center justify-center flex-shrink-0 ml-4">
+                <Zap className="w-6 h-6 text-landing-primary" />
+              </div>
             </div>
           </div>
 
