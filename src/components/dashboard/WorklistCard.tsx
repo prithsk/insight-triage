@@ -75,22 +75,22 @@ export function WorklistCard({ item, isSelected, isChecked, onSelect, onCheck }:
           />
         </div>
 
-        {/* Study ID */}
-        <div className="w-24 shrink-0">
-          <p className="font-mono text-[13px] text-landing-muted truncate">
-            {item.study.id.slice(0, 8)}...
+        {/* Study ID - Full display */}
+        <div className="w-[220px] shrink-0">
+          <p className="font-mono text-[13px] text-landing-muted">
+            {item.study.id}
           </p>
         </div>
         
         {/* Patient Hash */}
-        <div className="flex-1 min-w-0">
+        <div className="w-48 shrink-0">
           <h3 className="font-serif text-[16px] font-medium text-landing-heading truncate">
             {item.study.patient_hash}
           </h3>
         </div>
         
         {/* Metadata */}
-        <div className="flex items-center gap-4 shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
           <span className="flex items-center gap-1.5 text-[13px] text-landing-body">
             <Clock className="w-3.5 h-3.5 text-landing-muted" />
             {formatStudyTime(item.study.study_time)}
@@ -103,9 +103,12 @@ export function WorklistCard({ item, isSelected, isChecked, onSelect, onCheck }:
           )}
         </div>
 
+        {/* Spacer */}
+        <div className="flex-1" />
+
         {/* Risk Score */}
         {item.triage ? (
-          <div className="flex items-center gap-3 shrink-0 w-32">
+          <div className="flex items-center gap-2 shrink-0 w-28">
             <div className="flex-1 h-1.5 bg-landing-bg rounded-full overflow-hidden">
               <div 
                 className={cn(
@@ -118,7 +121,7 @@ export function WorklistCard({ item, isSelected, isChecked, onSelect, onCheck }:
               />
             </div>
             <span className={cn(
-              "font-mono text-[14px] font-semibold w-10 text-right",
+              "font-mono text-[13px] font-semibold w-9 text-right",
               bucket === "CRITICAL" && "text-red-600",
               bucket === "REVIEW" && "text-amber-600",
               bucket === "CLEAR" && "text-emerald-600",
@@ -127,7 +130,7 @@ export function WorklistCard({ item, isSelected, isChecked, onSelect, onCheck }:
             </span>
           </div>
         ) : (
-          <div className="flex items-center gap-2 shrink-0 w-32">
+          <div className="flex items-center gap-2 shrink-0 w-28">
             <div className="w-2 h-2 rounded-full bg-landing-muted animate-pulse" />
             <span className="text-[12px] text-landing-muted italic">Pending...</span>
           </div>
