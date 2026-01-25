@@ -35,23 +35,7 @@ import featureAnalysis from "@/assets/landing/feature-analysis.jpg";
 import workflowDicom from "@/assets/landing/workflow-dicom.jpg";
 import workflowReport from "@/assets/landing/workflow-report.jpg";
 
-// Animated Ellipses Component
-const AnimatedEllipses = () => (
-  <div className="absolute -right-8 top-1/2 -translate-y-1/2 hidden xl:flex flex-col gap-3">
-    {[0, 1, 2].map((i) => (
-      <div 
-        key={i} 
-        className="w-8 h-8 rounded-full border-2 border-landing-primary/40 relative overflow-hidden"
-      >
-        {/* Animated dot inside each ellipse */}
-        <div 
-          className="absolute w-2 h-2 bg-landing-primary rounded-full animate-orbit"
-          style={{ animationDelay: `${i * 0.3}s` }}
-        />
-      </div>
-    ))}
-  </div>
-);
+// Animated Ellipses Component - Removed as per user request
 
 // Generate mock data for throughput comparison
 const generateThroughputData = () => {
@@ -114,19 +98,6 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-landing-bg text-landing-heading overflow-x-hidden">
-      {/* Orbit animation for ellipses */}
-      <style>{`
-        @keyframes orbit {
-          0% { transform: translate(0, 0); }
-          25% { transform: translate(16px, 8px); }
-          50% { transform: translate(20px, 16px); }
-          75% { transform: translate(8px, 20px); }
-          100% { transform: translate(0, 0); }
-        }
-        .animate-orbit {
-          animation: orbit 2s ease-in-out infinite;
-        }
-      `}</style>
 
       {/* Subtle grain texture overlay */}
       <div 
@@ -176,9 +147,8 @@ const Landing = () => {
             {/* Left: Content */}
             <div className="max-w-xl relative">
               <h1 className="font-serif text-[64px] lg:text-[72px] leading-[1.05] font-medium text-landing-heading mb-8 tracking-[-0.02em]">
-                Next-generation AI for <em className="not-italic underline decoration-landing-primary/30 decoration-2 underline-offset-4">clinical radiology</em>.
+                Next-generation AI for <em className="not-italic text-landing-primary">clinical radiology</em>.
               </h1>
-              <AnimatedEllipses />
               <p className="text-xl text-landing-body leading-relaxed mb-10">
                 Intelligent triage prioritization that moves <strong className="font-semibold text-landing-heading">critical respiratory cases</strong> to the front—delivering faster reads with <em>measurable accuracy</em>.
               </p>
@@ -300,7 +270,7 @@ const Landing = () => {
                 Analysis
               </span>
               <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading mb-6 tracking-[-0.01em]">
-                <strong>Comprehensive</strong> Analysis
+                Comprehensive Analysis
               </h2>
               <p className="text-lg text-landing-body leading-relaxed mb-6">
                 AI-powered detection that identifies <em>critical findings</em> across every chest X-ray study.
@@ -312,7 +282,7 @@ const Landing = () => {
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="w-1 h-1 rounded-full bg-landing-primary" />
-                  Consolidation and <em>opacity mapping</em>
+                  Consolidation and opacity <em>mapping</em>
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="w-1 h-1 rounded-full bg-landing-primary" />
@@ -397,7 +367,7 @@ const Landing = () => {
                 Speed
               </span>
               <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading mb-6 tracking-[-0.01em]">
-                Real-time <em className="not-italic underline decoration-landing-primary/30 decoration-2 underline-offset-4">Processing</em>
+                Real-time <strong>Processing</strong>
               </h2>
               <p className="text-lg text-landing-body leading-relaxed mb-6">
                 Sub-5 second inference times that fit <strong className="font-semibold text-landing-heading">seamlessly</strong> into existing workflows.
@@ -426,7 +396,7 @@ const Landing = () => {
                 Precision
               </span>
               <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading mb-6 tracking-[-0.01em]">
-                Clinical-grade <strong>Accuracy</strong>
+                Clinical-grade Accuracy
               </h2>
               <p className="text-lg text-landing-body leading-relaxed mb-6">
                 Validated performance metrics that meet the demands of <em>clinical environments</em>.
@@ -442,7 +412,7 @@ const Landing = () => {
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="w-1 h-1 rounded-full bg-landing-primary" />
-                  Transparent <em>confidence scoring</em>
+                  <em>Transparent</em> confidence scoring
                 </li>
               </ul>
             </div>
@@ -576,51 +546,53 @@ const Landing = () => {
               Clinical Impact
             </span>
             <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading tracking-[-0.01em] mb-6">
-              <strong>Measurable</strong> Outcomes
+              Measurable Outcomes
             </h2>
             <p className="text-lg text-landing-body max-w-2xl mx-auto">
               Real performance metrics that demonstrate the <em>value of AI-assisted triage</em> in clinical workflows.
             </p>
           </div>
 
-          {/* 2x2 Metrics Grid with varied heights */}
+          {/* 2x2 Metrics Grid with varied heights - short/tall pattern reversed on second row */}
           <div className="grid md:grid-cols-2 gap-6 mb-20 max-w-4xl mx-auto">
-            {/* Metric 1 - Taller */}
-            <div className="text-center p-8 pb-12 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-landing-bg/50">
-              <div className="w-12 h-12 rounded-xl border border-landing-primary flex items-center justify-center mx-auto mb-4">
+            {/* Row 1: Short left, Tall right */}
+            {/* Metric 1 - Shorter */}
+            <div className="text-center p-6 rounded-2xl border border-landing-primary/20 bg-landing-bg/50">
+              <div className="w-12 h-12 rounded-xl border border-landing-primary/20 flex items-center justify-center mx-auto mb-4">
                 <Clock className="w-6 h-6 text-landing-primary" />
               </div>
               <div className="text-5xl font-serif font-medium text-landing-heading mb-3">40%</div>
-              <div className="text-landing-heading font-medium text-[16px] mb-2">Faster Mean Time to Review</div>
-              <p className="text-landing-muted text-sm">Critical cases reach radiologists sooner, reducing diagnostic delays.</p>
+              <div className="text-landing-heading font-medium text-[16px]">Faster Mean Time to Review</div>
             </div>
 
-            {/* Metric 2 - Shorter */}
-            <div className="text-center p-8 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-landing-bg/50">
-              <div className="w-12 h-12 rounded-xl border border-landing-primary flex items-center justify-center mx-auto mb-4">
+            {/* Metric 2 - Taller */}
+            <div className="text-center p-6 pb-10 rounded-2xl border border-landing-primary/20 bg-landing-bg/50">
+              <div className="w-12 h-12 rounded-xl border border-landing-primary/20 flex items-center justify-center mx-auto mb-4">
                 <TrendingUp className="w-6 h-6 text-landing-primary" />
               </div>
               <div className="text-5xl font-serif font-medium text-landing-heading mb-3">25%</div>
-              <div className="text-landing-heading font-medium text-[16px]">Increase in Throughput</div>
+              <div className="text-landing-heading font-medium text-[16px] mb-2">Increase in Throughput</div>
+              <p className="text-landing-muted text-sm">Process more studies per shift without compromising quality.</p>
             </div>
 
-            {/* Metric 3 - Shorter */}
-            <div className="text-center p-8 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-landing-bg/50">
-              <div className="w-12 h-12 rounded-xl border border-landing-primary flex items-center justify-center mx-auto mb-4">
+            {/* Row 2: Tall left, Short right */}
+            {/* Metric 3 - Taller */}
+            <div className="text-center p-6 pb-10 rounded-2xl border border-landing-primary/20 bg-landing-bg/50">
+              <div className="w-12 h-12 rounded-xl border border-landing-primary/20 flex items-center justify-center mx-auto mb-4">
                 <Target className="w-6 h-6 text-landing-primary" />
               </div>
               <div className="text-5xl font-serif font-medium text-landing-heading mb-3">95%</div>
-              <div className="text-landing-heading font-medium text-[16px]">Critical Case Detection</div>
+              <div className="text-landing-heading font-medium text-[16px] mb-2">Critical Case Detection</div>
+              <p className="text-landing-muted text-sm">Validated sensitivity for high-acuity respiratory findings.</p>
             </div>
 
-            {/* Metric 4 - Taller */}
-            <div className="text-center p-8 pb-12 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-landing-bg/50">
-              <div className="w-12 h-12 rounded-xl border border-landing-primary flex items-center justify-center mx-auto mb-4">
+            {/* Metric 4 - Shorter */}
+            <div className="text-center p-6 rounded-2xl border border-landing-primary/20 bg-landing-bg/50">
+              <div className="w-12 h-12 rounded-xl border border-landing-primary/20 flex items-center justify-center mx-auto mb-4">
                 <Zap className="w-6 h-6 text-landing-primary" />
               </div>
               <div className="text-5xl font-serif font-medium text-landing-heading mb-3">&lt;5s</div>
-              <div className="text-landing-heading font-medium text-[16px] mb-2">Average Inference Time</div>
-              <p className="text-landing-muted text-sm">Near-instant analysis that doesn't slow down your workflow.</p>
+              <div className="text-landing-heading font-medium text-[16px]">Average Inference Time</div>
             </div>
           </div>
 
@@ -657,7 +629,7 @@ const Landing = () => {
             Ready to <em className="not-italic underline decoration-landing-primary/30 decoration-2 underline-offset-4">transform</em> your workflow?
           </h2>
           <p className="text-xl text-landing-body mb-10 max-w-xl mx-auto">
-            Join leading radiology practices using Kroix to <strong className="font-semibold text-landing-heading">prioritize critical cases</strong> and improve patient outcomes.
+            Join leading radiology practices using Kroix to <em>prioritize critical cases</em> and improve patient outcomes.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
@@ -670,7 +642,7 @@ const Landing = () => {
             </Dialog>
             <Link to="/contact">
               <button className="px-8 py-4 border border-landing-primary text-landing-primary rounded-[10px] text-[16px] font-medium hover:bg-landing-primary hover:text-white transition-colors">
-                Contact sales
+                Contact
               </button>
             </Link>
           </div>
