@@ -379,7 +379,17 @@ export default function Analytics() {
                 
                 {activeTab === "throughput" && (
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={combinedThroughput}>
+                    <AreaChart data={combinedThroughput}>
+                      <defs>
+                        <linearGradient id="throughputGradientWith" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#2F6F5E" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#2F6F5E" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="throughputGradientWithout" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#9CA3AF" stopOpacity={0.15}/>
+                          <stop offset="95%" stopColor="#9CA3AF" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
                       <XAxis 
                         dataKey="date" 
@@ -404,22 +414,22 @@ export default function Analytics() {
                           name === 'withKroix' ? 'With Kroix' : 'Without Kroix'
                         ]}
                       />
-                      <Line 
+                      <Area 
                         type="monotone" 
                         dataKey="withoutKroix" 
                         stroke="#9CA3AF" 
+                        fill="url(#throughputGradientWithout)"
                         strokeWidth={2}
                         strokeDasharray="4 4"
-                        dot={{ fill: '#9CA3AF', strokeWidth: 0 }}
                       />
-                      <Line 
+                      <Area 
                         type="monotone" 
                         dataKey="withKroix" 
                         stroke="#2F6F5E" 
+                        fill="url(#throughputGradientWith)"
                         strokeWidth={2}
-                        dot={{ fill: '#2F6F5E', strokeWidth: 0 }}
                       />
-                    </LineChart>
+                    </AreaChart>
                   </ResponsiveContainer>
                 )}
                 
