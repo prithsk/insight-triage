@@ -154,10 +154,10 @@ export default function Documents() {
     <AppLayout>
       <div className="h-[calc(100vh-3.5rem)] flex flex-col overflow-auto">
         {/* Page Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 bg-surface/50 backdrop-blur-sm">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface">
           <div>
-            <h1 className="text-2xl font-serif font-semibold tracking-tight">Admin Documents</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h1 className="text-xl font-semibold">Admin Documents</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
               Manage SOPs, guidelines, and knowledge base documents
             </p>
           </div>
@@ -256,12 +256,12 @@ export default function Documents() {
             />
           </div>
           
-          {/* Stats - Glassmorphism */}
+          {/* Stats */}
           <div className="grid grid-cols-4 gap-4 mb-6">
-            <Card>
+            <Card className="bg-surface border-border">
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-primary/15 border border-primary/20">
+                  <div className="p-2 rounded-lg bg-primary/10">
                     <FileText className="w-5 h-5 text-primary" />
                   </div>
                   <div>
@@ -271,11 +271,11 @@ export default function Documents() {
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
+            
+            <Card className="bg-surface border-border">
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-clear/15 border border-clear/20">
+                  <div className="p-2 rounded-lg bg-clear/10">
                     <FileCheck className="w-5 h-5 text-clear" />
                   </div>
                   <div>
@@ -285,11 +285,11 @@ export default function Documents() {
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
+            
+            <Card className="bg-surface border-border">
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-warning/15 border border-warning/20">
+                  <div className="p-2 rounded-lg bg-warning/10">
                     <Clock className="w-5 h-5 text-warning" />
                   </div>
                   <div>
@@ -299,11 +299,11 @@ export default function Documents() {
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
+            
+            <Card className="bg-surface border-border">
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-white/5 border border-white/10">
+                  <div className="p-2 rounded-lg bg-muted">
                     <FileText className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <div>
@@ -316,7 +316,7 @@ export default function Documents() {
           </div>
           
           {/* Document List */}
-          <Card>
+          <Card className="bg-surface border-border">
             <CardHeader className="pb-0">
               <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                 Document Library
@@ -329,7 +329,7 @@ export default function Documents() {
                 </div>
               ) : filteredDocs.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
-                  {allDocuments.length === 0
+                  {allDocuments.length === 0 
                     ? "No documents uploaded yet. Click 'Upload Document' to get started."
                     : "No documents match your search."
                   }
@@ -340,8 +340,8 @@ export default function Documents() {
                     <div
                       key={doc.id}
                       className={cn(
-                        "flex items-center justify-between p-4 rounded-xl border border-white/5",
-                        "hover:bg-white/5 hover:border-primary/20 transition-all cursor-pointer"
+                        "flex items-center justify-between p-4 rounded-lg border border-border",
+                        "hover:bg-muted/30 transition-colors cursor-pointer"
                       )}
                     >
                       <div className="flex items-center gap-4">

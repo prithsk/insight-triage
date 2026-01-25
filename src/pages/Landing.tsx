@@ -56,37 +56,37 @@ const Landing = () => {
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-6">
-        {/* Animated background - Orange/coral gradients */}
+        {/* Animated background */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-primary/8 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/8 rounded-full blur-[100px] animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-critical/6 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-primary/5 to-transparent rounded-full" />
         </div>
 
-        {/* Dot-matrix pattern overlay */}
-        <div className="absolute inset-0 bg-dot-pattern opacity-50" />
+        {/* Subtle grid overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:80px_80px]" />
 
-        {/* Navigation - Glassmorphism */}
+        {/* Navigation */}
         <nav className="absolute top-0 left-0 right-0 flex items-center justify-between px-8 py-6 z-20">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/30">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20">
               <Activity className="w-5 h-5 text-primary-foreground" strokeWidth={2.5} />
             </div>
             <span className="text-xl font-bold tracking-tight">Kroix</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <Link to="/about">
-              <Button variant="ghost" className="text-muted-foreground hover:text-foreground rounded-full">
+              <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
                 About
               </Button>
             </Link>
             <Link to="/contact">
-              <Button variant="ghost" className="text-muted-foreground hover:text-foreground rounded-full">
+              <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
                 Contact
               </Button>
             </Link>
             <Link to="/login">
-              <Button className="bg-primary/15 text-primary hover:bg-primary/25 border border-primary/20 rounded-full shadow-lg shadow-primary/10">
+              <Button className="bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20">
                 Sign In
               </Button>
             </Link>
@@ -95,7 +95,7 @@ const Landing = () => {
 
         <div className="relative z-10 text-center max-w-5xl mx-auto">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/15 border border-primary/25 text-sm text-primary mb-8 backdrop-blur-sm">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm text-primary mb-8">
             <Sparkles className="w-4 h-4" />
             <span>AI-Powered Radiology Workflow</span>
           </div>
@@ -103,14 +103,14 @@ const Landing = () => {
           {/* Logo & Brand */}
           <div className="mb-6 flex items-center justify-center">
             <div className="relative">
-              <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-primary via-primary/80 to-primary/60 flex items-center justify-center shadow-2xl shadow-primary/50 animate-glow-pulse">
+              <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-primary via-primary/80 to-critical flex items-center justify-center shadow-2xl shadow-primary/40">
                 <Activity className="w-14 h-14 text-primary-foreground" strokeWidth={2} />
               </div>
-              <div className="absolute -inset-2 bg-gradient-to-br from-primary/50 to-primary/30 rounded-3xl blur-xl opacity-60 -z-10" />
+              <div className="absolute -inset-2 bg-gradient-to-br from-primary/50 to-critical/50 rounded-3xl blur-xl opacity-50 -z-10" />
             </div>
           </div>
 
-          <h1 className="text-8xl md:text-[10rem] font-serif font-bold tracking-tight mb-2 leading-none">
+          <h1 className="text-8xl md:text-[10rem] font-bold tracking-tighter mb-2 leading-none">
             <span className="bg-gradient-to-b from-foreground to-muted-foreground/70 bg-clip-text text-transparent">
               Kroix
             </span>
@@ -126,22 +126,22 @@ const Landing = () => {
             <span className="text-muted-foreground/80">Faster reads. Better outcomes. Proven results.</span>
           </p>
 
-          {/* CTA - Orange with glow */}
+          {/* CTA */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/dashboard">
-              <Button
-                size="lg"
-                className="text-lg px-10 py-7 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-xl shadow-primary/40 transition-all hover:shadow-2xl hover:shadow-primary/50 hover:-translate-y-1 group rounded-xl"
+              <Button 
+                size="lg" 
+                className="text-lg px-10 py-7 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-xl shadow-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-1 group"
               >
                 Launch Dashboard
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link to="/dashboard">
-              <Button
-                size="lg"
-                variant="glass"
-                className="text-lg px-10 py-7 hover:border-primary/30 transition-all rounded-xl"
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="text-lg px-10 py-7 border-border/40 bg-background/50 backdrop-blur-sm hover:bg-surface hover:border-primary/40 transition-all"
               >
                 <Brain className="w-5 h-5 mr-2" />
                 See How It Works
@@ -149,17 +149,17 @@ const Landing = () => {
             </Link>
           </div>
 
-          {/* Trust indicators - Glassmorphism pills */}
-          <div className="mt-20 flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
+          {/* Trust indicators */}
+          <div className="mt-20 flex flex-wrap items-center justify-center gap-6 md:gap-10 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface/50 border border-border/50">
               <Shield className="w-4 h-4 text-clear" />
               <span>HIPAA Ready</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface/50 border border-border/50">
               <Activity className="w-4 h-4 text-primary" />
               <span>Non-Diagnostic Aid</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface/50 border border-border/50">
               <Zap className="w-4 h-4 text-warning" />
               <span>Sub-5s Inference</span>
             </div>
@@ -175,12 +175,11 @@ const Landing = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-32 px-6 bg-gradient-to-b from-surface/30 to-background relative">
-        <div className="absolute inset-0 bg-dot-pattern opacity-30" />
-        <div className="max-w-6xl mx-auto relative z-10">
+      <section className="py-32 px-6 bg-gradient-to-b from-surface/30 to-background">
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-20">
             <p className="text-primary font-medium mb-3 tracking-wide uppercase text-sm">Capabilities</p>
-            <h2 className="text-5xl font-serif font-bold mb-6 tracking-tight">Intelligent Workflow Orchestration</h2>
+            <h2 className="text-5xl font-bold mb-6 tracking-tight">Intelligent Workflow Orchestration</h2>
             <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
               Kroix transforms how radiologists work by prioritizing what matters most
             </p>
@@ -188,45 +187,45 @@ const Landing = () => {
 
           <div className="grid md:grid-cols-3 gap-6">
             {/* Feature 1 */}
-            <div className="group relative p-8 rounded-3xl bg-card/50 backdrop-blur-sm border border-white/5 hover:border-critical/30 transition-all hover:-translate-y-2 duration-300">
+            <div className="group relative p-8 rounded-3xl bg-gradient-to-b from-surface to-background border border-border/50 hover:border-critical/30 transition-all hover:-translate-y-2 duration-300">
               <div className="absolute inset-0 bg-gradient-to-b from-critical/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-critical/15 border border-critical/20 flex items-center justify-center mb-6 group-hover:bg-critical/25 transition-colors">
+                <div className="w-16 h-16 rounded-2xl bg-critical/10 flex items-center justify-center mb-6 group-hover:bg-critical/20 transition-colors">
                   <Activity className="w-8 h-8 text-critical" />
                 </div>
-                <h3 className="text-2xl font-serif font-semibold mb-4">Priority Triage</h3>
+                <h3 className="text-2xl font-semibold mb-4">Priority Triage</h3>
                 <p className="text-muted-foreground leading-relaxed text-lg">
-                  AI-powered risk scoring moves critical COPD and pneumonia cases to the top.
+                  AI-powered risk scoring moves critical COPD and pneumonia cases to the top. 
                   No more missed findings buried in FIFO queues.
                 </p>
               </div>
             </div>
 
             {/* Feature 2 */}
-            <div className="group relative p-8 rounded-3xl bg-card/50 backdrop-blur-sm border border-white/5 hover:border-primary/30 transition-all hover:-translate-y-2 duration-300">
+            <div className="group relative p-8 rounded-3xl bg-gradient-to-b from-surface to-background border border-border/50 hover:border-primary/30 transition-all hover:-translate-y-2 duration-300">
               <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-primary/15 border border-primary/20 flex items-center justify-center mb-6 group-hover:bg-primary/25 transition-colors">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
                   <Brain className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="text-2xl font-serif font-semibold mb-4">Lab Fusion</h3>
+                <h3 className="text-2xl font-semibold mb-4">Lab Fusion</h3>
                 <p className="text-muted-foreground leading-relaxed text-lg">
-                  Combine imaging with real-time biomarkers. CO₂, pH, O₂ saturation—all
+                  Combine imaging with real-time biomarkers. CO₂, pH, O₂ saturation—all 
                   in context when you need it.
                 </p>
               </div>
             </div>
 
             {/* Feature 3 */}
-            <div className="group relative p-8 rounded-3xl bg-card/50 backdrop-blur-sm border border-white/5 hover:border-clear/30 transition-all hover:-translate-y-2 duration-300">
+            <div className="group relative p-8 rounded-3xl bg-gradient-to-b from-surface to-background border border-border/50 hover:border-clear/30 transition-all hover:-translate-y-2 duration-300">
               <div className="absolute inset-0 bg-gradient-to-b from-clear/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-clear/15 border border-clear/20 flex items-center justify-center mb-6 group-hover:bg-clear/25 transition-colors">
+                <div className="w-16 h-16 rounded-2xl bg-clear/10 flex items-center justify-center mb-6 group-hover:bg-clear/20 transition-colors">
                   <BarChart3 className="w-8 h-8 text-clear" />
                 </div>
-                <h3 className="text-2xl font-serif font-semibold mb-4">Measurable Impact</h3>
+                <h3 className="text-2xl font-semibold mb-4">Measurable Impact</h3>
                 <p className="text-muted-foreground leading-relaxed text-lg">
-                  Track Mean Time to Review, throughput gains, and override rates.
+                  Track Mean Time to Review, throughput gains, and override rates. 
                   Prove ROI with real operational metrics.
                 </p>
               </div>
@@ -238,20 +237,20 @@ const Landing = () => {
       {/* Stats Section */}
       <section className="py-32 px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-6">
-            <div className="text-center p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-white/5">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div className="text-center p-8 rounded-2xl bg-surface/30 border border-border/30">
               <div className="text-6xl font-bold bg-gradient-to-br from-primary to-primary/60 bg-clip-text text-transparent mb-3">40%</div>
               <div className="text-muted-foreground text-lg">Faster MTTR</div>
             </div>
-            <div className="text-center p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-white/5">
+            <div className="text-center p-8 rounded-2xl bg-surface/30 border border-border/30">
               <div className="text-6xl font-bold bg-gradient-to-br from-clear to-clear/60 bg-clip-text text-transparent mb-3">25%</div>
               <div className="text-muted-foreground text-lg">Higher Throughput</div>
             </div>
-            <div className="text-center p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-white/5">
+            <div className="text-center p-8 rounded-2xl bg-surface/30 border border-border/30">
               <div className="text-6xl font-bold bg-gradient-to-br from-warning to-warning/60 bg-clip-text text-transparent mb-3">&lt;5s</div>
               <div className="text-muted-foreground text-lg">Inference Time</div>
             </div>
-            <div className="text-center p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-white/5">
+            <div className="text-center p-8 rounded-2xl bg-surface/30 border border-border/30">
               <div className="text-6xl font-bold bg-gradient-to-br from-critical to-critical/60 bg-clip-text text-transparent mb-3">95%</div>
               <div className="text-muted-foreground text-lg">Critical Detection</div>
             </div>
@@ -262,18 +261,18 @@ const Landing = () => {
       {/* CTA Section */}
       <section className="py-32 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="relative p-16 rounded-3xl bg-gradient-to-br from-primary/15 via-card/50 to-primary/5 border border-primary/20 overflow-hidden backdrop-blur-sm">
-            <div className="absolute inset-0 bg-dot-pattern opacity-30" />
+          <div className="relative p-16 rounded-3xl bg-gradient-to-br from-primary/10 via-surface to-critical/5 border border-primary/20 overflow-hidden">
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
             <div className="relative">
-              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6">Ready to Transform Your Workflow?</h2>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to Transform Your Workflow?</h2>
               <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
                 Join leading radiology practices using Kroix to prioritize critical cases and improve patient outcomes.
               </p>
               <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
                 <DialogTrigger asChild>
-                  <Button
-                    size="lg"
-                    className="text-lg px-12 py-7 bg-primary hover:bg-primary/90 shadow-xl shadow-primary/40 rounded-xl"
+                  <Button 
+                    size="lg" 
+                    className="text-lg px-12 py-7 bg-primary hover:bg-primary/90 shadow-xl shadow-primary/30"
                   >
                     Get Started Now
                     <ArrowRight className="w-5 h-5 ml-2" />
@@ -347,10 +346,10 @@ const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-16 px-6 border-t border-white/5 bg-surface/30">
+      <footer className="py-16 px-6 border-t border-border/30">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
               <Activity className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="text-xl font-bold">Kroix</span>
@@ -359,9 +358,9 @@ const Landing = () => {
             © 2026 Kroix. Non-diagnostic workflow prioritization tool.
           </div>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <a href="#" className="hover:text-primary transition-colors">Privacy</a>
-            <a href="#" className="hover:text-primary transition-colors">Terms</a>
-            <a href="#" className="hover:text-primary transition-colors">Contact</a>
+            <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
+            <a href="#" className="hover:text-foreground transition-colors">Terms</a>
+            <a href="#" className="hover:text-foreground transition-colors">Contact</a>
           </div>
         </div>
       </footer>

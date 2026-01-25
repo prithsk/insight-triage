@@ -143,32 +143,32 @@ export default function Reviewer() {
           {/* Left: DICOM Viewer */}
           <div className="flex-1 flex flex-col bg-background">
             {/* Viewer Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-surface/50 backdrop-blur-sm">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface">
               <div className="flex items-center gap-4">
                 <div>
-                  <h2 className="font-serif font-semibold text-lg">{item.study.patient_hash}</h2>
+                  <h2 className="font-mono font-semibold">{item.study.patient_hash}</h2>
                   <p className="text-xs text-muted-foreground font-mono">{item.study.id.slice(0, 8)}...</p>
                 </div>
                 {item.triage && (
                   <BucketBadge bucket={item.triage.risk_bucket} />
                 )}
               </div>
-
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/10" onClick={handleZoomIn}>
+              
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleZoomIn}>
                   <ZoomIn className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/10" onClick={handleZoomOut}>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleZoomOut}>
                   <ZoomOut className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/10" onClick={handleRotate}>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleRotate}>
                   <RotateCw className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/10" onClick={handleReset}>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleReset}>
                   <Maximize2 className="w-4 h-4" />
                 </Button>
                 {zoom !== 1 && (
-                  <span className="text-xs text-muted-foreground ml-2 bg-white/5 px-2 py-1 rounded">{(zoom * 100).toFixed(0)}%</span>
+                  <span className="text-xs text-muted-foreground ml-2">{(zoom * 100).toFixed(0)}%</span>
                 )}
               </div>
             </div>
@@ -247,27 +247,27 @@ export default function Reviewer() {
             </div>
           </div>
           
-          {/* Right: Sidebar - Glassmorphism */}
-          <div className="w-80 border-l border-white/5 bg-surface/30 backdrop-blur-sm flex flex-col overflow-auto scrollbar-clinical">
+          {/* Right: Sidebar */}
+          <div className="w-80 border-l border-border bg-surface flex flex-col overflow-auto scrollbar-clinical">
             {/* Priority Panel */}
             {item.triage && (
-              <Card className="m-4">
+              <Card className="m-4 bg-card border-border">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-primary" />
+                    <Activity className="w-4 h-4" />
                     {LANGUAGE.PRIORITY}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <BucketBadge bucket={item.triage.risk_bucket} size="lg" />
-                    <RiskScore
+                    <RiskScore 
                       score={item.triage.risk_score}
                       bucket={item.triage.risk_bucket}
                       size="lg"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/5">
+                  <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border">
                     <div>
                       <p className="text-xs text-muted-foreground">Confidence</p>
                       <p className="font-mono font-medium">
@@ -282,12 +282,12 @@ export default function Reviewer() {
                 </CardContent>
               </Card>
             )}
-
+            
             {/* ROI Controls */}
-            <Card className="mx-4 mb-4">
+            <Card className="mx-4 mb-4 bg-card border-border">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-primary" />
+                  <Eye className="w-4 h-4" />
                   ROI Controls
                 </CardTitle>
               </CardHeader>
@@ -317,9 +317,9 @@ export default function Reviewer() {
                 </p>
               </CardContent>
             </Card>
-
+            
             {/* Lab Panel */}
-            <Card className="mx-4 mb-4">
+            <Card className="mx-4 mb-4 bg-card border-border">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                   Lab Values
@@ -329,7 +329,7 @@ export default function Reviewer() {
                 {item.labs ? (
                   <>
                     <LabFlags labs={item.labs} />
-                    <p className="text-xs text-muted-foreground mt-3 pt-3 border-t border-white/5">
+                    <p className="text-xs text-muted-foreground mt-3 pt-3 border-t border-border">
                       Source: {item.labs.source || 'Unknown'}
                     </p>
                   </>
@@ -338,9 +338,9 @@ export default function Reviewer() {
                 )}
               </CardContent>
             </Card>
-
+            
             {/* Feedback Panel */}
-            <Card className="mx-4 mb-4">
+            <Card className="mx-4 mb-4 bg-card border-border">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                   Feedback
@@ -354,7 +354,7 @@ export default function Reviewer() {
                     onClick={() => handleFeedback("CORRECT_PRIORITY")}
                     disabled={submitFeedback.isPending}
                     className={cn(
-                      "flex-col h-auto py-3 gap-1 rounded-xl",
+                      "flex-col h-auto py-3 gap-1",
                       submittedFeedback === "CORRECT_PRIORITY" && "bg-clear/20 border-clear"
                     )}
                   >
@@ -367,7 +367,7 @@ export default function Reviewer() {
                     onClick={() => handleFeedback("FALSE_ALARM")}
                     disabled={submitFeedback.isPending}
                     className={cn(
-                      "flex-col h-auto py-3 gap-1 rounded-xl",
+                      "flex-col h-auto py-3 gap-1",
                       submittedFeedback === "FALSE_ALARM" && "bg-warning/20 border-warning"
                     )}
                   >
@@ -380,7 +380,7 @@ export default function Reviewer() {
                     onClick={() => handleFeedback("MISSED_URGENCY")}
                     disabled={submitFeedback.isPending}
                     className={cn(
-                      "flex-col h-auto py-3 gap-1 rounded-xl",
+                      "flex-col h-auto py-3 gap-1",
                       submittedFeedback === "MISSED_URGENCY" && "bg-critical/20 border-critical"
                     )}
                   >
@@ -396,7 +396,7 @@ export default function Reviewer() {
                 />
               </CardContent>
             </Card>
-
+            
             {/* Spacer */}
             <div className="flex-1" />
           </div>
