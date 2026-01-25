@@ -1,11 +1,9 @@
 import { useState, useMemo } from "react";
-import { useParams } from "react-router-dom";
-import { AppLayout } from "@/components/layout/AppLayout";
+import { useParams, Link } from "react-router-dom";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { BucketBadge } from "@/components/ui/bucket-badge";
 import { RiskScore } from "@/components/ui/risk-score";
 import { LabFlags } from "@/components/ui/lab-flags";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,7 +21,10 @@ import {
   Eye,
   Activity,
   Loader2,
-  ImageOff
+  ImageOff,
+  ArrowLeft,
+  Beaker,
+  MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WorklistItem } from "@/lib/types";
@@ -113,21 +114,28 @@ export default function Reviewer() {
 
   if (isLoading) {
     return (
-      <AppLayout>
-        <div className="h-[calc(100vh-3.5rem)] flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <DashboardLayout>
+        <div className="h-[calc(100vh-72px)] flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-landing-primary" />
         </div>
-      </AppLayout>
+      </DashboardLayout>
     );
   }
   
   if (!studyData) {
     return (
-      <AppLayout>
-        <div className="h-[calc(100vh-3.5rem)] flex items-center justify-center">
-          <p className="text-muted-foreground">No study selected</p>
+      <DashboardLayout>
+        <div className="h-[calc(100vh-72px)] flex flex-col items-center justify-center gap-4">
+          <p className="text-landing-muted text-lg">No study selected</p>
+          <Link 
+            to="/dashboard"
+            className="px-5 py-2.5 bg-landing-primary text-white rounded-[10px] text-[14px] font-medium hover:bg-[#265A4C] transition-colors flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Dashboard
+          </Link>
         </div>
-      </AppLayout>
+      </DashboardLayout>
     );
   }
 
@@ -174,47 +182,76 @@ export default function Reviewer() {
   };
   
   return (
-    <AppLayout>
-      <div className="h-[calc(100vh-3.5rem)] flex flex-col">
-        {/* Main Content */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Left: DICOM Viewer */}
-          <div className="flex-1 flex flex-col bg-background">
-            {/* Viewer Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface">
-              <div className="flex items-center gap-4">
-                <div>
-                  <h2 className="font-mono font-semibold">{item.study.patient_hash}</h2>
-                  <p className="text-xs text-muted-foreground font-mono">{item.study.id.slice(0, 8)}...</p>
-                </div>
-                {item.triage && (
-                  <BucketBadge bucket={item.triage.risk_bucket} />
-                )}
+    <DashboardLayout>
+      <div className="h-[calc(100vh-72px)] flex flex-col">
+        {/* Header Bar */}
+        <section className="px-8 py-4 bg-white border-b border-[rgba(0,0,0,0.06)]">
+          <div className="max-w-[1600px] mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <Link 
+                to="/dashboard"
+                className="flex items-center gap-2 text-landing-muted hover:text-landing-heading transition-colors text-[14px]"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </Link>
+              
+              <div className="h-6 w-px bg-[rgba(0,0,0,0.08)]" />
+              
+              <div>
+                <h1 className="font-serif text-[20px] text-landing-heading font-medium">
+                  {item.study.patient_hash}
+                </h1>
+                <p className="text-[13px] text-landing-muted font-mono">
+                  Study ID: {item.study.id.slice(0, 8)}...
+                </p>
               </div>
               
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleZoomIn}>
-                  <ZoomIn className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleZoomOut}>
-                  <ZoomOut className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleRotate}>
-                  <RotateCw className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleReset}>
-                  <Maximize2 className="w-4 h-4" />
-                </Button>
-                {zoom !== 1 && (
-                  <span className="text-xs text-muted-foreground ml-2">{(zoom * 100).toFixed(0)}%</span>
-                )}
-              </div>
+              {item.triage && (
+                <BucketBadge bucket={item.triage.risk_bucket} />
+              )}
             </div>
             
-            {/* DICOM Viewer Area */}
-            <div className="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
+            {/* Viewer Controls */}
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={handleZoomIn}
+                className="h-9 w-9 flex items-center justify-center rounded-[10px] border border-[rgba(0,0,0,0.06)] bg-white text-landing-body hover:bg-landing-primary/10 hover:text-landing-primary transition-colors"
+              >
+                <ZoomIn className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={handleZoomOut}
+                className="h-9 w-9 flex items-center justify-center rounded-[10px] border border-[rgba(0,0,0,0.06)] bg-white text-landing-body hover:bg-landing-primary/10 hover:text-landing-primary transition-colors"
+              >
+                <ZoomOut className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={handleRotate}
+                className="h-9 w-9 flex items-center justify-center rounded-[10px] border border-[rgba(0,0,0,0.06)] bg-white text-landing-body hover:bg-landing-primary/10 hover:text-landing-primary transition-colors"
+              >
+                <RotateCw className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={handleReset}
+                className="h-9 w-9 flex items-center justify-center rounded-[10px] border border-[rgba(0,0,0,0.06)] bg-white text-landing-body hover:bg-landing-primary/10 hover:text-landing-primary transition-colors"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </button>
+              {zoom !== 1 && (
+                <span className="text-[13px] text-landing-muted font-mono ml-2">{(zoom * 100).toFixed(0)}%</span>
+              )}
+            </div>
+          </div>
+        </section>
+        
+        {/* Main Content */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left: Image Viewer */}
+          <div className="flex-1 flex flex-col bg-[#1a1a1a]">
+            <div className="flex-1 relative flex items-center justify-center overflow-hidden p-6">
               <div 
-                className="w-full h-full max-w-4xl max-h-full p-4 flex items-center justify-center transition-transform duration-200"
+                className="w-full h-full max-w-4xl max-h-full flex items-center justify-center transition-transform duration-200"
                 style={{ 
                   transform: `scale(${zoom}) rotate(${rotation}deg)`,
                 }}
@@ -229,17 +266,16 @@ export default function Reviewer() {
                     <img 
                       src={imageUrl} 
                       alt="DICOM/Medical Image"
-                      className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                      className="max-w-full max-h-full object-contain rounded-xl shadow-2xl"
                       style={{ 
                         filter: 'contrast(1.1) brightness(0.95)',
                       }}
                     />
                     
-                    {/* Dynamic ROI Overlays based on AI findings - Orange circles like reference */}
+                    {/* Dynamic ROI Overlays - Orange circles */}
                     {showROI && item.triage && item.triage.risk_bucket !== "CLEAR" && roiRegions.length > 0 && (
                       <>
                         {roiRegions.map((region, index) => {
-                          // Calculate size based on intensity (80-140px range for visibility)
                           const size = 80 + (region.intensity * 60);
                           return (
                             <div 
@@ -254,7 +290,6 @@ export default function Reviewer() {
                                 height: `${size}px`,
                               }}
                             >
-                              {/* Orange circle with gradient fill */}
                               <div 
                                 className="w-full h-full rounded-full"
                                 style={{
@@ -263,7 +298,6 @@ export default function Reviewer() {
                                   boxShadow: `0 0 ${15 + region.intensity * 10}px rgba(255, 107, 0, 0.4), inset 0 0 ${10 + region.intensity * 8}px rgba(255, 107, 0, 0.2)`,
                                 }}
                               />
-                              {/* Label badge */}
                               <div 
                                 className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg"
                                 style={{
@@ -279,10 +313,9 @@ export default function Reviewer() {
                       </>
                     )}
                     
-                    {/* Fallback: Generate default ROI regions based on risk bucket */}
+                    {/* Fallback ROI regions */}
                     {showROI && item.triage && item.triage.risk_bucket !== "CLEAR" && roiRegions.length === 0 && (
                       <>
-                        {/* Primary area of concern - Right lung lower region */}
                         <div 
                           className="absolute pointer-events-none"
                           style={{ 
@@ -313,76 +346,74 @@ export default function Reviewer() {
                           </div>
                         </div>
                         
-                        {/* Secondary area - Left lung if CRITICAL */}
                         {item.triage.risk_bucket === "CRITICAL" && (
-                          <div 
-                            className="absolute pointer-events-none"
-                            style={{ 
-                              left: '65%',
-                              top: '45%',
-                              transform: 'translate(-50%, -50%)',
-                              opacity: roiOpacity[0] / 100,
-                              width: '100px',
-                              height: '100px',
-                            }}
-                          >
+                          <>
                             <div 
-                              className="w-full h-full rounded-full"
-                              style={{
-                                border: '3px solid #FF6B00',
-                                background: 'radial-gradient(circle at center, rgba(255, 107, 0, 0.3) 0%, rgba(255, 107, 0, 0.12) 60%, transparent 100%)',
-                                boxShadow: '0 0 18px rgba(255, 107, 0, 0.35), inset 0 0 12px rgba(255, 107, 0, 0.18)',
-                              }}
-                            />
-                            <div 
-                              className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg"
-                              style={{
-                                background: 'linear-gradient(135deg, #FF6B00 0%, #E05500 100%)',
-                                color: 'white',
+                              className="absolute pointer-events-none"
+                              style={{ 
+                                left: '65%',
+                                top: '45%',
+                                transform: 'translate(-50%, -50%)',
+                                opacity: roiOpacity[0] / 100,
+                                width: '100px',
+                                height: '100px',
                               }}
                             >
-                              Left Lung
+                              <div 
+                                className="w-full h-full rounded-full"
+                                style={{
+                                  border: '3px solid #FF6B00',
+                                  background: 'radial-gradient(circle at center, rgba(255, 107, 0, 0.3) 0%, rgba(255, 107, 0, 0.12) 60%, transparent 100%)',
+                                  boxShadow: '0 0 18px rgba(255, 107, 0, 0.35), inset 0 0 12px rgba(255, 107, 0, 0.18)',
+                                }}
+                              />
+                              <div 
+                                className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg"
+                                style={{
+                                  background: 'linear-gradient(135deg, #FF6B00 0%, #E05500 100%)',
+                                  color: 'white',
+                                }}
+                              >
+                                Left Lung
+                              </div>
                             </div>
-                          </div>
-                        )}
-                        
-                        {/* Lower lobes indicator for CRITICAL */}
-                        {item.triage.risk_bucket === "CRITICAL" && (
-                          <div 
-                            className="absolute pointer-events-none"
-                            style={{ 
-                              left: '50%',
-                              top: '70%',
-                              transform: 'translate(-50%, -50%)',
-                              opacity: roiOpacity[0] / 100,
-                              width: '130px',
-                              height: '130px',
-                            }}
-                          >
+                            
                             <div 
-                              className="w-full h-full rounded-full"
-                              style={{
-                                border: '3px solid #FF6B00',
-                                background: 'radial-gradient(circle at center, rgba(255, 107, 0, 0.4) 0%, rgba(255, 107, 0, 0.18) 60%, transparent 100%)',
-                                boxShadow: '0 0 25px rgba(255, 107, 0, 0.45), inset 0 0 18px rgba(255, 107, 0, 0.25)',
-                              }}
-                            />
-                            <div 
-                              className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg"
-                              style={{
-                                background: 'linear-gradient(135deg, #FF6B00 0%, #E05500 100%)',
-                                color: 'white',
+                              className="absolute pointer-events-none"
+                              style={{ 
+                                left: '50%',
+                                top: '70%',
+                                transform: 'translate(-50%, -50%)',
+                                opacity: roiOpacity[0] / 100,
+                                width: '130px',
+                                height: '130px',
                               }}
                             >
-                              Lower Lobes
+                              <div 
+                                className="w-full h-full rounded-full"
+                                style={{
+                                  border: '3px solid #FF6B00',
+                                  background: 'radial-gradient(circle at center, rgba(255, 107, 0, 0.4) 0%, rgba(255, 107, 0, 0.18) 60%, transparent 100%)',
+                                  boxShadow: '0 0 25px rgba(255, 107, 0, 0.45), inset 0 0 18px rgba(255, 107, 0, 0.25)',
+                                }}
+                              />
+                              <div 
+                                className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg"
+                                style={{
+                                  background: 'linear-gradient(135deg, #FF6B00 0%, #E05500 100%)',
+                                  color: 'white',
+                                }}
+                              >
+                                Lower Lobes
+                              </div>
                             </div>
-                          </div>
+                          </>
                         )}
                       </>
                     )}
                   </div>
                 ) : (
-                  <div className="relative w-full h-full bg-gradient-to-b from-zinc-900 to-zinc-800 rounded-lg overflow-hidden flex items-center justify-center">
+                  <div className="relative w-full h-full bg-gradient-to-b from-zinc-800 to-zinc-900 rounded-xl overflow-hidden flex items-center justify-center">
                     {imageError ? (
                       <div className="flex flex-col items-center text-zinc-500">
                         <ImageOff className="w-16 h-16 mb-4 opacity-50" />
@@ -390,47 +421,11 @@ export default function Reviewer() {
                         <span className="text-xs text-zinc-600 mt-1">{imageError}</span>
                       </div>
                     ) : (
-                      <>
-                        {/* Placeholder for studies without uploaded files */}
-                        <div className="flex flex-col items-center text-zinc-600">
-                          <Activity className="w-32 h-32 opacity-20" />
-                          <span className="text-sm mt-4">No image file uploaded</span>
-                          <span className="text-xs text-zinc-700 mt-1">Upload a DICOM file to view it here</span>
-                        </div>
-                        
-                        {/* ROI Overlay on placeholder - dynamic based on findings */}
-                        {showROI && item.triage && item.triage.risk_bucket !== "CLEAR" && roiRegions.length > 0 && (
-                          <>
-                            {roiRegions.map((region, index) => {
-                              const size = 60 + (region.intensity * 40);
-                              return (
-                                <div 
-                                  key={`roi-placeholder-${index}-${region.label}`}
-                                  className="absolute pointer-events-none"
-                                  style={{ 
-                                    left: `${region.x * 100}%`,
-                                    top: `${region.y * 100}%`,
-                                    transform: 'translate(-50%, -50%)',
-                                    opacity: roiOpacity[0] / 100,
-                                    width: `${size}px`,
-                                    height: `${size}px`,
-                                  }}
-                                >
-                                  <div 
-                                    className="w-full h-full rounded-full border-2 border-overlay-accent animate-pulse-slow"
-                                    style={{
-                                      backgroundColor: `hsl(var(--overlay-accent) / ${0.15 + region.intensity * 0.2})`,
-                                    }}
-                                  />
-                                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-overlay-accent/90 text-xs font-medium px-2 py-1 rounded whitespace-nowrap text-white">
-                                    {getRegionLabel(region.label)}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </>
-                        )}
-                      </>
+                      <div className="flex flex-col items-center text-zinc-600">
+                        <Activity className="w-32 h-32 opacity-20" />
+                        <span className="text-sm mt-4">No image file uploaded</span>
+                        <span className="text-xs text-zinc-700 mt-1">Upload a DICOM file to view it here</span>
+                      </div>
                     )}
                   </div>
                 )}
@@ -439,165 +434,161 @@ export default function Reviewer() {
           </div>
           
           {/* Right: Sidebar */}
-          <div className="w-80 border-l border-border bg-surface flex flex-col overflow-auto scrollbar-clinical">
+          <div className="w-[340px] border-l border-[rgba(0,0,0,0.06)] bg-white flex flex-col overflow-auto">
             {/* Priority Panel */}
             {item.triage && (
-              <Card className="m-4 bg-card border-border">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                    <Activity className="w-4 h-4" />
+              <div className="p-5 border-b border-[rgba(0,0,0,0.06)]">
+                <div className="flex items-center gap-2 mb-4">
+                  <Activity className="w-4 h-4 text-landing-primary" />
+                  <span className="text-[12px] font-medium text-landing-muted uppercase tracking-wider">
                     {LANGUAGE.PRIORITY}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <BucketBadge bucket={item.triage.risk_bucket} size="lg" />
-                    <RiskScore 
-                      score={item.triage.risk_score}
-                      bucket={item.triage.risk_bucket}
-                      size="lg"
-                    />
+                  </span>
+                </div>
+                <div className="flex items-center justify-between mb-4">
+                  <BucketBadge bucket={item.triage.risk_bucket} size="lg" />
+                  <RiskScore 
+                    score={item.triage.risk_score}
+                    bucket={item.triage.risk_bucket}
+                    size="lg"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[rgba(0,0,0,0.06)]">
+                  <div>
+                    <p className="text-[12px] text-landing-muted mb-1">Confidence</p>
+                    <p className="font-mono font-medium text-landing-heading">
+                      {(item.triage.confidence * 100).toFixed(0)}%
+                    </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Confidence</p>
-                      <p className="font-mono font-medium">
-                        {(item.triage.confidence * 100).toFixed(0)}%
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Model</p>
-                      <p className="font-mono text-sm">{item.triage.model_version}</p>
-                    </div>
+                  <div>
+                    <p className="text-[12px] text-landing-muted mb-1">Model</p>
+                    <p className="font-mono text-[13px] text-landing-body">{item.triage.model_version}</p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
             
             {/* ROI Controls */}
-            <Card className="mx-4 mb-4 bg-card border-border">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Eye className="w-4 h-4" />
+            <div className="p-5 border-b border-[rgba(0,0,0,0.06)]">
+              <div className="flex items-center gap-2 mb-4">
+                <Eye className="w-4 h-4 text-landing-primary" />
+                <span className="text-[12px] font-medium text-landing-muted uppercase tracking-wider">
                   ROI Controls
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Show {LANGUAGE.AREA_OF_INTEREST}</span>
-                  <Switch checked={showROI} onCheckedChange={setShowROI} />
-                </div>
-                {showROI && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Opacity</span>
-                      <span className="font-mono">{roiOpacity[0]}%</span>
-                    </div>
-                    <Slider
-                      value={roiOpacity}
-                      onValueChange={setRoiOpacity}
-                      min={20}
-                      max={100}
-                      step={10}
-                      className="w-full"
-                    />
+                </span>
+              </div>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[14px] text-landing-body">Show {LANGUAGE.AREA_OF_INTEREST}</span>
+                <Switch checked={showROI} onCheckedChange={setShowROI} />
+              </div>
+              {showROI && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-[13px]">
+                    <span className="text-landing-muted">Opacity</span>
+                    <span className="font-mono text-landing-body">{roiOpacity[0]}%</span>
                   </div>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  Highlights regions correlated with elevated risk score. {LANGUAGE.NON_DIAGNOSTIC}.
-                </p>
-              </CardContent>
-            </Card>
+                  <Slider
+                    value={roiOpacity}
+                    onValueChange={setRoiOpacity}
+                    min={20}
+                    max={100}
+                    step={10}
+                    className="w-full"
+                  />
+                </div>
+              )}
+              <p className="text-[12px] text-landing-muted mt-3">
+                Highlights regions correlated with elevated risk score. {LANGUAGE.NON_DIAGNOSTIC}.
+              </p>
+            </div>
             
             {/* Lab Panel */}
-            <Card className="mx-4 mb-4 bg-card border-border">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+            <div className="p-5 border-b border-[rgba(0,0,0,0.06)]">
+              <div className="flex items-center gap-2 mb-4">
+                <Beaker className="w-4 h-4 text-landing-primary" />
+                <span className="text-[12px] font-medium text-landing-muted uppercase tracking-wider">
                   Lab Values
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {item.labs ? (
-                  <>
-                    <LabFlags labs={item.labs} />
-                    <p className="text-xs text-muted-foreground mt-3 pt-3 border-t border-border">
-                      Source: {item.labs.source || 'Unknown'}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">{LANGUAGE.EMPTY.LABS}</p>
-                )}
-              </CardContent>
-            </Card>
+                </span>
+              </div>
+              {item.labs ? (
+                <>
+                  <LabFlags labs={item.labs} />
+                  <p className="text-[12px] text-landing-muted mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)]">
+                    Source: {item.labs.source || 'Unknown'}
+                  </p>
+                </>
+              ) : (
+                <p className="text-[14px] text-landing-muted">{LANGUAGE.EMPTY.LABS}</p>
+              )}
+            </div>
             
             {/* Feedback Panel */}
-            <Card className="mx-4 mb-4 bg-card border-border">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+            <div className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <MessageSquare className="w-4 h-4 text-landing-primary" />
+                <span className="text-[12px] font-medium text-landing-muted uppercase tracking-wider">
                   Feedback
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-3 gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleFeedback("CORRECT_PRIORITY")}
-                    disabled={submitFeedback.isPending}
-                    className={cn(
-                      "flex-col h-auto py-3 gap-1",
-                      submittedFeedback === "CORRECT_PRIORITY" && "bg-clear/20 border-clear"
-                    )}
-                  >
-                    <Check className="w-4 h-4 text-clear" />
-                    <span className="text-xs">Correct</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleFeedback("FALSE_ALARM")}
-                    disabled={submitFeedback.isPending}
-                    className={cn(
-                      "flex-col h-auto py-3 gap-1",
-                      submittedFeedback === "FALSE_ALARM" && "bg-warning/20 border-warning"
-                    )}
-                  >
-                    <AlertTriangle className="w-4 h-4 text-warning" />
-                    <span className="text-xs">False Alarm</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleFeedback("MISSED_URGENCY")}
-                    disabled={submitFeedback.isPending}
-                    className={cn(
-                      "flex-col h-auto py-3 gap-1",
-                      submittedFeedback === "MISSED_URGENCY" && "bg-critical/20 border-critical"
-                    )}
-                  >
-                    <AlertCircle className="w-4 h-4 text-critical" />
-                    <span className="text-xs">Missed</span>
-                  </Button>
-                </div>
-                <Textarea
-                  placeholder="Add quick note (optional)"
-                  value={feedbackNote}
-                  onChange={(e) => setFeedbackNote(e.target.value)}
-                  className="h-20 resize-none"
-                />
-              </CardContent>
-            </Card>
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                <button
+                  onClick={() => handleFeedback("CORRECT_PRIORITY")}
+                  disabled={submitFeedback.isPending}
+                  className={cn(
+                    "flex flex-col items-center justify-center py-3 rounded-[10px] border border-[rgba(0,0,0,0.08)] text-center transition-colors",
+                    submittedFeedback === "CORRECT_PRIORITY" 
+                      ? "bg-emerald-50 border-emerald-300" 
+                      : "hover:bg-landing-bg"
+                  )}
+                >
+                  <Check className="w-4 h-4 text-emerald-600 mb-1" />
+                  <span className="text-[11px] text-landing-body">Correct</span>
+                </button>
+                <button
+                  onClick={() => handleFeedback("FALSE_ALARM")}
+                  disabled={submitFeedback.isPending}
+                  className={cn(
+                    "flex flex-col items-center justify-center py-3 rounded-[10px] border border-[rgba(0,0,0,0.08)] text-center transition-colors",
+                    submittedFeedback === "FALSE_ALARM" 
+                      ? "bg-amber-50 border-amber-300" 
+                      : "hover:bg-landing-bg"
+                  )}
+                >
+                  <AlertTriangle className="w-4 h-4 text-amber-600 mb-1" />
+                  <span className="text-[11px] text-landing-body">False Alarm</span>
+                </button>
+                <button
+                  onClick={() => handleFeedback("MISSED_URGENCY")}
+                  disabled={submitFeedback.isPending}
+                  className={cn(
+                    "flex flex-col items-center justify-center py-3 rounded-[10px] border border-[rgba(0,0,0,0.08)] text-center transition-colors",
+                    submittedFeedback === "MISSED_URGENCY" 
+                      ? "bg-red-50 border-red-300" 
+                      : "hover:bg-landing-bg"
+                  )}
+                >
+                  <AlertCircle className="w-4 h-4 text-red-600 mb-1" />
+                  <span className="text-[11px] text-landing-body">Missed</span>
+                </button>
+              </div>
+              <Textarea
+                placeholder="Add quick note (optional)"
+                value={feedbackNote}
+                onChange={(e) => setFeedbackNote(e.target.value)}
+                className="h-20 resize-none bg-landing-bg border-[rgba(0,0,0,0.06)] text-landing-heading placeholder:text-landing-muted rounded-[10px] text-[14px]"
+              />
+            </div>
             
             {/* Spacer */}
             <div className="flex-1" />
           </div>
         </div>
         
-        {/* Footer Disclaimer - Always visible */}
-        <div className="disclaimer-bar text-center">
-          {LANGUAGE.DISCLAIMER}
+        {/* Footer Disclaimer */}
+        <div className="px-8 py-3 bg-white border-t border-[rgba(0,0,0,0.06)] text-center">
+          <p className="text-[12px] text-landing-muted">
+            {LANGUAGE.DISCLAIMER}
+          </p>
         </div>
       </div>
-    </AppLayout>
+    </DashboardLayout>
   );
 }

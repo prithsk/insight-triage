@@ -4,7 +4,6 @@ import {
   LayoutDashboard, 
   FileSearch, 
   BarChart3, 
-  FileText,
   Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,7 +17,6 @@ const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/reviewer", label: "Reviewer", icon: FileSearch },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/documents", label: "Documents", icon: FileText },
 ];
 
 export function AppLayout({ children }: AppLayoutProps) {
