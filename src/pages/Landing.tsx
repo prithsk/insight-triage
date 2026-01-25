@@ -110,11 +110,11 @@ const Landing = () => {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-40 px-8 py-6 bg-landing-bg/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3">
             <span className="text-2xl font-serif font-semibold text-landing-heading tracking-tight">
               Kroix
             </span>
-          </div>
+          </Link>
           <div className="flex items-center gap-8">
             <Link 
               to="/about" 
