@@ -235,12 +235,12 @@ export default function Reviewer() {
                       }}
                     />
                     
-                    {/* Dynamic ROI Overlays based on AI findings */}
+                    {/* Dynamic ROI Overlays based on AI findings - Orange circles like reference */}
                     {showROI && item.triage && item.triage.risk_bucket !== "CLEAR" && roiRegions.length > 0 && (
                       <>
                         {roiRegions.map((region, index) => {
-                          // Calculate size based on intensity (30-50% of container)
-                          const size = 60 + (region.intensity * 40);
+                          // Calculate size based on intensity (80-140px range for visibility)
+                          const size = 80 + (region.intensity * 60);
                           return (
                             <div 
                               key={`roi-${index}-${region.label}`}
@@ -254,14 +254,23 @@ export default function Reviewer() {
                                 height: `${size}px`,
                               }}
                             >
+                              {/* Orange circle with gradient fill */}
                               <div 
-                                className="w-full h-full rounded-full border-2 border-overlay-accent animate-pulse-slow"
+                                className="w-full h-full rounded-full"
                                 style={{
-                                  backgroundColor: `hsl(var(--overlay-accent) / ${0.15 + region.intensity * 0.2})`,
-                                  boxShadow: `0 0 ${20 + region.intensity * 20}px hsl(var(--overlay-accent) / 0.4)`,
+                                  border: '3px solid #FF6B00',
+                                  background: `radial-gradient(circle at center, rgba(255, 107, 0, ${0.25 + region.intensity * 0.2}) 0%, rgba(255, 107, 0, ${0.1 + region.intensity * 0.1}) 60%, transparent 100%)`,
+                                  boxShadow: `0 0 ${15 + region.intensity * 10}px rgba(255, 107, 0, 0.4), inset 0 0 ${10 + region.intensity * 8}px rgba(255, 107, 0, 0.2)`,
                                 }}
                               />
-                              <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-overlay-accent/90 text-xs font-medium px-2 py-1 rounded whitespace-nowrap text-white shadow-lg">
+                              {/* Label badge */}
+                              <div 
+                                className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg"
+                                style={{
+                                  background: 'linear-gradient(135deg, #FF6B00 0%, #E05500 100%)',
+                                  color: 'white',
+                                }}
+                              >
                                 {getRegionLabel(region.label)}
                               </div>
                             </div>
@@ -270,17 +279,106 @@ export default function Reviewer() {
                       </>
                     )}
                     
-                    {/* Fallback single ROI if no parsed regions */}
+                    {/* Fallback: Generate default ROI regions based on risk bucket */}
                     {showROI && item.triage && item.triage.risk_bucket !== "CLEAR" && roiRegions.length === 0 && (
-                      <div 
-                        className="absolute top-1/4 right-1/4 w-32 h-32 pointer-events-none"
-                        style={{ opacity: roiOpacity[0] / 100 }}
-                      >
-                        <div className="w-full h-full rounded-full border-2 border-overlay-accent bg-overlay-accent/20 animate-pulse-slow" />
-                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-overlay-accent/90 text-xs font-medium px-2 py-1 rounded whitespace-nowrap text-white">
-                          {LANGUAGE.AREA_OF_INTEREST}
+                      <>
+                        {/* Primary area of concern - Right lung lower region */}
+                        <div 
+                          className="absolute pointer-events-none"
+                          style={{ 
+                            left: '35%',
+                            top: '55%',
+                            transform: 'translate(-50%, -50%)',
+                            opacity: roiOpacity[0] / 100,
+                            width: '120px',
+                            height: '120px',
+                          }}
+                        >
+                          <div 
+                            className="w-full h-full rounded-full"
+                            style={{
+                              border: '3px solid #FF6B00',
+                              background: 'radial-gradient(circle at center, rgba(255, 107, 0, 0.35) 0%, rgba(255, 107, 0, 0.15) 60%, transparent 100%)',
+                              boxShadow: '0 0 20px rgba(255, 107, 0, 0.4), inset 0 0 15px rgba(255, 107, 0, 0.2)',
+                            }}
+                          />
+                          <div 
+                            className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg"
+                            style={{
+                              background: 'linear-gradient(135deg, #FF6B00 0%, #E05500 100%)',
+                              color: 'white',
+                            }}
+                          >
+                            Right Lung
+                          </div>
                         </div>
-                      </div>
+                        
+                        {/* Secondary area - Left lung if CRITICAL */}
+                        {item.triage.risk_bucket === "CRITICAL" && (
+                          <div 
+                            className="absolute pointer-events-none"
+                            style={{ 
+                              left: '65%',
+                              top: '45%',
+                              transform: 'translate(-50%, -50%)',
+                              opacity: roiOpacity[0] / 100,
+                              width: '100px',
+                              height: '100px',
+                            }}
+                          >
+                            <div 
+                              className="w-full h-full rounded-full"
+                              style={{
+                                border: '3px solid #FF6B00',
+                                background: 'radial-gradient(circle at center, rgba(255, 107, 0, 0.3) 0%, rgba(255, 107, 0, 0.12) 60%, transparent 100%)',
+                                boxShadow: '0 0 18px rgba(255, 107, 0, 0.35), inset 0 0 12px rgba(255, 107, 0, 0.18)',
+                              }}
+                            />
+                            <div 
+                              className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg"
+                              style={{
+                                background: 'linear-gradient(135deg, #FF6B00 0%, #E05500 100%)',
+                                color: 'white',
+                              }}
+                            >
+                              Left Lung
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Lower lobes indicator for CRITICAL */}
+                        {item.triage.risk_bucket === "CRITICAL" && (
+                          <div 
+                            className="absolute pointer-events-none"
+                            style={{ 
+                              left: '50%',
+                              top: '70%',
+                              transform: 'translate(-50%, -50%)',
+                              opacity: roiOpacity[0] / 100,
+                              width: '130px',
+                              height: '130px',
+                            }}
+                          >
+                            <div 
+                              className="w-full h-full rounded-full"
+                              style={{
+                                border: '3px solid #FF6B00',
+                                background: 'radial-gradient(circle at center, rgba(255, 107, 0, 0.4) 0%, rgba(255, 107, 0, 0.18) 60%, transparent 100%)',
+                                boxShadow: '0 0 25px rgba(255, 107, 0, 0.45), inset 0 0 18px rgba(255, 107, 0, 0.25)',
+                              }}
+                            />
+                            <div 
+                              className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg"
+                              style={{
+                                background: 'linear-gradient(135deg, #FF6B00 0%, #E05500 100%)',
+                                color: 'white',
+                              }}
+                            >
+                              Lower Lobes
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 ) : (

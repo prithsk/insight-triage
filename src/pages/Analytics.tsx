@@ -64,6 +64,61 @@ export default function Analytics() {
   
   const isWithKroix = viewMode === "with-kroix";
   
+  // CSV export function
+  const handleExportCSV = () => {
+    const now = new Date();
+    const timestamp = now.toISOString().split('T')[0];
+    const modeLabel = isWithKroix ? "With_Kroix" : "Without_Kroix";
+    
+    // Build CSV content with all data
+    let csvContent = "data:text/csv;charset=utf-8,";
+    
+    // Header section
+    csvContent += `Kroix Analytics Export - ${modeLabel}\n`;
+    csvContent += `Generated: ${now.toLocaleString()}\n`;
+    csvContent += `\n`;
+    
+    // Summary statistics
+    csvContent += `SUMMARY STATISTICS\n`;
+    csvContent += `Metric,Value,Unit\n`;
+    csvContent += `Avg. Time to Review (Critical),${avgMTTR},minutes\n`;
+    csvContent += `Avg. Throughput,${avgThroughput},scans/hour\n`;
+    csvContent += `Override Rate,${avgOverride},%\n`;
+    csvContent += `\n`;
+    
+    // MTTR Data
+    csvContent += `MEAN TIME TO REVIEW DATA\n`;
+    csvContent += `Date,Value (minutes)\n`;
+    activeMTTR.forEach(row => {
+      csvContent += `${row.date},${row.value.toFixed(2)}\n`;
+    });
+    csvContent += `\n`;
+    
+    // Throughput Data
+    csvContent += `THROUGHPUT DATA\n`;
+    csvContent += `Date,Value (scans/hour)\n`;
+    activeThroughput.forEach(row => {
+      csvContent += `${row.date},${row.value}\n`;
+    });
+    csvContent += `\n`;
+    
+    // Override Data
+    csvContent += `OVERRIDE RATE DATA\n`;
+    csvContent += `Date,Value (%)\n`;
+    activeOverride.forEach(row => {
+      csvContent += `${row.date},${row.value}\n`;
+    });
+    
+    // Create download link
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `kroix_analytics_${modeLabel}_${timestamp}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
   return (
     <AppLayout>
       <div className="h-[calc(100vh-3.5rem)] flex flex-col overflow-hidden">
@@ -101,7 +156,7 @@ export default function Analytics() {
               </button>
             </div>
             
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2" onClick={handleExportCSV}>
               <Download className="w-4 h-4" />
               Export CSV
             </Button>
