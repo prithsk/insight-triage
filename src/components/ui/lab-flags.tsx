@@ -7,7 +7,7 @@ interface LabFlagsProps {
   className?: string;
 }
 
-const getLabStatus = (type: "co2" | "ph" | "o2", value: number | null) => {
+const getLabStatus = (type: "co2" | "ph" | "o2" | "wbc" | "crp" | "procalcitonin", value: number | null) => {
   if (value === null) return null;
   
   switch (type) {
@@ -22,6 +22,18 @@ const getLabStatus = (type: "co2" | "ph" | "o2", value: number | null) => {
     case "o2":
       if (value < 90) return { status: "low", label: "↓" };
       return { status: "normal", label: "" };
+    case "wbc":
+      if (value > 11) return { status: "high", label: "↑" };
+      if (value < 4) return { status: "low", label: "↓" };
+      return { status: "normal", label: "" };
+    case "crp":
+      if (value > 10) return { status: "high", label: "↑" };
+      if (value > 3) return { status: "elevated", label: "↑" };
+      return { status: "normal", label: "" };
+    case "procalcitonin":
+      if (value > 0.5) return { status: "high", label: "↑" };
+      if (value > 0.1) return { status: "elevated", label: "↑" };
+      return { status: "normal", label: "" };
   }
 };
 
@@ -32,6 +44,9 @@ export function LabFlags({ labs, compact = false, className }: LabFlagsProps) {
     { type: "co2" as const, label: "CO₂", value: labs.co2, unit: "mmHg" },
     { type: "ph" as const, label: "pH", value: labs.ph, unit: "" },
     { type: "o2" as const, label: "O₂", value: labs.o2, unit: "%" },
+    { type: "wbc" as const, label: "WBC", value: labs.wbc, unit: "K/μL" },
+    { type: "crp" as const, label: "CRP", value: labs.crp, unit: "mg/L" },
+    { type: "procalcitonin" as const, label: "PCT", value: labs.procalcitonin, unit: "ng/mL" },
   ];
   
   const flaggedItems = items
@@ -50,6 +65,7 @@ export function LabFlags({ labs, compact = false, className }: LabFlagsProps) {
             className={cn(
               "text-[10px] font-medium px-1.5 py-0.5 rounded",
               item.status?.status === "high" && "bg-critical/20 text-critical",
+              item.status?.status === "elevated" && "bg-warning/20 text-warning",
               item.status?.status === "low" && "bg-warning/20 text-warning"
             )}
           >
@@ -73,11 +89,11 @@ export function LabFlags({ labs, compact = false, className }: LabFlagsProps) {
             <div className="flex items-center gap-2">
               <span className={cn(
                 "font-mono text-sm font-medium",
-                isAbnormal && status?.status === "high" && "text-critical",
+                isAbnormal && (status?.status === "high" || status?.status === "elevated") && "text-critical",
                 isAbnormal && status?.status === "low" && "text-warning",
                 !isAbnormal && "text-foreground"
               )}>
-                {item.value?.toFixed(item.type === "ph" ? 2 : 0) ?? "—"}
+                {item.value?.toFixed(item.type === "ph" || item.type === "procalcitonin" ? 2 : item.type === "wbc" || item.type === "crp" ? 1 : 0) ?? "—"}
                 {item.value !== null && item.unit && (
                   <span className="text-muted-foreground ml-1 text-xs">{item.unit}</span>
                 )}
@@ -85,7 +101,7 @@ export function LabFlags({ labs, compact = false, className }: LabFlagsProps) {
               {isAbnormal && (
                 <span className={cn(
                   "text-xs",
-                  status?.status === "high" && "text-critical",
+                  (status?.status === "high" || status?.status === "elevated") && "text-critical",
                   status?.status === "low" && "text-warning"
                 )}>
                   {status?.label}
