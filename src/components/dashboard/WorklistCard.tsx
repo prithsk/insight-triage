@@ -120,8 +120,7 @@ export function WorklistCard({ item, isSelected, isChecked, isMinimized = false,
         {config && (
           <div className={cn(
             "flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono text-[12px] font-medium shrink-0",
-            config.bgColor, config.textColor, "border", config.borderColor,
-            isMinimized && "w-[85px] justify-center"
+            config.bgColor, config.textColor, "border", config.borderColor
           )}>
             <Icon className="w-3.5 h-3.5" />
             {config.label}
@@ -135,8 +134,9 @@ export function WorklistCard({ item, isSelected, isChecked, isMinimized = false,
         {item.triage ? (
           <div className={cn(
             "flex items-center shrink-0 transition-all duration-300",
-            isMinimized ? "gap-1 -mr-1" : "gap-3"
+            isMinimized ? "gap-1 -mr-3" : "gap-3"
           )}>
+            {/* Risk bar - Animated hide when minimized */}
             <div 
               className={cn(
                 "h-1.5 bg-landing-bg rounded-full overflow-hidden transition-all duration-300",
