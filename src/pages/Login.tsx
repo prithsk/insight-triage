@@ -5,6 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ArrowRight } from "lucide-react";
+import { 
+  validateEmail, 
+  detectSQLInjection, 
+  detectXSS, 
+  checkRateLimit,
+  logSecurityEvent 
+} from "@/lib/security";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -15,10 +22,45 @@ export default function Login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Rate limiting: 5 attempts per minute
+    const rateLimit = checkRateLimit('login', 5, 60000);
+    if (!rateLimit.allowed) {
+      toast({
+        variant: "destructive",
+        title: "Too many attempts",
+        description: `Please wait ${Math.ceil(rateLimit.resetInMs / 1000)} seconds before trying again.`,
+      });
+      logSecurityEvent('rate_limit', { action: 'login', email: email.substring(0, 3) + '***' });
+      return;
+    }
+
+    // Validate email
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.valid) {
+      toast({
+        variant: "destructive",
+        title: "Invalid email",
+        description: emailValidation.error,
+      });
+      return;
+    }
+
+    // Check for injection attacks
+    if (detectSQLInjection(password) || detectXSS(password)) {
+      logSecurityEvent('sql_injection', { action: 'login' });
+      toast({
+        variant: "destructive",
+        title: "Invalid input",
+        description: "Password contains invalid characters.",
+      });
+      return;
+    }
+
     setLoading(true);
 
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: emailValidation.sanitized,
       password,
     });
 
