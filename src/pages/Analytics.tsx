@@ -49,7 +49,32 @@ export default function Analytics() {
   const throughputDataBaseline = useMemo(() => generateThroughputDataBaseline(), []);
   const overrideDataBaseline = useMemo(() => generateOverrideDataBaseline(), []);
   
-  // Select data based on view mode
+  // Combine data for overlaid charts
+  const combinedMTTR = useMemo(() => {
+    return mttrData.map((item, i) => ({
+      date: item.date,
+      withKroix: item.value,
+      withoutKroix: mttrDataBaseline[i].value,
+    }));
+  }, [mttrData, mttrDataBaseline]);
+
+  const combinedThroughput = useMemo(() => {
+    return throughputData.map((item, i) => ({
+      date: item.date,
+      withKroix: item.value,
+      withoutKroix: throughputDataBaseline[i].value,
+    }));
+  }, [throughputData, throughputDataBaseline]);
+
+  const combinedOverride = useMemo(() => {
+    return overrideData.map((item, i) => ({
+      date: item.date,
+      withKroix: item.value,
+      withoutKroix: overrideDataBaseline[i].value,
+    }));
+  }, [overrideData, overrideDataBaseline]);
+
+  // Select data based on view mode for summary stats
   const activeMTTR = viewMode === "with-kroix" ? mttrData : mttrDataBaseline;
   const activeThroughput = viewMode === "with-kroix" ? throughputData : throughputDataBaseline;
   const activeOverride = viewMode === "with-kroix" ? overrideData : overrideDataBaseline;
@@ -282,24 +307,30 @@ export default function Analytics() {
                   {activeTab === "overrides" && "Priority Override Rate"}
                   <span className="text-[14px] text-landing-muted font-sans ml-2">— Last 7 Days</span>
                 </h3>
-                <span className={cn(
-                  "px-3 py-1 rounded-lg text-[12px] font-medium",
-                  isWithKroix 
-                    ? "bg-landing-primary/10 text-landing-primary" 
-                    : "bg-landing-muted/20 text-landing-muted"
-                )}>
-                  {isWithKroix ? "With Kroix" : "Without Kroix"}
-                </span>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-[#2F6F5E]" />
+                    <span className="text-[12px] text-landing-body">With Kroix</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-[#9CA3AF]" />
+                    <span className="text-[12px] text-landing-body">Without Kroix</span>
+                  </div>
+                </div>
               </div>
               
               <div className="h-[400px]">
                 {activeTab === "mttr" && (
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={activeMTTR}>
+                    <AreaChart data={combinedMTTR}>
                       <defs>
-                        <linearGradient id="mttrGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={isWithKroix ? "#2F6F5E" : "#dc2626"} stopOpacity={0.2}/>
-                          <stop offset="95%" stopColor={isWithKroix ? "#2F6F5E" : "#dc2626"} stopOpacity={0}/>
+                        <linearGradient id="mttrGradientWith" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#2F6F5E" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#2F6F5E" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="mttrGradientWithout" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#9CA3AF" stopOpacity={0.15}/>
+                          <stop offset="95%" stopColor="#9CA3AF" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
@@ -312,7 +343,7 @@ export default function Analytics() {
                         stroke="#9CA3AF"
                         tick={{ fill: '#6B7280', fontSize: 12 }}
                         unit="m"
-                        domain={isWithKroix ? [0, 4] : [0, 10]}
+                        domain={[0, 10]}
                       />
                       <Tooltip 
                         contentStyle={{ 
@@ -322,12 +353,24 @@ export default function Analytics() {
                           boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                         }}
                         labelStyle={{ color: '#1F2937', fontWeight: 500 }}
+                        formatter={(value: number, name: string) => [
+                          `${value.toFixed(2)}m`,
+                          name === 'withKroix' ? 'With Kroix' : 'Without Kroix'
+                        ]}
                       />
                       <Area 
                         type="monotone" 
-                        dataKey="value" 
-                        stroke={isWithKroix ? "#2F6F5E" : "#dc2626"} 
-                        fill="url(#mttrGradient)"
+                        dataKey="withoutKroix" 
+                        stroke="#9CA3AF" 
+                        fill="url(#mttrGradientWithout)"
+                        strokeWidth={2}
+                        strokeDasharray="4 4"
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="withKroix" 
+                        stroke="#2F6F5E" 
+                        fill="url(#mttrGradientWith)"
                         strokeWidth={2}
                       />
                     </AreaChart>
@@ -336,7 +379,7 @@ export default function Analytics() {
                 
                 {activeTab === "throughput" && (
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={activeThroughput}>
+                    <LineChart data={combinedThroughput}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
                       <XAxis 
                         dataKey="date" 
@@ -346,7 +389,7 @@ export default function Analytics() {
                       <YAxis 
                         stroke="#9CA3AF"
                         tick={{ fill: '#6B7280', fontSize: 12 }}
-                        domain={isWithKroix ? [20, 40] : [0, 20]}
+                        domain={[0, 45]}
                       />
                       <Tooltip 
                         contentStyle={{ 
@@ -356,13 +399,25 @@ export default function Analytics() {
                           boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                         }}
                         labelStyle={{ color: '#1F2937', fontWeight: 500 }}
+                        formatter={(value: number, name: string) => [
+                          `${value} scans/hr`,
+                          name === 'withKroix' ? 'With Kroix' : 'Without Kroix'
+                        ]}
                       />
                       <Line 
                         type="monotone" 
-                        dataKey="value" 
-                        stroke={isWithKroix ? "#10b981" : "#f59e0b"} 
+                        dataKey="withoutKroix" 
+                        stroke="#9CA3AF" 
                         strokeWidth={2}
-                        dot={{ fill: isWithKroix ? '#10b981' : '#f59e0b', strokeWidth: 0 }}
+                        strokeDasharray="4 4"
+                        dot={{ fill: '#9CA3AF', strokeWidth: 0 }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="withKroix" 
+                        stroke="#2F6F5E" 
+                        strokeWidth={2}
+                        dot={{ fill: '#2F6F5E', strokeWidth: 0 }}
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -370,7 +425,7 @@ export default function Analytics() {
                 
                 {activeTab === "overrides" && (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={activeOverride}>
+                    <BarChart data={combinedOverride}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
                       <XAxis 
                         dataKey="date" 
@@ -381,7 +436,7 @@ export default function Analytics() {
                         stroke="#9CA3AF"
                         tick={{ fill: '#6B7280', fontSize: 12 }}
                         unit="%"
-                        domain={isWithKroix ? [0, 20] : [0, 40]}
+                        domain={[0, 40]}
                       />
                       <Tooltip 
                         contentStyle={{ 
@@ -391,10 +446,19 @@ export default function Analytics() {
                           boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                         }}
                         labelStyle={{ color: '#1F2937', fontWeight: 500 }}
+                        formatter={(value: number, name: string) => [
+                          `${value}%`,
+                          name === 'withKroix' ? 'With Kroix' : 'Without Kroix'
+                        ]}
                       />
                       <Bar 
-                        dataKey="value" 
-                        fill={isWithKroix ? "#f59e0b" : "#dc2626"} 
+                        dataKey="withoutKroix" 
+                        fill="#D1D5DB" 
+                        radius={[6, 6, 0, 0]}
+                      />
+                      <Bar 
+                        dataKey="withKroix" 
+                        fill="#2F6F5E" 
                         radius={[6, 6, 0, 0]}
                       />
                     </BarChart>
