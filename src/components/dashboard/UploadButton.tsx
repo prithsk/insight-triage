@@ -1,5 +1,4 @@
 import { useState, useRef } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,10 +7,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Upload, FileImage, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { Upload, FileImage, CheckCircle2, Loader2, AlertCircle, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUploadMultipleDicom } from "@/hooks/useUploadDicom";
-import { Progress } from "@/components/ui/progress";
 
 export function UploadButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -102,16 +100,16 @@ export function UploadButton() {
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
+        <button className="px-5 py-2.5 bg-landing-primary text-white rounded-[10px] text-[14px] font-medium hover:bg-[#265A4C] transition-colors flex items-center gap-2">
           <Upload className="w-4 h-4" />
           Upload Studies
-        </Button>
+        </button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-white border-[rgba(0,0,0,0.06)]">
         <DialogHeader>
-          <DialogTitle>Upload DICOM Studies</DialogTitle>
-          <DialogDescription>
-            Drag and drop DICOM files to begin automatic triage processing.
+          <DialogTitle className="font-serif text-[24px] text-landing-heading">Upload Studies</DialogTitle>
+          <DialogDescription className="text-landing-body">
+            Drop DICOM files to begin automatic triage processing
           </DialogDescription>
         </DialogHeader>
         
@@ -130,47 +128,50 @@ export function UploadButton() {
           onDrop={handleDrop}
           onClick={handleClick}
           className={cn(
-            "mt-4 border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer",
-            isDragging && "border-primary bg-primary/5",
-            uploadState === 'idle' && !isDragging && "border-border hover:border-muted-foreground",
-            uploadState === 'uploading' && "border-primary bg-primary/5 cursor-wait",
-            uploadState === 'success' && "border-clear bg-clear/5",
-            uploadState === 'error' && "border-critical bg-critical/5"
+            "mt-4 border-2 border-dashed rounded-2xl p-8 text-center transition-colors cursor-pointer",
+            isDragging && "border-landing-primary bg-landing-primary/5",
+            uploadState === 'idle' && !isDragging && "border-[rgba(0,0,0,0.1)] hover:border-landing-primary",
+            uploadState === 'uploading' && "border-landing-primary bg-landing-primary/5 cursor-wait",
+            uploadState === 'success' && "border-emerald-500 bg-emerald-50",
+            uploadState === 'error' && "border-red-500 bg-red-50"
           )}
         >
           {uploadState === 'uploading' && (
             <>
-              <Loader2 className="w-12 h-12 mx-auto text-primary mb-4 animate-spin" />
-              <p className="font-medium">Processing uploads...</p>
-              <p className="text-sm text-muted-foreground mt-1">
+              <Loader2 className="w-12 h-12 mx-auto text-landing-primary mb-4 animate-spin" />
+              <p className="font-medium text-landing-heading">Processing uploads...</p>
+              <p className="text-[14px] text-landing-body mt-1">
                 Running ML inference on {totalCount} file(s)
               </p>
-              <Progress 
-                value={(processedCount / totalCount) * 100} 
-                className="mt-4 h-2" 
-              />
+              {/* Progress bar */}
+              <div className="mt-4 h-2 bg-landing-bg rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-landing-primary rounded-full transition-all duration-300"
+                  style={{ width: `${(processedCount / totalCount) * 100}%` }}
+                />
+              </div>
             </>
           )}
           
           {uploadState === 'success' && (
             <>
-              <CheckCircle2 className="w-12 h-12 mx-auto text-clear mb-4" />
-              <p className="font-medium text-clear">
-                {processedCount} file(s) processed successfully
+              <CheckCircle2 className="w-12 h-12 mx-auto text-emerald-600 mb-4" />
+              <p className="font-medium text-emerald-700">
+                {processedCount} file(s) processed
               </p>
-              <div className="flex justify-center gap-4 mt-3 text-sm">
+              <div className="flex justify-center gap-4 mt-3 text-[13px]">
                 {uploadResults.critical > 0 && (
-                  <span className="text-critical font-medium">
+                  <span className="text-red-600 font-medium">
                     🔴 {uploadResults.critical} Critical
                   </span>
                 )}
                 {uploadResults.review > 0 && (
-                  <span className="text-warning font-medium">
+                  <span className="text-amber-600 font-medium">
                     🟡 {uploadResults.review} Review
                   </span>
                 )}
                 {uploadResults.clear > 0 && (
-                  <span className="text-clear font-medium">
+                  <span className="text-emerald-600 font-medium">
                     🟢 {uploadResults.clear} Clear
                   </span>
                 )}
@@ -180,9 +181,9 @@ export function UploadButton() {
           
           {uploadState === 'error' && (
             <>
-              <AlertCircle className="w-12 h-12 mx-auto text-critical mb-4" />
-              <p className="font-medium text-critical">Upload failed</p>
-              <p className="text-sm text-muted-foreground mt-1">
+              <AlertCircle className="w-12 h-12 mx-auto text-red-600 mb-4" />
+              <p className="font-medium text-red-700">Upload failed</p>
+              <p className="text-[14px] text-landing-body mt-1">
                 Please try again or check your connection
               </p>
             </>
@@ -190,19 +191,19 @@ export function UploadButton() {
           
           {uploadState === 'idle' && (
             <>
-              <FileImage className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <p className="font-medium">Drop DICOM files here</p>
-              <p className="text-sm text-muted-foreground mt-1">
+              <FileImage className="w-12 h-12 mx-auto text-landing-muted mb-4" />
+              <p className="font-medium text-landing-heading">Drop DICOM files here</p>
+              <p className="text-[14px] text-landing-body mt-1">
                 or click to browse your files
               </p>
             </>
           )}
         </div>
         
-        <p className="text-xs text-muted-foreground mt-4">
-          Supported formats: DICOM (.dcm), PNG, JPG/JPEG
+        <p className="text-[12px] text-landing-muted mt-4">
+          Supported: DICOM (.dcm), PNG, JPG/JPEG
           <br />
-          <span className="text-primary">ML inference runs automatically after upload</span>
+          <span className="text-landing-primary">ML inference runs automatically after upload</span>
         </p>
       </DialogContent>
     </Dialog>
