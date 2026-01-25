@@ -556,59 +556,59 @@ const Landing = () => {
           {/* 2x2 Metrics Grid - uniform rectangles */}
           <div className="grid md:grid-cols-2 gap-6 mb-20 max-w-4xl mx-auto">
             {/* Metric 1 */}
-            <div className="flex items-center justify-between p-6 rounded-xl border border-landing-primary/20 bg-landing-bg/50">
-              <div>
-                <div className="flex items-baseline gap-2 mb-1">
+            <div className="p-5 rounded-xl border border-landing-primary/20 bg-landing-bg/50">
+              <div className="flex items-center gap-4 mb-2">
+                <div className="w-10 h-10 rounded-md border border-landing-primary/20 flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-6 h-6 text-landing-primary" />
+                </div>
+                <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-serif font-medium text-landing-heading">40%</span>
                   <span className="text-xl font-serif text-landing-heading">Faster MTTR</span>
                 </div>
-                <p className="text-sm text-landing-primary">Reduce diagnostic delays.</p>
               </div>
-              <div className="w-10 h-10 rounded-md border border-landing-primary/20 flex items-center justify-center flex-shrink-0 ml-4">
-                <Clock className="w-6 h-6 text-landing-primary" />
-              </div>
+              <p className="text-sm text-landing-primary pl-14">Reduce diagnostic delays.</p>
             </div>
 
             {/* Metric 2 */}
-            <div className="flex items-center justify-between p-6 rounded-xl border border-landing-primary/20 bg-landing-bg/50">
-              <div>
-                <div className="flex items-baseline gap-2 mb-1">
+            <div className="p-5 rounded-xl border border-landing-primary/20 bg-landing-bg/50">
+              <div className="flex items-center gap-4 mb-2">
+                <div className="w-10 h-10 rounded-md border border-landing-primary/20 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-6 h-6 text-landing-primary" />
+                </div>
+                <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-serif font-medium text-landing-heading">25%</span>
                   <span className="text-xl font-serif text-landing-heading">Throughput Increase</span>
                 </div>
-                <p className="text-sm text-landing-primary">Process more studies per shift.</p>
               </div>
-              <div className="w-10 h-10 rounded-md border border-landing-primary/20 flex items-center justify-center flex-shrink-0 ml-4">
-                <TrendingUp className="w-6 h-6 text-landing-primary" />
-              </div>
+              <p className="text-sm text-landing-primary pl-14">Process more studies per shift.</p>
             </div>
 
             {/* Metric 3 */}
-            <div className="flex items-center justify-between p-6 rounded-xl border border-landing-primary/20 bg-landing-bg/50">
-              <div>
-                <div className="flex items-baseline gap-2 mb-1">
+            <div className="p-5 rounded-xl border border-landing-primary/20 bg-landing-bg/50">
+              <div className="flex items-center gap-4 mb-2">
+                <div className="w-10 h-10 rounded-md border border-landing-primary/20 flex items-center justify-center flex-shrink-0">
+                  <Target className="w-6 h-6 text-landing-primary" />
+                </div>
+                <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-serif font-medium text-landing-heading">95%</span>
                   <span className="text-xl font-serif text-landing-heading">Critical Detection</span>
                 </div>
-                <p className="text-sm text-landing-primary">High-acuity respiratory findings.</p>
               </div>
-              <div className="w-10 h-10 rounded-md border border-landing-primary/20 flex items-center justify-center flex-shrink-0 ml-4">
-                <Target className="w-6 h-6 text-landing-primary" />
-              </div>
+              <p className="text-sm text-landing-primary pl-14">High-acuity respiratory findings.</p>
             </div>
 
             {/* Metric 4 */}
-            <div className="flex items-center justify-between p-6 rounded-xl border border-landing-primary/20 bg-landing-bg/50">
-              <div>
-                <div className="flex items-baseline gap-2 mb-1">
+            <div className="p-5 rounded-xl border border-landing-primary/20 bg-landing-bg/50">
+              <div className="flex items-center gap-4 mb-2">
+                <div className="w-10 h-10 rounded-md border border-landing-primary/20 flex items-center justify-center flex-shrink-0">
+                  <Zap className="w-6 h-6 text-landing-primary" />
+                </div>
+                <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-serif font-medium text-landing-heading">&lt;5s</span>
                   <span className="text-xl font-serif text-landing-heading">Inference Time</span>
                 </div>
-                <p className="text-sm text-landing-primary">Lightning-fast AI processing.</p>
               </div>
-              <div className="w-10 h-10 rounded-md border border-landing-primary/20 flex items-center justify-center flex-shrink-0 ml-4">
-                <Zap className="w-6 h-6 text-landing-primary" />
-              </div>
+              <p className="text-sm text-landing-primary pl-14">Lightning-fast AI processing.</p>
             </div>
           </div>
 
