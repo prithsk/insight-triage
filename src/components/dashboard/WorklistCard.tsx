@@ -100,7 +100,7 @@ export function WorklistCard({ item, isSelected, isChecked, isMinimized = false,
         {/* Time - reduce gap when minimized */}
         <div className={cn(
           "shrink-0 flex items-center text-[13px] text-landing-body transition-all duration-300",
-          isMinimized ? "gap-1 ml-0" : "gap-1.5"
+          isMinimized ? "gap-0.5 -ml-2" : "gap-1.5"
         )}>
           <Clock className="w-3.5 h-3.5 text-landing-muted" />
           {formatStudyTime(item.study.study_time)}
@@ -132,8 +132,10 @@ export function WorklistCard({ item, isSelected, isChecked, isMinimized = false,
 
         {/* Risk Score */}
         {item.triage ? (
-          <div className="flex items-center gap-3 shrink-0">
-            {/* Risk bar - Animated hide when minimized */}
+          <div className={cn(
+            "flex items-center shrink-0 transition-all duration-300",
+            isMinimized ? "gap-1 -mr-1" : "gap-3"
+          )}>
             <div 
               className={cn(
                 "h-1.5 bg-landing-bg rounded-full overflow-hidden transition-all duration-300",
