@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Loader2, Clock, TrendingUp, Target, AlertTriangle } from "lucide-react";
+import { ArrowRight, Loader2, Clock, TrendingUp, Target, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Dialog,
@@ -15,13 +15,63 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  Legend,
+} from "recharts";
 
 // Feature images
 import featureAnalysis from "@/assets/landing/feature-analysis.jpg";
-import featureSpeed from "@/assets/landing/feature-speed.jpg";
-import featureAccuracy from "@/assets/landing/feature-accuracy.jpg";
 import workflowDicom from "@/assets/landing/workflow-dicom.jpg";
 import workflowReport from "@/assets/landing/workflow-report.jpg";
+
+// Animated Ellipses Component
+const AnimatedEllipses = () => (
+  <div className="absolute -right-8 top-1/2 -translate-y-1/2 hidden xl:flex flex-col gap-3">
+    {[0, 1, 2].map((i) => (
+      <div 
+        key={i} 
+        className="w-8 h-8 rounded-full border-2 border-landing-primary/40 relative overflow-hidden"
+      >
+        {/* Animated dot inside each ellipse */}
+        <div 
+          className="absolute w-2 h-2 bg-landing-primary rounded-full animate-orbit"
+          style={{ animationDelay: `${i * 0.3}s` }}
+        />
+      </div>
+    ))}
+  </div>
+);
+
+// Generate mock data for throughput comparison
+const generateThroughputData = () => {
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  return days.map((day) => ({
+    day,
+    withKroix: Math.floor(Math.random() * 15) + 35,
+    withoutKroix: Math.floor(Math.random() * 10) + 18,
+  }));
+};
+
+// Generate mock data for accuracy comparison
+const generateAccuracyData = () => {
+  return [
+    { category: 'Critical Detection', withKroix: 95, withoutKroix: 78 },
+    { category: 'False Positive Rate', withKroix: 8, withoutKroix: 22 },
+    { category: 'Missed Urgency', withKroix: 3, withoutKroix: 15 },
+    { category: 'Overall Accuracy', withKroix: 94, withoutKroix: 81 },
+  ];
+};
 
 const Landing = () => {
   const [isContactOpen, setIsContactOpen] = useState(false);
@@ -32,6 +82,9 @@ const Landing = () => {
     institution: "",
     message: "Hi, I'm interested in learning more about Kroix for my radiology practice.",
   });
+
+  const throughputData = useMemo(() => generateThroughputData(), []);
+  const accuracyData = useMemo(() => generateAccuracyData(), []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +114,20 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-landing-bg text-landing-heading overflow-x-hidden">
+      {/* Orbit animation for ellipses */}
+      <style>{`
+        @keyframes orbit {
+          0% { transform: translate(0, 0); }
+          25% { transform: translate(16px, 8px); }
+          50% { transform: translate(20px, 16px); }
+          75% { transform: translate(8px, 20px); }
+          100% { transform: translate(0, 0); }
+        }
+        .animate-orbit {
+          animation: orbit 2s ease-in-out infinite;
+        }
+      `}</style>
+
       {/* Subtle grain texture overlay */}
       <div 
         className="fixed inset-0 pointer-events-none opacity-[0.03] z-50"
@@ -107,12 +174,13 @@ const Landing = () => {
         <div className="relative z-10 max-w-7xl mx-auto px-8 w-full">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left: Content */}
-            <div className="max-w-xl">
+            <div className="max-w-xl relative">
               <h1 className="font-serif text-[64px] lg:text-[72px] leading-[1.05] font-medium text-landing-heading mb-8 tracking-[-0.02em]">
-                Next-generation AI for clinical radiology.
+                Next-generation AI for <em className="not-italic underline decoration-landing-primary/30 decoration-2 underline-offset-4">clinical radiology</em>.
               </h1>
+              <AnimatedEllipses />
               <p className="text-xl text-landing-body leading-relaxed mb-10">
-                Intelligent triage prioritization that moves critical respiratory cases to the front—delivering faster reads with measurable accuracy.
+                Intelligent triage prioritization that moves <strong className="font-semibold text-landing-heading">critical respiratory cases</strong> to the front—delivering faster reads with <em>measurable accuracy</em>.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
@@ -225,26 +293,26 @@ const Landing = () => {
       {/* Features Section */}
       <section className="py-32 px-8 bg-white">
         <div className="max-w-7xl mx-auto">
-          {/* Feature 1 */}
+          {/* Feature 1 - Comprehensive Analysis */}
           <div className="grid lg:grid-cols-2 gap-16 items-center mb-32">
             <div className="max-w-lg">
               <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
                 Analysis
               </span>
               <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading mb-6 tracking-[-0.01em]">
-                Comprehensive Analysis
+                <strong>Comprehensive</strong> Analysis
               </h2>
               <p className="text-lg text-landing-body leading-relaxed mb-6">
-                AI-powered detection that identifies critical findings across every chest X-ray study.
+                AI-powered detection that identifies <em>critical findings</em> across every chest X-ray study.
               </p>
               <ul className="space-y-3 text-landing-body">
                 <li className="flex items-center gap-3">
                   <span className="w-1 h-1 rounded-full bg-landing-primary" />
-                  Pneumonia and COPD pattern recognition
+                  <strong className="font-medium text-landing-heading">Pneumonia</strong> and COPD pattern recognition
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="w-1 h-1 rounded-full bg-landing-primary" />
-                  Consolidation and opacity mapping
+                  Consolidation and <em>opacity mapping</em>
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="w-1 h-1 rounded-full bg-landing-primary" />
@@ -261,29 +329,83 @@ const Landing = () => {
             </div>
           </div>
 
-          {/* Feature 2 */}
+          {/* Feature 2 - Real-time Processing with Chart */}
           <div className="grid lg:grid-cols-2 gap-16 items-center mb-32">
-            <div className="order-2 lg:order-1 relative h-[400px] rounded-2xl overflow-hidden">
-              <img 
-                src={featureSpeed} 
-                alt="Real-time processing visualization" 
-                className="w-full h-full object-cover"
-              />
+            <div className="order-2 lg:order-1 relative h-[400px] rounded-2xl overflow-hidden bg-landing-bg/50 border border-[rgba(0,0,0,0.06)] p-6">
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-landing-heading mb-1">Scans Reviewed per Hour</h4>
+                <p className="text-xs text-landing-muted">7-day comparison: with vs. without Kroix</p>
+              </div>
+              <ResponsiveContainer width="100%" height="85%">
+                <AreaChart data={throughputData}>
+                  <defs>
+                    <linearGradient id="withKroixGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2F6F5E" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#2F6F5E" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="withoutKroixGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#7C8B85" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#7C8B85" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                  <XAxis 
+                    dataKey="day" 
+                    stroke="#7C8B85"
+                    tick={{ fill: '#7C8B85', fontSize: 11 }}
+                    axisLine={{ stroke: 'rgba(0,0,0,0.06)' }}
+                  />
+                  <YAxis 
+                    stroke="#7C8B85"
+                    tick={{ fill: '#7C8B85', fontSize: 11 }}
+                    axisLine={{ stroke: 'rgba(0,0,0,0.06)' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#F6F7F4', 
+                      border: '1px solid rgba(0,0,0,0.06)',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                    }}
+                  />
+                  <Legend 
+                    wrapperStyle={{ fontSize: '11px' }}
+                    iconType="circle"
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="withKroix" 
+                    name="With Kroix"
+                    stroke="#2F6F5E" 
+                    fill="url(#withKroixGradient)"
+                    strokeWidth={2}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="withoutKroix" 
+                    name="Without Kroix"
+                    stroke="#7C8B85" 
+                    fill="url(#withoutKroixGradient)"
+                    strokeWidth={1.5}
+                    strokeDasharray="4 4"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
             <div className="order-1 lg:order-2 max-w-lg">
               <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
                 Speed
               </span>
               <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading mb-6 tracking-[-0.01em]">
-                Real-time Processing
+                Real-time <em className="not-italic underline decoration-landing-primary/30 decoration-2 underline-offset-4">Processing</em>
               </h2>
               <p className="text-lg text-landing-body leading-relaxed mb-6">
-                Sub-5 second inference times that fit seamlessly into existing workflows.
+                Sub-5 second inference times that fit <strong className="font-semibold text-landing-heading">seamlessly</strong> into existing workflows.
               </p>
               <ul className="space-y-3 text-landing-body">
                 <li className="flex items-center gap-3">
                   <span className="w-1 h-1 rounded-full bg-landing-primary" />
-                  Immediate priority scoring
+                  <strong className="font-medium text-landing-heading">Immediate</strong> priority scoring
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="w-1 h-1 rounded-full bg-landing-primary" />
@@ -291,28 +413,28 @@ const Landing = () => {
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="w-1 h-1 rounded-full bg-landing-primary" />
-                  Zero workflow disruption
+                  <em>Zero</em> workflow disruption
                 </li>
               </ul>
             </div>
           </div>
 
-          {/* Feature 3 */}
+          {/* Feature 3 - Clinical-grade Accuracy with Comparison Chart */}
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="max-w-lg">
               <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
                 Precision
               </span>
               <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading mb-6 tracking-[-0.01em]">
-                Clinical-grade Accuracy
+                Clinical-grade <strong>Accuracy</strong>
               </h2>
               <p className="text-lg text-landing-body leading-relaxed mb-6">
-                Validated performance metrics that meet the demands of clinical environments.
+                Validated performance metrics that meet the demands of <em>clinical environments</em>.
               </p>
               <ul className="space-y-3 text-landing-body">
                 <li className="flex items-center gap-3">
                   <span className="w-1 h-1 rounded-full bg-landing-primary" />
-                  95% critical case detection
+                  <strong className="font-semibold text-landing-heading">95%</strong> critical case detection
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="w-1 h-1 rounded-full bg-landing-primary" />
@@ -320,22 +442,68 @@ const Landing = () => {
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="w-1 h-1 rounded-full bg-landing-primary" />
-                  Transparent confidence scoring
+                  Transparent <em>confidence scoring</em>
                 </li>
               </ul>
             </div>
-            <div className="relative h-[400px] rounded-2xl overflow-hidden">
-              <img 
-                src={featureAccuracy} 
-                alt="Clinical accuracy visualization" 
-                className="w-full h-full object-cover"
-              />
+            <div className="relative h-[400px] rounded-2xl overflow-hidden bg-landing-bg/50 border border-[rgba(0,0,0,0.06)] p-6">
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-landing-heading mb-1">Accuracy Comparison</h4>
+                <p className="text-xs text-landing-muted">Radiologist performance: with vs. without Kroix (%)</p>
+              </div>
+              <ResponsiveContainer width="100%" height="85%">
+                <BarChart data={accuracyData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                  <XAxis 
+                    type="number" 
+                    domain={[0, 100]}
+                    stroke="#7C8B85"
+                    tick={{ fill: '#7C8B85', fontSize: 11 }}
+                    axisLine={{ stroke: 'rgba(0,0,0,0.06)' }}
+                  />
+                  <YAxis 
+                    type="category" 
+                    dataKey="category" 
+                    stroke="#7C8B85"
+                    tick={{ fill: '#4A5A54', fontSize: 10 }}
+                    width={100}
+                    axisLine={{ stroke: 'rgba(0,0,0,0.06)' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#F6F7F4', 
+                      border: '1px solid rgba(0,0,0,0.06)',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                    }}
+                    formatter={(value: number) => [`${value}%`, '']}
+                  />
+                  <Legend 
+                    wrapperStyle={{ fontSize: '11px' }}
+                    iconType="circle"
+                  />
+                  <Bar 
+                    dataKey="withKroix" 
+                    name="With Kroix"
+                    fill="#2F6F5E" 
+                    radius={[0, 4, 4, 0]}
+                    barSize={16}
+                  />
+                  <Bar 
+                    dataKey="withoutKroix" 
+                    name="Without Kroix"
+                    fill="#C4CCC8" 
+                    radius={[0, 4, 4, 0]}
+                    barSize={16}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Workflow Section - With actual images */}
+      {/* Workflow Section - With Kroix logo */}
       <section className="py-24 px-8 bg-landing-bg">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
@@ -343,7 +511,7 @@ const Landing = () => {
               Workflow
             </span>
             <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading tracking-[-0.01em]">
-              Seamless Integration
+              <em className="not-italic">Seamless</em> Integration
             </h2>
           </div>
           
@@ -368,18 +536,14 @@ const Landing = () => {
               </svg>
             </div>
 
-            {/* AI */}
+            {/* AI - Kroix Logo */}
             <div className="flex flex-col items-center gap-4">
               <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-2xl border border-landing-primary/20 bg-landing-primary/5 flex items-center justify-center">
-                <div className="text-center">
-                  <svg width="40" height="40" viewBox="0 0 32 32" fill="none" className="text-landing-primary mx-auto mb-2">
-                    <circle cx="16" cy="16" r="10" stroke="currentColor" strokeWidth="1.5" />
-                    <circle cx="16" cy="16" r="4" fill="currentColor" />
-                  </svg>
-                  <span className="text-landing-primary text-xs font-medium">Processing</span>
-                </div>
+                <span className="text-3xl lg:text-4xl font-serif font-semibold text-landing-primary tracking-tight">
+                  Kroix
+                </span>
               </div>
-              <span className="text-[14px] text-landing-primary font-medium">Kroix AI</span>
+              <span className="text-[14px] text-landing-primary font-medium">AI Processing</span>
             </div>
 
             {/* Arrow */}
@@ -404,7 +568,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Clinical Impact Section - Replaces testimonials */}
+      {/* Clinical Impact Section */}
       <section className="py-32 px-8 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-20">
@@ -412,72 +576,74 @@ const Landing = () => {
               Clinical Impact
             </span>
             <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading tracking-[-0.01em] mb-6">
-              Measurable Outcomes
+              <strong>Measurable</strong> Outcomes
             </h2>
             <p className="text-lg text-landing-body max-w-2xl mx-auto">
-              Real performance metrics that demonstrate the value of AI-assisted triage in clinical workflows.
+              Real performance metrics that demonstrate the <em>value of AI-assisted triage</em> in clinical workflows.
             </p>
           </div>
 
-          {/* Metrics Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
-            {/* Metric 1 */}
-            <div className="text-center p-8 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-landing-bg/50">
-              <div className="w-12 h-12 rounded-xl bg-landing-primary/10 flex items-center justify-center mx-auto mb-4">
+          {/* 2x2 Metrics Grid with varied heights */}
+          <div className="grid md:grid-cols-2 gap-6 mb-20 max-w-4xl mx-auto">
+            {/* Metric 1 - Taller */}
+            <div className="text-center p-8 pb-12 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-landing-bg/50">
+              <div className="w-12 h-12 rounded-xl border border-landing-primary flex items-center justify-center mx-auto mb-4">
                 <Clock className="w-6 h-6 text-landing-primary" />
               </div>
-              <div className="text-4xl font-serif font-medium text-landing-heading mb-2">40%</div>
-              <div className="text-landing-body text-[15px]">Faster Mean Time to Review</div>
+              <div className="text-5xl font-serif font-medium text-landing-heading mb-3">40%</div>
+              <div className="text-landing-heading font-medium text-[16px] mb-2">Faster Mean Time to Review</div>
+              <p className="text-landing-muted text-sm">Critical cases reach radiologists sooner, reducing diagnostic delays.</p>
             </div>
 
-            {/* Metric 2 */}
+            {/* Metric 2 - Shorter */}
             <div className="text-center p-8 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-landing-bg/50">
-              <div className="w-12 h-12 rounded-xl bg-landing-primary/10 flex items-center justify-center mx-auto mb-4">
+              <div className="w-12 h-12 rounded-xl border border-landing-primary flex items-center justify-center mx-auto mb-4">
                 <TrendingUp className="w-6 h-6 text-landing-primary" />
               </div>
-              <div className="text-4xl font-serif font-medium text-landing-heading mb-2">25%</div>
-              <div className="text-landing-body text-[15px]">Increase in Throughput</div>
+              <div className="text-5xl font-serif font-medium text-landing-heading mb-3">25%</div>
+              <div className="text-landing-heading font-medium text-[16px]">Increase in Throughput</div>
             </div>
 
-            {/* Metric 3 */}
+            {/* Metric 3 - Shorter */}
             <div className="text-center p-8 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-landing-bg/50">
-              <div className="w-12 h-12 rounded-xl bg-landing-primary/10 flex items-center justify-center mx-auto mb-4">
+              <div className="w-12 h-12 rounded-xl border border-landing-primary flex items-center justify-center mx-auto mb-4">
                 <Target className="w-6 h-6 text-landing-primary" />
               </div>
-              <div className="text-4xl font-serif font-medium text-landing-heading mb-2">95%</div>
-              <div className="text-landing-body text-[15px]">Critical Case Detection</div>
+              <div className="text-5xl font-serif font-medium text-landing-heading mb-3">95%</div>
+              <div className="text-landing-heading font-medium text-[16px]">Critical Case Detection</div>
             </div>
 
-            {/* Metric 4 */}
-            <div className="text-center p-8 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-landing-bg/50">
-              <div className="w-12 h-12 rounded-xl bg-landing-primary/10 flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle className="w-6 h-6 text-landing-primary" />
+            {/* Metric 4 - Taller */}
+            <div className="text-center p-8 pb-12 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-landing-bg/50">
+              <div className="w-12 h-12 rounded-xl border border-landing-primary flex items-center justify-center mx-auto mb-4">
+                <Zap className="w-6 h-6 text-landing-primary" />
               </div>
-              <div className="text-4xl font-serif font-medium text-landing-heading mb-2">&lt;5s</div>
-              <div className="text-landing-body text-[15px]">Average Inference Time</div>
+              <div className="text-5xl font-serif font-medium text-landing-heading mb-3">&lt;5s</div>
+              <div className="text-landing-heading font-medium text-[16px] mb-2">Average Inference Time</div>
+              <p className="text-landing-muted text-sm">Near-instant analysis that doesn't slow down your workflow.</p>
             </div>
           </div>
 
           {/* Value Propositions */}
           <div className="grid md:grid-cols-3 gap-12">
             <div className="space-y-4">
-              <h3 className="font-serif text-xl text-landing-heading">Reduce Delayed Diagnoses</h3>
+              <h3 className="font-serif text-xl text-landing-heading"><strong>Reduce</strong> Delayed Diagnoses</h3>
               <p className="text-landing-body leading-relaxed">
-                Critical respiratory findings are automatically surfaced, ensuring high-acuity cases receive immediate attention rather than waiting in FIFO queues.
+                Critical respiratory findings are <em>automatically surfaced</em>, ensuring high-acuity cases receive immediate attention rather than waiting in FIFO queues.
               </p>
             </div>
 
             <div className="space-y-4">
-              <h3 className="font-serif text-xl text-landing-heading">Optimize Radiologist Time</h3>
+              <h3 className="font-serif text-xl text-landing-heading"><strong>Optimize</strong> Radiologist Time</h3>
               <p className="text-landing-body leading-relaxed">
-                Focus cognitive effort where it matters most. Kroix handles the initial triage, allowing radiologists to concentrate on interpretation and diagnosis.
+                Focus cognitive effort where it matters most. Kroix handles the initial triage, allowing radiologists to concentrate on <em>interpretation and diagnosis</em>.
               </p>
             </div>
 
             <div className="space-y-4">
-              <h3 className="font-serif text-xl text-landing-heading">Quantify Workflow Improvements</h3>
+              <h3 className="font-serif text-xl text-landing-heading"><strong>Quantify</strong> Workflow Improvements</h3>
               <p className="text-landing-body leading-relaxed">
-                Built-in analytics track MTTR, throughput, and accuracy metrics—providing clear ROI data for department leadership and administration.
+                Built-in analytics track MTTR, throughput, and accuracy metrics—providing <strong className="font-semibold">clear ROI data</strong> for department leadership and administration.
               </p>
             </div>
           </div>
@@ -488,10 +654,10 @@ const Landing = () => {
       <section className="py-32 px-8 bg-landing-bg">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="font-serif text-[40px] lg:text-[56px] leading-[1.1] text-landing-heading mb-8 tracking-[-0.02em]">
-            Ready to transform your workflow?
+            Ready to <em className="not-italic underline decoration-landing-primary/30 decoration-2 underline-offset-4">transform</em> your workflow?
           </h2>
           <p className="text-xl text-landing-body mb-10 max-w-xl mx-auto">
-            Join leading radiology practices using Kroix to prioritize critical cases and improve patient outcomes.
+            Join leading radiology practices using Kroix to <strong className="font-semibold text-landing-heading">prioritize critical cases</strong> and improve patient outcomes.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
