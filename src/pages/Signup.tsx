@@ -7,6 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Activity, Loader2 } from "lucide-react";
+import { 
+  validateEmail, 
+  sanitizeString,
+  detectSQLInjection, 
+  detectXSS, 
+  checkRateLimit,
+  logSecurityEvent 
+} from "@/lib/security";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
@@ -20,17 +28,70 @@ export default function Signup() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Rate limiting: 3 signups per 5 minutes
+    const rateLimit = checkRateLimit('signup', 3, 300000);
+    if (!rateLimit.allowed) {
+      toast({
+        variant: "destructive",
+        title: "Too many attempts",
+        description: `Please wait ${Math.ceil(rateLimit.resetInMs / 1000)} seconds before trying again.`,
+      });
+      logSecurityEvent('rate_limit', { action: 'signup' });
+      return;
+    }
+
+    // Validate email
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.valid) {
+      toast({
+        variant: "destructive",
+        title: "Invalid email",
+        description: emailValidation.error,
+      });
+      return;
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      toast({
+        variant: "destructive",
+        title: "Invalid password",
+        description: "Password must be at least 6 characters.",
+      });
+      return;
+    }
+
+    // Check all inputs for injection attacks
+    const inputs = [displayName, specialty, institution, password];
+    for (const input of inputs) {
+      if (detectSQLInjection(input) || detectXSS(input)) {
+        logSecurityEvent('sql_injection', { action: 'signup' });
+        toast({
+          variant: "destructive",
+          title: "Invalid input",
+          description: "Your input contains invalid characters.",
+        });
+        return;
+      }
+    }
+
+    // Sanitize text inputs
+    const sanitizedDisplayName = sanitizeString(displayName);
+    const sanitizedSpecialty = sanitizeString(specialty);
+    const sanitizedInstitution = sanitizeString(institution);
+
     setLoading(true);
 
     const { error } = await supabase.auth.signUp({
-      email,
+      email: emailValidation.sanitized,
       password,
       options: {
         emailRedirectTo: window.location.origin,
         data: {
-          display_name: displayName,
-          specialty,
-          institution,
+          display_name: sanitizedDisplayName,
+          specialty: sanitizedSpecialty,
+          institution: sanitizedInstitution,
         },
       },
     });
@@ -47,13 +108,16 @@ export default function Signup() {
       if (user) {
         await supabase
           .from("profiles")
-          .update({ specialty, institution })
+          .update({ 
+            specialty: sanitizedSpecialty, 
+            institution: sanitizedInstitution 
+          })
           .eq("user_id", user.id);
       }
       
       toast({
         title: "Account created!",
-        description: "Welcome to TriageAI.",
+        description: "Welcome to Kroix.",
       });
       navigate("/dashboard");
     }
