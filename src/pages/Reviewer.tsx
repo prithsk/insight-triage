@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { BucketBadge } from "@/components/ui/bucket-badge";
@@ -28,6 +28,38 @@ import {
 import { cn } from "@/lib/utils";
 import { WorklistItem } from "@/lib/types";
 
+// ROI region type from inference
+interface ROIRegion {
+  x: number;
+  y: number;
+  intensity: number;
+  label: string;
+}
+
+// Parse base64-encoded ROI heatmap data
+function parseROIHeatmap(roiHeatmapPath: string | null): ROIRegion[] {
+  if (!roiHeatmapPath) return [];
+  try {
+    const decoded = atob(roiHeatmapPath);
+    const regions = JSON.parse(decoded) as ROIRegion[];
+    return regions.filter(r => r.label !== 'clear');
+  } catch {
+    return [];
+  }
+}
+
+// Get human-readable label for ROI region
+function getRegionLabel(label: string): string {
+  const labels: Record<string, string> = {
+    'right_lung': 'Right Lung',
+    'left_lung': 'Left Lung',
+    'lower_lobes': 'Lower Lobes',
+    'upper_lobes': 'Upper Lobes',
+    'consolidation': 'Consolidation',
+  };
+  return labels[label] || LANGUAGE.AREA_OF_INTEREST;
+}
+
 export default function Reviewer() {
   const { studyId } = useParams<{ studyId: string }>();
   
@@ -45,6 +77,12 @@ export default function Reviewer() {
   const [rotation, setRotation] = useState(0);
   
   const submitFeedback = useSubmitFeedback();
+
+  // Parse ROI regions from heatmap data - must be before early returns
+  const roiRegions = useMemo(() => {
+    const roiPath = studyData?.triage_results?.[0]?.roi_heatmap_path;
+    return parseROIHeatmap(roiPath || null);
+  }, [studyData?.triage_results]);
   
   const handleFeedback = (type: FeedbackType) => {
     if (!studyData) return;
@@ -197,8 +235,43 @@ export default function Reviewer() {
                       }}
                     />
                     
-                    {/* ROI Overlay */}
-                    {showROI && item.triage && item.triage.risk_bucket !== "CLEAR" && (
+                    {/* Dynamic ROI Overlays based on AI findings */}
+                    {showROI && item.triage && item.triage.risk_bucket !== "CLEAR" && roiRegions.length > 0 && (
+                      <>
+                        {roiRegions.map((region, index) => {
+                          // Calculate size based on intensity (30-50% of container)
+                          const size = 60 + (region.intensity * 40);
+                          return (
+                            <div 
+                              key={`roi-${index}-${region.label}`}
+                              className="absolute pointer-events-none"
+                              style={{ 
+                                left: `${region.x * 100}%`,
+                                top: `${region.y * 100}%`,
+                                transform: 'translate(-50%, -50%)',
+                                opacity: roiOpacity[0] / 100,
+                                width: `${size}px`,
+                                height: `${size}px`,
+                              }}
+                            >
+                              <div 
+                                className="w-full h-full rounded-full border-2 border-overlay-accent animate-pulse-slow"
+                                style={{
+                                  backgroundColor: `hsl(var(--overlay-accent) / ${0.15 + region.intensity * 0.2})`,
+                                  boxShadow: `0 0 ${20 + region.intensity * 20}px hsl(var(--overlay-accent) / 0.4)`,
+                                }}
+                              />
+                              <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-overlay-accent/90 text-xs font-medium px-2 py-1 rounded whitespace-nowrap text-white shadow-lg">
+                                {getRegionLabel(region.label)}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </>
+                    )}
+                    
+                    {/* Fallback single ROI if no parsed regions */}
+                    {showROI && item.triage && item.triage.risk_bucket !== "CLEAR" && roiRegions.length === 0 && (
                       <div 
                         className="absolute top-1/4 right-1/4 w-32 h-32 pointer-events-none"
                         style={{ opacity: roiOpacity[0] / 100 }}
@@ -227,17 +300,37 @@ export default function Reviewer() {
                           <span className="text-xs text-zinc-700 mt-1">Upload a DICOM file to view it here</span>
                         </div>
                         
-                        {/* ROI Overlay on placeholder */}
-                        {showROI && item.triage && item.triage.risk_bucket !== "CLEAR" && (
-                          <div 
-                            className="absolute top-1/4 right-1/4 w-32 h-32"
-                            style={{ opacity: roiOpacity[0] / 100 }}
-                          >
-                            <div className="w-full h-full rounded-full border-2 border-overlay-accent bg-overlay-accent/20 animate-pulse-slow" />
-                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-overlay-accent/90 text-xs font-medium px-2 py-1 rounded whitespace-nowrap">
-                              {LANGUAGE.AREA_OF_INTEREST}
-                            </div>
-                          </div>
+                        {/* ROI Overlay on placeholder - dynamic based on findings */}
+                        {showROI && item.triage && item.triage.risk_bucket !== "CLEAR" && roiRegions.length > 0 && (
+                          <>
+                            {roiRegions.map((region, index) => {
+                              const size = 60 + (region.intensity * 40);
+                              return (
+                                <div 
+                                  key={`roi-placeholder-${index}-${region.label}`}
+                                  className="absolute pointer-events-none"
+                                  style={{ 
+                                    left: `${region.x * 100}%`,
+                                    top: `${region.y * 100}%`,
+                                    transform: 'translate(-50%, -50%)',
+                                    opacity: roiOpacity[0] / 100,
+                                    width: `${size}px`,
+                                    height: `${size}px`,
+                                  }}
+                                >
+                                  <div 
+                                    className="w-full h-full rounded-full border-2 border-overlay-accent animate-pulse-slow"
+                                    style={{
+                                      backgroundColor: `hsl(var(--overlay-accent) / ${0.15 + region.intensity * 0.2})`,
+                                    }}
+                                  />
+                                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-overlay-accent/90 text-xs font-medium px-2 py-1 rounded whitespace-nowrap text-white">
+                                    {getRegionLabel(region.label)}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </>
                         )}
                       </>
                     )}
