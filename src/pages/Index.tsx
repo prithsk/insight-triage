@@ -322,18 +322,31 @@ export default function Index() {
                 <Loader2 className="w-8 h-8 animate-spin text-landing-primary" />
               </div>
             ) : (
-              <div className="grid lg:grid-cols-[1fr_400px] gap-8">
+              <div className={cn(
+                "grid gap-6 transition-all duration-300",
+                selectedItem ? "lg:grid-cols-2" : "grid-cols-1"
+              )}>
                 {/* Worklist Grid */}
-                <div>
+                <div className={cn(
+                  "transition-all duration-300",
+                  selectedItem && "max-h-[calc(100vh-280px)] overflow-y-auto scrollbar-clinical pr-2"
+                )}>
                   {filteredAndSortedItems.length > 0 ? (
-                    <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <div className={cn(
+                      "grid gap-4 transition-all duration-300",
+                      selectedItem 
+                        ? "grid-cols-1 xl:grid-cols-2" 
+                        : "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                    )}>
                       {filteredAndSortedItems.map(item => (
                         <WorklistCard
                           key={item.study.id}
                           item={item}
                           isSelected={selectedItem?.study.id === item.study.id}
                           isChecked={selectedIds.has(item.study.id)}
-                          onSelect={() => setSelectedItem(item)}
+                          onSelect={() => setSelectedItem(
+                            selectedItem?.study.id === item.study.id ? null : item
+                          )}
                           onCheck={(checked) => {
                             setSelectedIds(prev => {
                               const next = new Set(prev);
@@ -373,12 +386,14 @@ export default function Index() {
                   )}
                 </div>
                 
-                {/* Preview Panel */}
-                <div className="hidden lg:block">
-                  <div className="sticky top-[88px] bg-white rounded-2xl border border-[rgba(0,0,0,0.06)] min-h-[600px]">
-                    <StudyPreview item={selectedItem} onDeleted={() => setSelectedItem(null)} />
+                {/* Preview Panel - Only shown when study is selected */}
+                {selectedItem && (
+                  <div className="hidden lg:block animate-slide-in">
+                    <div className="sticky top-[88px] bg-white rounded-2xl border border-[rgba(0,0,0,0.06)] max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-clinical">
+                      <StudyPreview item={selectedItem} onDeleted={() => setSelectedItem(null)} />
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>
