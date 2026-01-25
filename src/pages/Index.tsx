@@ -209,18 +209,7 @@ export default function Index() {
         {/* Filters Bar */}
         <section className="px-8 py-4 bg-white border-b border-[rgba(0,0,0,0.06)]">
           <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-6">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-landing-muted" />
-              <Input
-                placeholder="Search by Study ID or Patient..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 bg-landing-bg/50 border-[rgba(0,0,0,0.06)] text-landing-heading placeholder:text-landing-muted h-10 rounded-[10px] hover:border-landing-primary focus:border-landing-primary focus-visible:ring-landing-primary/20"
-              />
-            </div>
-            
-            {/* Filters & Sort */}
+            {/* Filters & Sort - Left side */}
             <div className="flex items-center gap-4">
               {/* Bucket filter */}
               <div className="flex items-center gap-2">
@@ -231,10 +220,10 @@ export default function Index() {
                       key={filter}
                       onClick={() => setBucketFilter(filter)}
                       className={cn(
-                        "px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors",
+                        "px-3 py-1.5 rounded-[8px] text-[13px] font-medium transition-colors",
                         bucketFilter === filter 
-                          ? "bg-landing-primary/15 text-landing-primary border border-landing-primary/30" 
-                          : "text-landing-body hover:bg-landing-primary/10 hover:text-landing-primary"
+                          ? "bg-landing-primary text-white" 
+                          : "bg-landing-bg text-landing-body hover:bg-landing-primary/15 hover:text-landing-primary"
                       )}
                     >
                       {filter}
@@ -248,13 +237,17 @@ export default function Index() {
               {/* Sort */}
               <div className="flex items-center gap-1">
                 <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
-                  <SelectTrigger className="w-[120px] h-9 text-[13px] border-[rgba(0,0,0,0.06)] rounded-lg">
+                  <SelectTrigger className="w-[120px] h-9 text-[13px] border-[rgba(0,0,0,0.06)] rounded-lg bg-white text-landing-body hover:border-landing-primary/50 hover:bg-landing-primary/5 transition-colors">
                     <ArrowUpDown className="w-3 h-3 mr-1" />
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-[rgba(0,0,0,0.06)] z-50">
                     {sortOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value} className="text-[13px]">
+                      <SelectItem 
+                        key={option.value} 
+                        value={option.value} 
+                        className="text-[13px] text-landing-body hover:bg-landing-primary/10 hover:text-landing-primary focus:bg-landing-primary/10 focus:text-landing-primary cursor-pointer"
+                      >
                         {option.label}
                       </SelectItem>
                     ))}
@@ -262,7 +255,7 @@ export default function Index() {
                 </Select>
                 <button
                   onClick={toggleSortDirection}
-                  className="h-9 w-9 flex items-center justify-center rounded-lg border border-[rgba(0,0,0,0.06)] text-landing-body hover:bg-landing-bg transition-colors"
+                  className="h-9 w-9 flex items-center justify-center rounded-lg border border-[rgba(0,0,0,0.06)] bg-white text-landing-body hover:bg-landing-primary/10 hover:text-landing-primary hover:border-landing-primary/30 transition-colors"
                   title={sortDirection === "asc" ? "Ascending" : "Descending"}
                 >
                   {sortDirection === "asc" ? (
@@ -272,41 +265,52 @@ export default function Index() {
                   )}
                 </button>
               </div>
-              
-              {/* Bulk delete */}
-              {selectedIds.size > 0 && (
-                <>
-                  <div className="h-6 w-px bg-[rgba(0,0,0,0.08)]" />
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <button 
-                        className="px-3 py-1.5 rounded-lg text-[13px] font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors flex items-center gap-1.5"
-                        disabled={isDeleting}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        Delete {selectedIds.size}
-                      </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="bg-white border-[rgba(0,0,0,0.06)]">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle className="font-serif text-[20px]">
-                          Delete {selectedIds.size} {selectedIds.size === 1 ? 'study' : 'studies'}?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription className="text-landing-body">
-                          This will permanently delete the selected studies and all associated data. This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel className="rounded-[10px]">Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleBulkDelete} className="bg-red-600 hover:bg-red-700 rounded-[10px]">
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </>
-              )}
             </div>
+            
+            {/* Search - Right side */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-landing-muted" />
+              <Input
+                placeholder="Search by Study ID or Patient..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 bg-landing-bg/50 border-[rgba(0,0,0,0.06)] text-landing-heading placeholder:text-landing-muted h-10 rounded-[10px] hover:border-landing-primary focus:border-landing-primary focus-visible:ring-landing-primary/20"
+              />
+            </div>
+            
+            {/* Bulk delete */}
+            {selectedIds.size > 0 && (
+              <>
+                <div className="h-6 w-px bg-[rgba(0,0,0,0.08)]" />
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button 
+                      className="px-3 py-1.5 rounded-lg text-[13px] font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors flex items-center gap-1.5"
+                      disabled={isDeleting}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Delete {selectedIds.size}
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="bg-white border-[rgba(0,0,0,0.06)]">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="font-serif text-[20px]">
+                        Delete {selectedIds.size} {selectedIds.size === 1 ? 'study' : 'studies'}?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription className="text-landing-body">
+                        This will permanently delete the selected studies and all associated data. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="rounded-[10px]">Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleBulkDelete} className="bg-red-600 hover:bg-red-700 rounded-[10px]">
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            )}
           </div>
         </section>
         
