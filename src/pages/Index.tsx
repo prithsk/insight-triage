@@ -163,7 +163,7 @@ export default function Index() {
                   Triage <span className="text-landing-primary">Command Center</span>
                 </h1>
                 <p className="text-[17px] text-landing-body mt-3 max-w-xl">
-                  Priority-sorted worklist for respiratory imaging. AI-powered triage puts <em>critical cases</em> first.
+                  Priority-sorted worklist for respiratory imaging. Automated triage puts <em>critical cases</em> first.
                 </p>
               </div>
               
