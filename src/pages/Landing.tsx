@@ -146,11 +146,11 @@ const Landing = () => {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left: Content */}
             <div className="max-w-xl relative">
-              <h1 className="font-serif text-[64px] lg:text-[72px] leading-[1.05] font-medium text-landing-heading mb-8 tracking-[-0.02em]">
-                Next-generation AI for <em className="not-italic text-landing-primary">clinical radiology</em>.
+                <h1 className="font-serif text-[64px] lg:text-[72px] leading-[1.05] font-medium text-landing-heading mb-8 tracking-[-0.02em]">
+                Triage software for <em className="not-italic text-landing-primary">clinical radiology</em>.
               </h1>
               <p className="text-xl text-landing-body leading-relaxed mb-10">
-                Intelligent triage prioritization that moves <strong className="font-semibold text-landing-heading">critical respiratory cases</strong> to the front—delivering faster reads with <em>measurable accuracy</em>.
+                Automated prioritization that moves <strong className="font-semibold text-landing-heading">critical respiratory cases</strong> to the front of the worklist, so radiologists read the right scans first.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
@@ -273,7 +273,7 @@ const Landing = () => {
                 Comprehensive <span className="text-landing-primary">Analysis</span>
               </h2>
               <p className="text-lg text-landing-body leading-relaxed mb-6">
-                AI-powered detection that identifies <em>critical findings</em> across every chest X-ray study.
+                Automated detection that flags <em>critical findings</em> across every chest X-ray study.
               </p>
               <ul className="space-y-3 text-landing-body">
                 <li className="flex items-center gap-3">
@@ -367,10 +367,10 @@ const Landing = () => {
                 Speed
               </span>
               <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading mb-6 tracking-[-0.01em]">
-                Real-Time <span className="text-landing-primary">Processing</span>
+                Fast <span className="text-landing-primary">Processing</span>
               </h2>
               <p className="text-lg text-landing-body leading-relaxed mb-6">
-                Sub-5 second inference times that fit <strong className="font-semibold text-landing-heading">seamlessly</strong> into existing workflows.
+                Sub-5 second inference times that slot into existing PACS workflows without disruption.
               </p>
               <ul className="space-y-3 text-landing-body">
                 <li className="flex items-center gap-3">
@@ -481,7 +481,7 @@ const Landing = () => {
               Workflow
             </span>
             <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading tracking-[-0.01em]">
-              <em className="not-italic">Seamless</em> Integration
+              How It Works
             </h2>
           </div>
           
@@ -513,7 +513,7 @@ const Landing = () => {
                   Kroix
                 </span>
               </div>
-              <span className="text-[14px] text-landing-primary font-medium">AI Processing</span>
+              <span className="text-[14px] text-landing-primary font-medium">Classification</span>
             </div>
 
             {/* Arrow */}
@@ -549,7 +549,7 @@ const Landing = () => {
               Measurable Outcomes
             </h2>
             <p className="text-lg text-landing-body max-w-2xl mx-auto">
-              Real performance metrics that demonstrate the <em>value of AI-assisted triage</em> in clinical workflows.
+              Performance benchmarks from automated triage compared to manual-only worklist management.
             </p>
           </div>
 
@@ -566,7 +566,7 @@ const Landing = () => {
                   <span className="text-xl font-serif text-landing-heading">Faster MTTR</span>
                 </div>
               </div>
-              <p className="text-sm text-landing-primary">Reduce diagnostic delays.</p>
+              <p className="text-sm text-landing-primary">Cut time from scan to read.</p>
             </div>
 
             {/* Metric 2 */}
@@ -608,30 +608,30 @@ const Landing = () => {
                   <span className="text-xl font-serif text-landing-heading">Inference Time</span>
                 </div>
               </div>
-              <p className="text-sm text-landing-primary">Lightning-fast AI processing.</p>
+              <p className="text-sm text-landing-primary">Per-study classification latency.</p>
             </div>
           </div>
 
           {/* Value Propositions */}
           <div className="grid md:grid-cols-3 gap-12">
             <div className="space-y-4">
-              <h3 className="font-serif text-xl text-landing-heading"><strong>Reduce</strong> Delayed Diagnoses</h3>
+              <h3 className="font-serif text-xl text-landing-heading"><strong>Surface</strong> Urgent Cases Faster</h3>
               <p className="text-landing-body leading-relaxed">
-                Critical respiratory findings are <em>automatically surfaced</em>, ensuring high-acuity cases receive immediate attention rather than waiting in FIFO queues.
+                Critical respiratory findings get moved to the top of the worklist, so high-acuity cases get read first instead of sitting in a FIFO queue.
               </p>
             </div>
 
             <div className="space-y-4">
-              <h3 className="font-serif text-xl text-landing-heading"><strong>Optimize</strong> Radiologist Time</h3>
+              <h3 className="font-serif text-xl text-landing-heading"><strong>Free Up</strong> Radiologist Time</h3>
               <p className="text-landing-body leading-relaxed">
-                Focus cognitive effort where it matters most. Kroix handles the initial triage, allowing radiologists to concentrate on <em>interpretation and diagnosis</em>.
+                Kroix handles initial triage and sorting, so radiologists spend their time on interpretation and diagnosis instead of queue management.
               </p>
             </div>
 
             <div className="space-y-4">
-              <h3 className="font-serif text-xl text-landing-heading"><strong>Quantify</strong> Workflow Improvements</h3>
+              <h3 className="font-serif text-xl text-landing-heading"><strong>Track</strong> Workflow Metrics</h3>
               <p className="text-landing-body leading-relaxed">
-                Built-in analytics track MTTR, throughput, and accuracy metrics—providing <strong className="font-semibold">clear ROI data</strong> for department leadership and administration.
+                Built-in analytics track MTTR, throughput, and accuracy, giving department leadership concrete data on workflow performance.
               </p>
             </div>
           </div>
@@ -642,10 +642,10 @@ const Landing = () => {
       <section className="py-32 px-8 bg-landing-bg">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="font-serif text-[40px] lg:text-[56px] leading-[1.1] text-landing-heading mb-8 tracking-[-0.02em]">
-            Ready to <em>transform</em> your workflow?
+            Try it in your department.
           </h2>
           <p className="text-xl text-landing-body mb-10 max-w-xl mx-auto">
-            Join leading radiology practices using Kroix to <em>prioritize critical cases</em> and improve patient outcomes.
+            See how automated triage prioritization fits into your existing reading workflow.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
@@ -674,7 +674,7 @@ const Landing = () => {
                 Kroix
               </span>
               <p className="text-white/50 text-[14px] mt-2 max-w-xs">
-                Next-generation AI for clinical radiology triage and prioritization.
+                Automated triage and worklist prioritization for clinical radiology.
               </p>
             </div>
 
