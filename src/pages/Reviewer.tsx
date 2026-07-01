@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { BucketBadge } from "@/components/ui/bucket-badge";
@@ -10,9 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { LANGUAGE } from "@/lib/constants";
 import { useStudy, useSubmitFeedback, FeedbackType } from "@/hooks/useStudies";
 import { useDicomImage } from "@/hooks/useDicomImage";
-import { 
-  Check, 
-  AlertTriangle, 
+import { useNavigate } from "react-router-dom";
+import {
+  Check,
+  AlertTriangle,
   AlertCircle,
   ZoomIn,
   ZoomOut,
@@ -25,45 +26,37 @@ import {
   ArrowLeft,
   Beaker,
   MessageSquare,
+  BrainCircuit,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WorklistItem } from "@/lib/types";
+import { HeatmapOverlay, useHeatmapType } from "@/components/reviewer/HeatmapOverlay";
 
-// ROI region type from inference
-interface ROIRegion {
-  x: number;
-  y: number;
-  intensity: number;
-  label: string;
-}
+// Legacy circle ROI — used only when heatmap type is NOT gradcam
+interface ROIRegion { x: number; y: number; intensity: number; label: string }
 
-// Parse base64-encoded ROI heatmap data
-function parseROIHeatmap(roiHeatmapPath: string | null): ROIRegion[] {
-  if (!roiHeatmapPath) return [];
+function parseROIHeatmap(raw: string | null): ROIRegion[] {
+  if (!raw) return [];
   try {
-    const decoded = atob(roiHeatmapPath);
-    const regions = JSON.parse(decoded) as ROIRegion[];
-    return regions.filter(r => r.label !== 'clear');
-  } catch {
+    const parsed = JSON.parse(atob(raw));
+    if (Array.isArray(parsed)) return (parsed as ROIRegion[]).filter(r => r.label !== 'clear');
     return [];
-  }
+  } catch { return []; }
 }
 
-// Get human-readable label for ROI region
 function getRegionLabel(label: string): string {
   const labels: Record<string, string> = {
-    'right_lung': 'Right Lung',
-    'left_lung': 'Left Lung',
-    'lower_lobes': 'Lower Lobes',
-    'upper_lobes': 'Upper Lobes',
-    'consolidation': 'Consolidation',
+    right_lung: 'Right Lung', left_lung: 'Left Lung',
+    lower_lobes: 'Lower Lobes', upper_lobes: 'Upper Lobes',
+    consolidation: 'Consolidation',
   };
   return labels[label] || LANGUAGE.AREA_OF_INTEREST;
 }
 
 export default function Reviewer() {
   const { studyId } = useParams<{ studyId: string }>();
-  
+  const navigate = useNavigate();
+
   // Fetch study data from database
   const { data: studyData, isLoading } = useStudy(studyId || undefined);
   
@@ -76,14 +69,32 @@ export default function Reviewer() {
   const [submittedFeedback, setSubmittedFeedback] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
-  
+  const [imgDims, setImgDims] = useState({ width: 0, height: 0 });
+
+  const imgRef     = useRef<HTMLImageElement>(null);
   const submitFeedback = useSubmitFeedback();
+
+  const roiHeatmapRaw = studyData?.triage_results?.[0]?.roi_heatmap_path ?? null;
+  const { isGradCam } = useHeatmapType(roiHeatmapRaw);
 
   // Parse ROI regions from heatmap data - must be before early returns
   const roiRegions = useMemo(() => {
-    const roiPath = studyData?.triage_results?.[0]?.roi_heatmap_path;
-    return parseROIHeatmap(roiPath || null);
-  }, [studyData?.triage_results]);
+    if (isGradCam) return [];          // gradcam path — circles not needed
+    return parseROIHeatmap(roiHeatmapRaw);
+  }, [roiHeatmapRaw, isGradCam]);
+
+  const syncImgDims = useCallback(() => {
+    const el = imgRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    setImgDims({ width: Math.round(r.width), height: Math.round(r.height) });
+  }, []);
+
+  useEffect(() => {
+    const obs = new ResizeObserver(syncImgDims);
+    if (imgRef.current) obs.observe(imgRef.current);
+    return () => obs.disconnect();
+  }, [syncImgDims]);
   
   const handleFeedback = (type: FeedbackType) => {
     if (!studyData) return;
@@ -210,6 +221,17 @@ export default function Reviewer() {
               {item.triage && (
                 <BucketBadge bucket={item.triage.risk_bucket} />
               )}
+
+              {/* Ask Assistant with study context */}
+              {item.triage && (
+                <button
+                  onClick={() => navigate(`/assistant?studyId=${item.study.id}`)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-[10px] text-[13px] font-medium bg-landing-primary/10 text-landing-primary hover:bg-landing-primary/20 transition-colors"
+                >
+                  <BrainCircuit className="w-3.5 h-3.5" />
+                  Ask Assistant
+                </button>
+              )}
             </div>
             
             {/* Viewer Controls */}
@@ -263,149 +285,81 @@ export default function Reviewer() {
                   </div>
                 ) : imageUrl ? (
                   <div className="relative w-full h-full flex items-center justify-center">
-                    <img 
-                      src={imageUrl} 
-                      alt="DICOM/Medical Image"
-                      className="max-w-full max-h-full object-contain rounded-xl shadow-2xl"
-                      style={{ 
-                        filter: 'contrast(1.1) brightness(0.95)',
-                      }}
-                    />
-                    
-                    {/* Dynamic ROI Overlays - Orange circles */}
-                    {showROI && item.triage && item.triage.risk_bucket !== "CLEAR" && roiRegions.length > 0 && (
-                      <>
-                        {roiRegions.map((region, index) => {
-                          const size = 80 + (region.intensity * 60);
-                          return (
-                            <div 
-                              key={`roi-${index}-${region.label}`}
-                              className="absolute pointer-events-none"
-                              style={{ 
-                                left: `${region.x * 100}%`,
-                                top: `${region.y * 100}%`,
-                                transform: 'translate(-50%, -50%)',
-                                opacity: roiOpacity[0] / 100,
-                                width: `${size}px`,
-                                height: `${size}px`,
-                              }}
-                            >
-                              <div 
-                                className="w-full h-full rounded-full"
-                                style={{
-                                  border: '3px solid #FF6B00',
-                                  background: `radial-gradient(circle at center, rgba(255, 107, 0, ${0.25 + region.intensity * 0.2}) 0%, rgba(255, 107, 0, ${0.1 + region.intensity * 0.1}) 60%, transparent 100%)`,
-                                  boxShadow: `0 0 ${15 + region.intensity * 10}px rgba(255, 107, 0, 0.4), inset 0 0 ${10 + region.intensity * 8}px rgba(255, 107, 0, 0.2)`,
-                                }}
-                              />
-                              <div 
-                                className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg"
-                                style={{
-                                  background: 'linear-gradient(135deg, #FF6B00 0%, #E05500 100%)',
-                                  color: 'white',
-                                }}
-                              >
-                                {getRegionLabel(region.label)}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </>
-                    )}
-                    
-                    {/* Fallback ROI regions */}
-                    {showROI && item.triage && item.triage.risk_bucket !== "CLEAR" && roiRegions.length === 0 && (
-                      <>
-                        <div 
-                          className="absolute pointer-events-none"
-                          style={{ 
-                            left: '35%',
-                            top: '55%',
-                            transform: 'translate(-50%, -50%)',
-                            opacity: roiOpacity[0] / 100,
-                            width: '120px',
-                            height: '120px',
-                          }}
-                        >
-                          <div 
-                            className="w-full h-full rounded-full"
+                    {/* Wrapper keeps overlay perfectly registered to rendered img */}
+                    <div className="relative inline-flex">
+                      <img
+                        ref={imgRef}
+                        src={imageUrl}
+                        alt="DICOM/Medical Image"
+                        className="max-w-full max-h-full object-contain rounded-xl shadow-2xl"
+                        style={{ filter: 'contrast(1.1) brightness(0.95)', display: 'block' }}
+                        onLoad={syncImgDims}
+                      />
+
+                      {/* Grad-CAM heatmap overlay (EfficientNet-B4 path) */}
+                      {showROI && isGradCam && item.triage && item.triage.risk_bucket !== "CLEAR" && (
+                        <HeatmapOverlay
+                          roiHeatmap={roiHeatmapRaw}
+                          width={imgDims.width}
+                          height={imgDims.height}
+                          opacity={roiOpacity[0] / 100}
+                          className="rounded-xl"
+                        />
+                      )}
+                    </div>
+
+                    {/* Legacy circle overlays (Gemini / synthetic path) */}
+                    {showROI && !isGradCam && item.triage && item.triage.risk_bucket !== "CLEAR" && roiRegions.length > 0 &&
+                      roiRegions.map((region, index) => {
+                        const size = 80 + region.intensity * 60;
+                        return (
+                          <div
+                            key={`roi-${index}-${region.label}`}
+                            className="absolute pointer-events-none"
                             style={{
-                              border: '3px solid #FF6B00',
-                              background: 'radial-gradient(circle at center, rgba(255, 107, 0, 0.35) 0%, rgba(255, 107, 0, 0.15) 60%, transparent 100%)',
-                              boxShadow: '0 0 20px rgba(255, 107, 0, 0.4), inset 0 0 15px rgba(255, 107, 0, 0.2)',
-                            }}
-                          />
-                          <div 
-                            className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg"
-                            style={{
-                              background: 'linear-gradient(135deg, #FF6B00 0%, #E05500 100%)',
-                              color: 'white',
+                              left: `${region.x * 100}%`,
+                              top: `${region.y * 100}%`,
+                              transform: 'translate(-50%, -50%)',
+                              opacity: roiOpacity[0] / 100,
+                              width: `${size}px`,
+                              height: `${size}px`,
                             }}
                           >
-                            Right Lung
+                            <div
+                              className="w-full h-full rounded-full"
+                              style={{
+                                border: '3px solid #FF6B00',
+                                background: `radial-gradient(circle at center, rgba(255,107,0,${0.25 + region.intensity * 0.2}) 0%, rgba(255,107,0,${0.1 + region.intensity * 0.1}) 60%, transparent 100%)`,
+                                boxShadow: `0 0 ${15 + region.intensity * 10}px rgba(255,107,0,0.4), inset 0 0 ${10 + region.intensity * 8}px rgba(255,107,0,0.2)`,
+                              }}
+                            />
+                            <div
+                              className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg"
+                              style={{ background: 'linear-gradient(135deg,#FF6B00 0%,#E05500 100%)', color: 'white' }}
+                            >
+                              {getRegionLabel(region.label)}
+                            </div>
                           </div>
+                        );
+                      })
+                    }
+
+                    {/* Hard-coded circles when no parsed regions (synthetic fallback) */}
+                    {showROI && !isGradCam && item.triage && item.triage.risk_bucket !== "CLEAR" && roiRegions.length === 0 && (
+                      <>
+                        <div className="absolute pointer-events-none" style={{ left: '35%', top: '55%', transform: 'translate(-50%,-50%)', opacity: roiOpacity[0] / 100, width: '120px', height: '120px' }}>
+                          <div className="w-full h-full rounded-full" style={{ border: '3px solid #FF6B00', background: 'radial-gradient(circle at center,rgba(255,107,0,0.35) 0%,rgba(255,107,0,0.15) 60%,transparent 100%)', boxShadow: '0 0 20px rgba(255,107,0,0.4),inset 0 0 15px rgba(255,107,0,0.2)' }} />
+                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg" style={{ background: 'linear-gradient(135deg,#FF6B00 0%,#E05500 100%)', color: 'white' }}>Right Lung</div>
                         </div>
-                        
                         {item.triage.risk_bucket === "CRITICAL" && (
                           <>
-                            <div 
-                              className="absolute pointer-events-none"
-                              style={{ 
-                                left: '65%',
-                                top: '45%',
-                                transform: 'translate(-50%, -50%)',
-                                opacity: roiOpacity[0] / 100,
-                                width: '100px',
-                                height: '100px',
-                              }}
-                            >
-                              <div 
-                                className="w-full h-full rounded-full"
-                                style={{
-                                  border: '3px solid #FF6B00',
-                                  background: 'radial-gradient(circle at center, rgba(255, 107, 0, 0.3) 0%, rgba(255, 107, 0, 0.12) 60%, transparent 100%)',
-                                  boxShadow: '0 0 18px rgba(255, 107, 0, 0.35), inset 0 0 12px rgba(255, 107, 0, 0.18)',
-                                }}
-                              />
-                              <div 
-                                className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg"
-                                style={{
-                                  background: 'linear-gradient(135deg, #FF6B00 0%, #E05500 100%)',
-                                  color: 'white',
-                                }}
-                              >
-                                Left Lung
-                              </div>
+                            <div className="absolute pointer-events-none" style={{ left: '65%', top: '45%', transform: 'translate(-50%,-50%)', opacity: roiOpacity[0] / 100, width: '100px', height: '100px' }}>
+                              <div className="w-full h-full rounded-full" style={{ border: '3px solid #FF6B00', background: 'radial-gradient(circle at center,rgba(255,107,0,0.3) 0%,rgba(255,107,0,0.12) 60%,transparent 100%)', boxShadow: '0 0 18px rgba(255,107,0,0.35),inset 0 0 12px rgba(255,107,0,0.18)' }} />
+                              <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg" style={{ background: 'linear-gradient(135deg,#FF6B00 0%,#E05500 100%)', color: 'white' }}>Left Lung</div>
                             </div>
-                            
-                            <div 
-                              className="absolute pointer-events-none"
-                              style={{ 
-                                left: '50%',
-                                top: '70%',
-                                transform: 'translate(-50%, -50%)',
-                                opacity: roiOpacity[0] / 100,
-                                width: '130px',
-                                height: '130px',
-                              }}
-                            >
-                              <div 
-                                className="w-full h-full rounded-full"
-                                style={{
-                                  border: '3px solid #FF6B00',
-                                  background: 'radial-gradient(circle at center, rgba(255, 107, 0, 0.4) 0%, rgba(255, 107, 0, 0.18) 60%, transparent 100%)',
-                                  boxShadow: '0 0 25px rgba(255, 107, 0, 0.45), inset 0 0 18px rgba(255, 107, 0, 0.25)',
-                                }}
-                              />
-                              <div 
-                                className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg"
-                                style={{
-                                  background: 'linear-gradient(135deg, #FF6B00 0%, #E05500 100%)',
-                                  color: 'white',
-                                }}
-                              >
-                                Lower Lobes
-                              </div>
+                            <div className="absolute pointer-events-none" style={{ left: '50%', top: '70%', transform: 'translate(-50%,-50%)', opacity: roiOpacity[0] / 100, width: '130px', height: '130px' }}>
+                              <div className="w-full h-full rounded-full" style={{ border: '3px solid #FF6B00', background: 'radial-gradient(circle at center,rgba(255,107,0,0.4) 0%,rgba(255,107,0,0.18) 60%,transparent 100%)', boxShadow: '0 0 25px rgba(255,107,0,0.45),inset 0 0 18px rgba(255,107,0,0.25)' }} />
+                              <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1.5 rounded-md whitespace-nowrap shadow-lg" style={{ background: 'linear-gradient(135deg,#FF6B00 0%,#E05500 100%)', color: 'white' }}>Lower Lobes</div>
                             </div>
                           </>
                         )}
@@ -496,7 +450,10 @@ export default function Reviewer() {
                 </div>
               )}
               <p className="text-[12px] text-landing-muted mt-3">
-                Highlights regions correlated with elevated risk score. {LANGUAGE.NON_DIAGNOSTIC}.
+                {isGradCam
+                  ? "Grad-CAM spatial activation map from EfficientNet-B4. "
+                  : "Inferred region-of-interest overlay. "}
+                {LANGUAGE.NON_DIAGNOSTIC}.
               </p>
             </div>
             

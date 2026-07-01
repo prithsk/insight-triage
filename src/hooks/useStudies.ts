@@ -183,17 +183,17 @@ export function useRunInference() {
 
 export function useSubmitFeedback() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ 
-      studyId, 
-      triageResultId, 
-      feedbackType, 
-      notes 
-    }: { 
-      studyId: string; 
-      triageResultId?: string; 
-      feedbackType: FeedbackType; 
+    mutationFn: async ({
+      studyId,
+      triageResultId,
+      feedbackType,
+      notes
+    }: {
+      studyId: string;
+      triageResultId?: string;
+      feedbackType: FeedbackType;
       notes?: string;
     }) => {
       const { data, error } = await supabase
@@ -208,6 +208,13 @@ export function useSubmitFeedback() {
         .single();
 
       if (error) throw error;
+
+      // Mark study as REVIEWED and record when review happened
+      await supabase
+        .from('studies')
+        .update({ status: 'REVIEWED' as StudyStatus, updated_at: new Date().toISOString() })
+        .eq('id', studyId);
+
       return data;
     },
     onSuccess: () => {
@@ -217,6 +224,28 @@ export function useSubmitFeedback() {
     onError: (error) => {
       toast.error(`Failed to submit feedback: ${error.message}`);
     }
+  });
+}
+
+export function useArchiveStudies() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (studyIds: string[]) => {
+      const { error } = await supabase
+        .from('studies')
+        .update({ status: 'ARCHIVED' as StudyStatus, updated_at: new Date().toISOString() })
+        .in('id', studyIds);
+      if (error) throw error;
+      return studyIds;
+    },
+    onSuccess: (ids) => {
+      queryClient.invalidateQueries({ queryKey: ['studies'] });
+      toast.success(`Archived ${ids.length} ${ids.length === 1 ? 'study' : 'studies'}`);
+    },
+    onError: (error) => {
+      toast.error(`Archive failed: ${error.message}`);
+    },
   });
 }
 
