@@ -12,6 +12,18 @@ dist
 dist-ssr
 *.local
 
+# Environment variables
+.env
+.env.*
+*.env
+
+# ML model weights and artifacts
+services/ml-api/weights/
+services/ml-api/__pycache__/
+*.pth
+*.ckpt
+kaggle.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

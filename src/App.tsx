@@ -16,6 +16,7 @@ import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import Assistant from "./pages/Assistant";
 
 const queryClient = new QueryClient();
 
@@ -37,7 +38,8 @@ const App = () => (
             <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/reviewer" element={<ProtectedRoute><Reviewer /></ProtectedRoute>} />
             <Route path="/reviewer/:studyId" element={<ProtectedRoute><Reviewer /></ProtectedRoute>} />
-            <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+            <Route path="/analytics"  element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+            <Route path="/assistant"  element={<ProtectedRoute><Assistant /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
