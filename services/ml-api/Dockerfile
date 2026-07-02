@@ -18,10 +18,6 @@ RUN pip install --no-cache-dir torch==2.3.1+cpu torchvision==0.18.1+cpu \
 FROM base AS app
 
 COPY model.py inference.py main.py ./
-# Mount the 4 weight files at runtime:
-#   docker run -v /host/weights:/app/weights kroix-ml:latest
-# Expected files: densenet121.pth  googlenet.pth  resnet18.pth  ensemble_weights.json
-VOLUME ["/app/weights"]
 
 ENV WEIGHTS_DIR=/app/weights
 ENV DEVICE=cpu
