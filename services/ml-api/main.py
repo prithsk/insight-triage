@@ -38,6 +38,14 @@ MODEL_VERSION = "ensemble-densenet121-googlenet-resnet18-v1.0"
 _ensemble: EnsembleDetector | None = None
 
 
+def _warmup():
+    dummy = torch.zeros(1, 3, 224, 224, device=DEVICE)
+    with torch.no_grad():
+        for m in _ensemble.models:
+            m(dummy)
+    log.info("Warmup complete — models ready")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _ensemble
@@ -45,13 +53,11 @@ async def lifespan(app: FastAPI):
     try:
         _ensemble = load_ensemble(WEIGHTS_DIR, device=DEVICE)
         log.info("Ensemble loaded successfully")
-        # Warmup: run a dummy image through all 3 models so CUDA kernels are
-        # compiled and memory is allocated before the first real request hits.
-        dummy = torch.zeros(1, 3, 224, 224, device=DEVICE)
-        with torch.no_grad():
-            for m in _ensemble.models:
-                m(dummy)
-        log.info("Warmup complete — models ready")
+        # Warmup runs in the background so it doesn't block startup / the
+        # platform healthcheck — first real request just eats the latency
+        # instead of blocking container readiness for several minutes.
+        import threading
+        threading.Thread(target=_warmup, daemon=True).start()
     except (FileNotFoundError, RuntimeError) as e:
         log.warning(f"Weights not found ({e}) — /predict will return 503")
     yield
