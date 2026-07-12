@@ -18,9 +18,7 @@ RUN pip install --no-cache-dir torch==2.3.1+cpu torchvision==0.18.1+cpu \
 FROM base AS app
 
 COPY services/ml-api/model.py services/ml-api/inference.py services/ml-api/main.py ./
-# Weight files should be provided via a Railway Volume mounted at /app/weights.
-# Configure the volume in the Railway dashboard under your service's Volumes tab.
-# Expected files: densenet121.pth  googlenet.pth  resnet18.pth  ensemble_weights.json
+COPY services/ml-api/weights/ /app/weights/
 
 ENV WEIGHTS_DIR=/app/weights
 ENV DEVICE=cpu
