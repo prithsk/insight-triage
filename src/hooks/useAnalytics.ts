@@ -97,7 +97,7 @@ async function fetchAnalytics(): Promise<AnalyticsData> {
     mttr:             withMTTR,
     throughput:       withThroughput,
     overrideRate:     withOverride,
-    feedbackBreak:    slice(raw.feedbackBreak ?? []),
+    feedbackBreak:    sliceAny(raw.feedbackBreak ?? []),
     summary:          raw.summary,
     combinedMTTR,
     combinedThroughput,
