@@ -50,6 +50,7 @@ async function fetchAnalytics(): Promise<AnalyticsData> {
 
   // Use last-7-days slice for charts (more readable)
   const slice = (arr: number[]) => arr.slice(-7);
+  const sliceAny = <T,>(arr: T[]) => arr.slice(-7);
   const sliceD = (arr: string[]) =>
     arr.slice(-7).map(d => {
       const dt = new Date(d);
@@ -96,7 +97,7 @@ async function fetchAnalytics(): Promise<AnalyticsData> {
     mttr:             withMTTR,
     throughput:       withThroughput,
     overrideRate:     withOverride,
-    feedbackBreak:    slice(raw.feedbackBreak ?? []),
+    feedbackBreak:    sliceAny(raw.feedbackBreak ?? []),
     summary:          raw.summary,
     combinedMTTR,
     combinedThroughput,
