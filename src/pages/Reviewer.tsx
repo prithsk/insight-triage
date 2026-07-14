@@ -459,10 +459,15 @@ export default function Reviewer() {
             
             {/* Lab Panel */}
             <div className="p-5 border-b border-[rgba(0,0,0,0.06)]">
-              <div className="flex items-center gap-2 mb-4">
-                <Beaker className="w-4 h-4 text-landing-primary" />
-                <span className="text-[12px] font-medium text-landing-muted uppercase tracking-wider">
-                  Lab Values
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Beaker className="w-4 h-4 text-landing-primary" />
+                  <span className="text-[12px] font-medium text-landing-muted uppercase tracking-wider">
+                    Lab Values
+                  </span>
+                </div>
+                <span className="text-[11px] font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                  Simulated — not a real lab draw
                 </span>
               </div>
               {item.labs ? (

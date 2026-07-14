@@ -186,9 +186,14 @@ export function StudyPreview({ item, onDeleted }: StudyPreviewProps) {
       {/* Lab Values */}
       {item.labs && (
         <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.06)] p-5 mb-6">
-          <span className="text-[13px] font-medium text-landing-muted uppercase tracking-wide block mb-4">
-            Lab Values
-          </span>
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-[13px] font-medium text-landing-muted uppercase tracking-wide">
+              Lab Values
+            </span>
+            <span className="text-[11px] font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+              Simulated — not a real lab draw
+            </span>
+          </div>
           <div className="grid grid-cols-3 gap-3">
             {item.labs.wbc && (
               <div className="text-center p-3 bg-landing-bg rounded-xl">
