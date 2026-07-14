@@ -1,5 +1,16 @@
 import { useEffect, useRef } from 'react';
 
+// WebGPU runtime globals (types not in default lib.dom)
+declare const GPUBufferUsage: {
+  VERTEX: number; INDEX: number; UNIFORM: number; COPY_DST: number;
+  [key: string]: number;
+};
+declare const GPUShaderStage: {
+  VERTEX: number; FRAGMENT: number; COMPUTE: number;
+  [key: string]: number;
+};
+
+
 // ── Constants ────────────────────────────────────────────────────────────────
 const COLS = 24;
 const ROWS = 14;
