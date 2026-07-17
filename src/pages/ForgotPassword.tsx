@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ArrowLeft, ArrowRight, Mail } from "lucide-react";
+import { Reveal } from "@/components/ui/reveal";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -75,9 +76,9 @@ export default function ForgotPassword() {
       {/* Main Content */}
       <section className="relative min-h-screen flex items-center justify-center pt-24 pb-16 px-8">
         {/* Subtle gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-landing-bg via-landing-bg to-[#E8EBE4]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-landing-bg via-landing-bg to-[#EDF1EF]" />
 
-        <div className="relative z-10 w-full max-w-md">
+        <Reveal className="relative z-10 w-full max-w-md" direction="none">
           {/* Card */}
           <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.06)] p-8 shadow-sm">
             {/* Header */}
@@ -152,7 +153,7 @@ export default function ForgotPassword() {
           <p className="text-[13px] text-landing-muted text-center mt-6">
             Non-diagnostic workflow tool. For clinical decision support only.
           </p>
-        </div>
+        </Reveal>
       </section>
     </div>
   );

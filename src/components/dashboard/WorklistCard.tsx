@@ -61,9 +61,9 @@ export function WorklistCard({ item, isSelected, isChecked, isMinimized = false,
       onClick={onSelect}
       className={cn(
         "group relative bg-white rounded-xl border px-5 py-4 cursor-pointer transition-all duration-200 overflow-hidden",
-        isSelected 
-          ? "border-landing-primary ring-2 ring-landing-primary/20" 
-          : "border-[rgba(0,0,0,0.06)] hover:border-landing-primary/30"
+        isSelected
+          ? "border-landing-primary ring-2 ring-landing-primary/20 shadow-[0_10px_30px_-14px_rgba(47,111,94,0.35)]"
+          : "border-[rgba(0,0,0,0.06)] shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-landing-primary/30 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-16px_rgba(47,111,94,0.28)]"
       )}
     >
       <div className="flex items-center gap-4">

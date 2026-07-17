@@ -72,8 +72,10 @@ export default {
         "overlay-accent": "hsl(var(--overlay-accent))",
         // Landing page eco palette
         landing: {
-          bg: "#F6F7F4",
-          dark: "#1E2A26",
+          bg: "#ECEFEA",
+          surface: "#FFFFFF",
+          dark: "#15201B",
+          deep: "#0E1814",
           primary: "#2F6F5E",
           secondary: "#4B7F6A",
           accent: "#C89F65",
