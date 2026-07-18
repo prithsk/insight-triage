@@ -18,11 +18,8 @@ export default function ResetPassword() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        setReady(true);
-      }
+      if (event === "PASSWORD_RECOVERY") setReady(true);
     });
-
     return () => subscription.unsubscribe();
   }, []);
 
@@ -30,20 +27,11 @@ export default function ResetPassword() {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      toast({
-        variant: "destructive",
-        title: "Passwords don't match",
-        description: "Please make sure your passwords match.",
-      });
+      toast({ variant: "destructive", title: "Passwords don't match", description: "Please make sure your passwords match." });
       return;
     }
-
     if (password.length < 6) {
-      toast({
-        variant: "destructive",
-        title: "Password too short",
-        description: "Password must be at least 6 characters.",
-      });
+      toast({ variant: "destructive", title: "Password too short", description: "Password must be at least 6 characters." });
       return;
     }
 
@@ -52,20 +40,12 @@ export default function ResetPassword() {
     const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
+      toast({ variant: "destructive", title: "Error", description: error.message });
     } else {
       setSuccess(true);
-      toast({
-        title: "Password updated",
-        description: "Your password has been successfully reset.",
-      });
+      toast({ title: "Password updated", description: "Your password has been successfully reset." });
       setTimeout(() => navigate("/login"), 3000);
     }
-
     setLoading(false);
   };
 

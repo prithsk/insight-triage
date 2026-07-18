@@ -1,0 +1,1 @@
+Deploy the existing `supabase/functions/analytics-aggregate/index.ts` edge function using the `supabase--deploy_edge_functions` tool. No code changes — just a redeploy of the current file so the analytics endpoint is live.

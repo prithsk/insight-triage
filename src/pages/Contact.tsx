@@ -106,6 +106,11 @@ export default function Contact() {
     }
   };
 
+  const inputClass = (hasError: boolean) =>
+    `bg-landing-bg/50 border-[rgba(0,0,0,0.06)] text-landing-heading placeholder:text-landing-muted h-11 rounded-[10px] hover:border-landing-primary focus:border-landing-primary focus-visible:ring-landing-primary/20 transition-colors ${
+      hasError ? "border-[#B4453A] focus:border-[#B4453A]" : ""
+    }`;
+
   const contactInfo = [
     { icon: Mail, label: "Email", value: "hello@kroix.health", description: "General inquiries" },
     { icon: Building2, label: "Partnerships", value: "partners@kroix.health", description: "Hospital integrations" },
