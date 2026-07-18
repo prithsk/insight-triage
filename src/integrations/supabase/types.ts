@@ -213,31 +213,37 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approved: boolean
           avatar_url: string | null
           created_at: string
           display_name: string | null
           id: string
           institution: string | null
+          role: string
           specialty: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          approved?: boolean
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
           institution?: string | null
+          role?: string
           specialty?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          approved?: boolean
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
           institution?: string | null
+          role?: string
           specialty?: string | null
           updated_at?: string
           user_id?: string
@@ -332,7 +338,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin_user: { Args: never; Returns: boolean }
+      is_approved_user: { Args: never; Returns: boolean }
     }
     Enums: {
       feedback_type: "CORRECT_PRIORITY" | "FALSE_ALARM" | "MISSED_URGENCY"
