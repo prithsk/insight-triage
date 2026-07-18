@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { requireApprovedUser } from '../_shared/auth.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -223,8 +224,12 @@ serve(async (req) => {
   const allHeaders = { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' };
 
   try {
-    const authHeader = req.headers.get('authorization') ?? 'anonymous';
-    if (!checkRateLimit(authHeader.substring(0, 20))) {
+    const auth = await requireApprovedUser(req);
+    if ('error' in auth) {
+      return new Response(JSON.stringify({ error: auth.error }), { status: auth.status, headers: allHeaders });
+    }
+
+    if (!checkRateLimit(auth.user.id)) {
       return new Response(JSON.stringify({ error: 'Too many requests' }), { status: 429, headers: allHeaders });
     }
 

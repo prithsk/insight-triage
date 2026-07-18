@@ -27,6 +27,10 @@ HEATMAP_GRID       = 14
 CRITICAL_THRESHOLD = 0.65
 REVIEW_THRESHOLD   = 0.35
 
+# Guard against decompression-bomb images (e.g. a crafted PNG that expands to
+# billions of pixels) before any decode work happens.
+Image.MAX_IMAGE_PIXELS = 64_000_000  # ~8000x8000, well above any real CXR export
+
 PREPROCESS = transforms.Compose([
     transforms.Resize(256),
     transforms.CenterCrop(224),

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { requireApprovedUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -78,11 +79,16 @@ serve(async (req) => {
   }
 
   try {
+    const auth = await requireApprovedUser(req);
+    if ("error" in auth) {
+      return new Response(JSON.stringify({ error: auth.error }), {
+        status: auth.status,
+        headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Rate limiting
-    const authHeader = req.headers.get("Authorization") || "anonymous";
-    const rateLimitKey = authHeader.substring(0, 30);
-    
-    if (!checkRateLimit(rateLimitKey)) {
+    if (!checkRateLimit(auth.user.id)) {
       console.warn(`[SECURITY] Rate limit exceeded for RAG assistant`);
       return new Response(
         JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),

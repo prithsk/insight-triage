@@ -15,6 +15,7 @@ Environment variables:
 """
 
 import os
+import hmac
 import logging
 from contextlib import asynccontextmanager
 
@@ -82,14 +83,20 @@ bearer = HTTPBearer(auto_error=False)
 
 
 def verify_api_key(creds: HTTPAuthorizationCredentials | None = Security(bearer)):
+    # Fail CLOSED: if API_KEY isn't configured, refuse every request rather
+    # than silently accepting all of them. A misconfigured deployment should
+    # be unusable, not unauthenticated.
     if not API_KEY:
-        return
-    if creds is None or creds.credentials != API_KEY:
+        raise HTTPException(status_code=503, detail="API_KEY not configured on server")
+    if creds is None or not hmac.compare_digest(creds.credentials, API_KEY):
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
 
+MAX_IMAGE_B64_CHARS = 15_000_000  # ~11MB decoded, well above any real CXR export
+
+
 class PredictRequest(BaseModel):
-    image_b64: str  = Field(..., description="Base64-encoded image bytes")
+    image_b64: str  = Field(..., max_length=MAX_IMAGE_B64_CHARS, description="Base64-encoded image bytes")
     use_tta:   bool = Field(True,  description="Enable 3-pass test-time augmentation")
 
 

@@ -1,13 +1,14 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
+import PendingApproval from "@/pages/PendingApproval";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, loading } = useAuth();
+  const { user, loading, approved } = useAuth();
 
   if (loading) {
     return (
@@ -19,6 +20,10 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (!approved) {
+    return <PendingApproval />;
   }
 
   return <>{children}</>;

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { sanitizeString, logSecurityEvent, checkRateLimit } from "@/lib/security";
 
 interface UploadDocumentResult {
   documentId: string;
@@ -12,6 +13,7 @@ export type DocumentType = "sop" | "guideline" | "lab_pdf" | "report";
 
 const ALLOWED_EXTENSIONS = ['.pdf', '.docx', '.doc', '.txt'];
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+const SUSPICIOUS_EXTENSIONS = ['.exe', '.bat', '.cmd', '.sh', '.ps1', '.js', '.html', '.php'];
 
 function getFileExtension(filename: string): string {
   return filename.slice(filename.lastIndexOf('.')).toLowerCase();
@@ -20,6 +22,33 @@ function getFileExtension(filename: string): string {
 function isAllowedFileType(filename: string): boolean {
   const ext = getFileExtension(filename);
   return ALLOWED_EXTENSIONS.includes(ext);
+}
+
+function validateDocumentFile(file: File): { valid: boolean; error?: string } {
+  if (file.size > MAX_FILE_SIZE) {
+    return { valid: false, error: 'File size must be less than 50MB' };
+  }
+
+  const fileName = file.name.toLowerCase();
+  if (!isAllowedFileType(fileName)) {
+    return { valid: false, error: `Invalid file type. Allowed: ${ALLOWED_EXTENSIONS.join(', ')}` };
+  }
+
+  // Double-extension check (e.g. report.pdf.exe)
+  const parts = fileName.split('.');
+  if (parts.length > 2) {
+    for (const ext of SUSPICIOUS_EXTENSIONS) {
+      if (fileName.includes(ext)) {
+        logSecurityEvent('validation_failure', {
+          type: 'suspicious_file_extension',
+          filename: fileName.substring(0, 50),
+        });
+        return { valid: false, error: 'Invalid file type' };
+      }
+    }
+  }
+
+  return { valid: true };
 }
 
 function inferDocType(filename: string): DocumentType {
@@ -35,19 +64,22 @@ export function useUploadDocument() {
   
   return useMutation({
     mutationFn: async (file: File): Promise<UploadDocumentResult> => {
-      // Validate file type
-      if (!isAllowedFileType(file.name)) {
-        throw new Error(`Invalid file type. Allowed: ${ALLOWED_EXTENSIONS.join(', ')}`);
+      // Rate limiting: max 10 uploads per minute
+      const rateLimit = checkRateLimit('document-upload', 10, 60 * 1000);
+      if (!rateLimit.allowed) {
+        throw new Error('Upload rate limit exceeded. Please wait a moment.');
       }
 
-      // Validate file size
-      if (file.size > MAX_FILE_SIZE) {
-        throw new Error('File too large. Maximum size is 50MB.');
+      const validation = validateDocumentFile(file);
+      if (!validation.valid) {
+        throw new Error(validation.error);
       }
 
-      // Generate unique file path
+      // Generate unique file path with sanitized name
       const timestamp = Date.now();
-      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const sanitizedName = sanitizeString(file.name)
+        .replace(/[^a-zA-Z0-9.-]/g, '_')
+        .substring(0, 100);
       const filePath = `uploads/${timestamp}_${sanitizedName}`;
       
       // Upload file to storage
@@ -66,12 +98,13 @@ export function useUploadDocument() {
       const { data: { user } } = await supabase.auth.getUser();
       
       // Create document record
+      const displayName = sanitizeString(file.name).substring(0, 200);
       const docType = inferDocType(file.name);
-      
+
       const { data: doc, error: docError } = await supabase
         .from('documents')
         .insert({
-          name: file.name,
+          name: displayName,
           doc_type: docType,
           file_path: filePath,
           status: 'PENDING',
@@ -89,7 +122,7 @@ export function useUploadDocument() {
       return {
         documentId: doc.id,
         filePath,
-        name: file.name,
+        name: displayName,
       };
     },
     onSuccess: (result) => {
