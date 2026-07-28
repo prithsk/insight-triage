@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Playfair+Display:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 /* Kroix Design System - Clinical, High-Contrast, Dark-Mode First */
 
@@ -172,6 +172,37 @@
   /* Metric/Mono Numbers */
   .font-mono {
     font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* Slow ambient drift behind cinematic heroes. */
+  @keyframes kx-drift {
+    0%, 100% { transform: scale(1.05) translate3d(0, 0, 0); }
+    50%      { transform: scale(1.14) translate3d(-2.5%, -1.5%, 0); }
+  }
+  .kx-drift {
+    animation: kx-drift 22s ease-in-out infinite;
+  }
+
+  /* Loose, unordered drift for the scattered-studies section. */
+  @keyframes kx-float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-10px); }
+  }
+  .kx-float {
+    animation: kx-float 7s ease-in-out infinite;
+  }
+
+  /* One-shot entrance for chat bubbles / switched panels appearing in place. */
+  @keyframes kx-fadein {
+    0%   { opacity: 0; transform: translateY(6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .kx-fadein {
+    animation: kx-fadein 0.4s ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .kx-drift, .kx-float, .kx-fadein { animation: none; }
   }
 }
 

@@ -17,6 +17,11 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import Assistant from "./pages/Assistant";
+import HeroVariants from "./pages/HeroVariants";
+import AboutVariants from "./pages/AboutVariants";
+import InfoVariants from "./pages/InfoVariants";
+import MetricVariants from "./pages/MetricVariants";
+import TraceVariants from "./pages/TraceVariants";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +34,11 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Landing />} />
+            <Route path="/hero-variants" element={<HeroVariants />} />
+            <Route path="/about-variants" element={<AboutVariants />} />
+            <Route path="/info-variants" element={<InfoVariants />} />
+            <Route path="/metric-variants" element={<MetricVariants />} />
+            <Route path="/trace-variants" element={<TraceVariants />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />

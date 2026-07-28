@@ -17,8 +17,28 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         serif: ['Playfair Display', 'Georgia', 'serif'],
         mono: ['IBM Plex Mono', 'monospace'],
+        grotesk: ['Space Grotesk', 'system-ui', 'sans-serif'],
+        // Public-site display type. `display` is the Linear/Legora-style tight
+        // geometric; `editorial` is the Harvey-style serif for statement lines.
+        display: ['Inter Tight', 'Inter', 'system-ui', 'sans-serif'],
+        editorial: ['Instrument Serif', 'Times New Roman', 'serif'],
       },
       colors: {
+        // Kroix Precision — light public-site identity (Landing/About/Contact/Auth only).
+        // Additive namespace; never used by the dashboard, so the clinical app is unaffected.
+        kx: {
+          canvas:   "#FFFFFF",
+          surface:  "#F6F7F9",
+          surface2: "#EDEFF3",
+          ink:      "#12151A",
+          muted:    "#6B7280",
+          border:   "rgba(18,21,26,0.08)",
+          critical: "#E8503A",
+          accent2:  "#3B5BFF",
+          accent3:  "#0F9D6E",
+          tint2:    "#EEF1FF",
+          tint3:    "#EAF7F1",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

@@ -127,54 +127,32 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-landing-bg text-landing-heading overflow-x-hidden">
-      {/* Subtle grain texture overlay */}
-      <div
-        className="fixed inset-0 pointer-events-none opacity-[0.03] z-50"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-        }}
-      />
-
+    <div className="min-h-screen bg-kx-canvas text-kx-ink font-sans">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-40 px-8 py-6 bg-landing-bg/80 backdrop-blur-sm">
+      <nav className="fixed top-0 left-0 right-0 z-40 px-8 py-6 bg-kx-canvas/85 backdrop-blur-md border-b border-kx-border">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <span className="text-2xl font-serif font-semibold text-landing-heading tracking-tight">
-              Kroix
-            </span>
+          <Link to="/" className="flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-kx-critical" />
+            <span className="font-grotesk font-semibold tracking-tight text-[20px]">Kroix</span>
           </Link>
           <div className="flex items-center gap-8">
-            <Link
-              to="/about"
-              className="text-landing-body hover:text-landing-heading transition-colors text-[15px]"
-            >
-              About
-            </Link>
-            <Link
-              to="/contact"
-              className="text-landing-body hover:text-landing-heading transition-colors text-[15px]"
-            >
-              Contact
-            </Link>
+            <Link to="/about" className="text-kx-muted hover:text-kx-ink transition-colors text-[14px]">About</Link>
+            <Link to="/contact" className="text-kx-muted hover:text-kx-ink transition-colors text-[14px]">Contact</Link>
           </div>
         </div>
       </nav>
 
       {/* Main Content */}
       <section className="relative min-h-screen flex items-center justify-center pt-28 pb-16 px-8">
-        {/* Subtle gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-landing-bg via-landing-bg to-[#EDF1EF]" />
-
         <Reveal className="relative z-10 w-full max-w-md" direction="none">
           {/* Card */}
-          <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.06)] p-8 shadow-sm">
+          <div className="bg-kx-surface rounded-2xl border border-kx-border p-8">
             {/* Header */}
             <div className="text-center mb-8">
-              <h1 className="font-serif text-[32px] leading-tight text-landing-heading mb-2 tracking-[-0.01em]">
+              <h1 className="font-grotesk text-[28px] leading-tight mb-2 tracking-[-0.01em]">
                 Create an account
               </h1>
-              <p className="text-landing-body text-[15px]">
+              <p className="text-kx-muted text-[15px]">
                 Join Kroix to access instant AI-powered radiology triage
               </p>
             </div>
@@ -182,7 +160,7 @@ export default function Signup() {
             {/* Form */}
             <form onSubmit={handleSignup} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="displayName" className="text-landing-body text-[14px]">Full Name</Label>
+                <Label htmlFor="displayName" className="text-kx-muted text-[14px]">Full Name</Label>
                 <Input
                   id="displayName"
                   type="text"
@@ -190,11 +168,11 @@ export default function Signup() {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   required
-                  className="bg-landing-bg/50 border-[rgba(0,0,0,0.06)] text-landing-heading placeholder:text-landing-muted h-11 rounded-[10px] hover:border-landing-primary focus:border-landing-primary focus-visible:ring-landing-primary/20 transition-colors"
+                  className="bg-kx-surface2 border-kx-border text-kx-ink placeholder:text-kx-muted h-11 rounded-[8px] hover:border-kx-critical/40 focus:border-kx-critical/40 transition-colors"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-landing-body text-[14px]">Email</Label>
+                <Label htmlFor="email" className="text-kx-muted text-[14px]">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -202,11 +180,11 @@ export default function Signup() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-landing-bg/50 border-[rgba(0,0,0,0.06)] text-landing-heading placeholder:text-landing-muted h-11 rounded-[10px] hover:border-landing-primary focus:border-landing-primary focus-visible:ring-landing-primary/20 transition-colors"
+                  className="bg-kx-surface2 border-kx-border text-kx-ink placeholder:text-kx-muted h-11 rounded-[8px] hover:border-kx-critical/40 focus:border-kx-critical/40 transition-colors"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-landing-body text-[14px]">Password</Label>
+                <Label htmlFor="password" className="text-kx-muted text-[14px]">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -215,37 +193,37 @@ export default function Signup() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="bg-landing-bg/50 border-[rgba(0,0,0,0.06)] text-landing-heading placeholder:text-landing-muted h-11 rounded-[10px] hover:border-landing-primary focus:border-landing-primary focus-visible:ring-landing-primary/20 transition-colors"
+                  className="bg-kx-surface2 border-kx-border text-kx-ink placeholder:text-kx-muted h-11 rounded-[8px] hover:border-kx-critical/40 focus:border-kx-critical/40 transition-colors"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="specialty" className="text-landing-body text-[14px]">Specialty</Label>
+                  <Label htmlFor="specialty" className="text-kx-muted text-[14px]">Specialty</Label>
                   <Input
                     id="specialty"
                     type="text"
                     placeholder="Radiology"
                     value={specialty}
                     onChange={(e) => setSpecialty(e.target.value)}
-                    className="bg-landing-bg/50 border-[rgba(0,0,0,0.06)] text-landing-heading placeholder:text-landing-muted h-11 rounded-[10px] hover:border-landing-primary focus:border-landing-primary focus-visible:ring-landing-primary/20 transition-colors"
+                    className="bg-kx-surface2 border-kx-border text-kx-ink placeholder:text-kx-muted h-11 rounded-[8px] hover:border-kx-critical/40 focus:border-kx-critical/40 transition-colors"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="institution" className="text-landing-body text-[14px]">Institution</Label>
+                  <Label htmlFor="institution" className="text-kx-muted text-[14px]">Institution</Label>
                   <Input
                     id="institution"
                     type="text"
                     placeholder="Hospital Name"
                     value={institution}
                     onChange={(e) => setInstitution(e.target.value)}
-                    className="bg-landing-bg/50 border-[rgba(0,0,0,0.06)] text-landing-heading placeholder:text-landing-muted h-11 rounded-[10px] hover:border-landing-primary focus:border-landing-primary focus-visible:ring-landing-primary/20 transition-colors"
+                    className="bg-kx-surface2 border-kx-border text-kx-ink placeholder:text-kx-muted h-11 rounded-[8px] hover:border-kx-critical/40 focus:border-kx-critical/40 transition-colors"
                   />
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full px-7 py-3.5 bg-landing-primary text-white rounded-[10px] text-[15px] font-medium hover:bg-[#265A4C] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full px-7 py-3.5 bg-kx-ink text-kx-canvas rounded-[8px] text-[15px] font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
                 disabled={loading}
               >
                 {loading ? (
@@ -255,7 +233,7 @@ export default function Signup() {
                   </>
                 ) : (
                   <>
-                    Create Account
+                    Create account
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -263,16 +241,16 @@ export default function Signup() {
             </form>
 
             {/* Footer */}
-            <p className="text-[14px] text-landing-body text-center mt-6">
+            <p className="text-[14px] text-kx-muted text-center mt-6">
               Already have an account?{" "}
-              <Link to="/login" className="text-landing-primary hover:text-[#265A4C] font-medium transition-colors">
+              <Link to="/login" className="text-kx-critical hover:text-kx-critical/80 font-medium transition-colors">
                 Sign in
               </Link>
             </p>
           </div>
 
           {/* Bottom note */}
-          <p className="text-[13px] text-landing-muted text-center mt-6">
+          <p className="text-[13px] text-kx-muted text-center mt-6">
             Non-diagnostic workflow tool. For clinical decision support only.
           </p>
         </Reveal>

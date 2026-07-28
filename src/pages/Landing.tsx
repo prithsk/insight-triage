@@ -1,5 +1,4 @@
-import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
 import { ArrowRight, Loader2, Clock, TrendingUp, Target, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -18,56 +17,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { Reveal } from "@/components/ui/reveal";
 import { useScrollProgress } from "@/hooks/useScrollProgress";
 import { useMagneticHover } from "@/hooks/useMagneticHover";
-import { TraceWaterfall } from "@/components/landing/TraceWaterfall";
+import { useCursorReticle } from "@/hooks/useCursorReticle";
+import { TraceBento } from "@/components/landing/TraceSections";
 import { CaseStudy } from "@/components/landing/CaseStudy";
 import { LandingFaq } from "@/components/landing/LandingFaq";
-import { ScrollHighlightText } from "@/components/landing/ScrollHighlightText";
+import { AppTourDemo } from "@/components/landing/AppTourDemo";
+import { HeroVideoBackdrop } from "@/components/landing/HeroVideoBackdrop";
+import { AboutLayerStack, AboutScatter } from "@/components/landing/AboutSections";
+import { AboutStaircase } from "@/components/landing/AboutStaircase";
+import { StayHookToast } from "@/components/landing/StayHookToast";
 import { StackingCards, StackCard } from "@/components/landing/StackingCards";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  Legend,
-} from "recharts";
-
-// Feature images
+import { LiveQueueHero } from "@/components/landing/LiveQueueHero";
+import { SpeedAccuracyDuo } from "@/components/landing/SpeedAccuracyDuo";
+import { InfoChatNarrative } from "@/components/landing/InfoSections";
 import featureAnalysis from "@/assets/landing/feature-analysis.jpg";
-
-// Animated Ellipses Component - Removed as per user request
-
-// Generate mock data for throughput comparison (scans per day for landing page)
-const generateThroughputData = () => {
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  return days.map((day) => ({
-    day,
-    withKroix: Math.floor(Math.random() * 8) + 28, // 28-35 scans/day
-    withoutKroix: Math.floor(Math.random() * 7) + 12, // 12-18 scans/day
-  }));
-};
-
-// Generate mock data for accuracy comparison
-const generateAccuracyData = () => {
-  return [
-    { category: 'Critical Detection', withKroix: 95, withoutKroix: 78 },
-    { category: 'False Positive Rate', withKroix: 8, withoutKroix: 22 },
-    { category: 'Missed Urgency', withKroix: 3, withoutKroix: 15 },
-    { category: 'Overall Accuracy', withKroix: 94, withoutKroix: 81 },
-  ];
-};
 
 const workflowSteps: StackCard[] = [
   {
     step: "01",
     title: "A scan lands in the queue",
-    body: "It arrives as DICOM from your existing PACS — same viewer, same reporting tools, nothing new to learn.",
+    body: "It arrives as DICOM from your existing PACS, same viewer, same reporting tools, nothing new to learn.",
   },
   {
     step: "02",
@@ -77,7 +46,7 @@ const workflowSteps: StackCard[] = [
   {
     step: "03",
     title: "The queue rearranges itself",
-    body: "Urgent studies rise to the top on their own. The routine ones settle below — no FIFO backlog, no manual sorting.",
+    body: "Urgent studies rise to the top on their own. The routine ones settle below. No FIFO backlog, no manual sorting.",
   },
   {
     step: "04",
@@ -96,11 +65,19 @@ const Landing = () => {
     message: "Hi, I'm interested in learning more about Kroix for my radiology practice.",
   });
 
-  const throughputData = useMemo(() => generateThroughputData(), []);
-  const accuracyData = useMemo(() => generateAccuracyData(), []);
   const scrollProgress = useScrollProgress(140);
+  // The nav rides transparently over the hero footage and only goes solid once
+  // the video is mostly scrolled past, so light-on-dark never fights the scrim.
+  const [navSolid, setNavSolid] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setNavSolid(window.scrollY > window.innerHeight * 0.75);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   const heroCta = useMagneticHover<HTMLButtonElement>(0.15);
   const finalCta = useMagneticHover<HTMLButtonElement>(0.15);
+  const reticle = useCursorReticle<HTMLDivElement>();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,109 +106,130 @@ const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-landing-bg text-landing-heading">
+    <div className="min-h-screen bg-kx-canvas text-kx-ink font-sans">
 
-      {/* Subtle grain texture overlay */}
-      <div 
-        className="fixed inset-0 pointer-events-none opacity-[0.03] z-50"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-        }}
-      />
-
-      {/* Navigation */}
+      {/* Navigation — rides transparently over the hero footage, then goes solid */}
       <nav
-        className="fixed top-0 left-0 right-0 z-40 px-8 bg-landing-bg/80 backdrop-blur-sm transition-shadow duration-300"
+        className={`fixed top-0 left-0 right-0 z-40 px-8 transition-[padding,background-color,border-color] duration-300 ${
+          navSolid
+            ? "bg-kx-canvas/85 backdrop-blur-md border-b border-kx-border"
+            : "bg-transparent border-b border-transparent"
+        }`}
         style={{
-          paddingTop: `${24 - scrollProgress * 8}px`,
-          paddingBottom: `${24 - scrollProgress * 8}px`,
-          boxShadow: scrollProgress > 0.5 ? "0 1px 0 rgba(0,0,0,0.06)" : "none",
+          paddingTop: `${20 - scrollProgress * 6}px`,
+          paddingBottom: `${20 - scrollProgress * 6}px`,
         }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-kx-critical" />
             <span
-              className="font-serif font-semibold text-landing-heading tracking-tight origin-left transition-transform duration-300 inline-block"
-              style={{
-                fontSize: "24px",
-                transform: `scale(${1 - scrollProgress * 0.15})`,
-              }}
+              className={`font-display font-semibold tracking-tight origin-left transition-all duration-300 inline-block ${
+                navSolid ? "text-kx-ink" : "text-white"
+              }`}
+              style={{ fontSize: "20px", transform: `scale(${1 - scrollProgress * 0.1})` }}
             >
               Kroix
             </span>
           </Link>
           <div className="flex items-center gap-8">
-            <Link 
-              to="/about" 
-              className="text-landing-body hover:text-landing-heading transition-colors text-[15px]"
+            <Link
+              to="/about"
+              className={`transition-colors text-[14px] ${
+                navSolid ? "text-kx-muted hover:text-kx-ink" : "text-white/70 hover:text-white"
+              }`}
             >
               About
             </Link>
-            <Link 
-              to="/contact" 
-              className="text-landing-body hover:text-landing-heading transition-colors text-[15px]"
+            <Link
+              to="/contact"
+              className={`transition-colors text-[14px] ${
+                navSolid ? "text-kx-muted hover:text-kx-ink" : "text-white/70 hover:text-white"
+              }`}
             >
               Contact
             </Link>
             <Link to="/login">
-              <button className="px-5 py-2.5 rounded-[10px] border border-landing-primary text-landing-primary hover:bg-landing-primary hover:text-white transition-colors text-[15px]">
-                Sign In
+              <button
+                className={`px-4 py-2 rounded-full border transition-colors text-[14px] font-mono ${
+                  navSolid
+                    ? "border-kx-border text-kx-ink hover:border-kx-critical/50"
+                    : "border-white/25 text-white hover:border-white/60 hover:bg-white/5"
+                }`}
+              >
+                Sign in
               </button>
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center pt-24 pb-32">
-        {/* Subtle gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white via-landing-bg to-[#E4E9E3]" />
-        
-        <div className="relative z-10 max-w-7xl mx-auto px-8 w-full">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Left: Content */}
-            <Reveal className="max-w-xl relative" delayMs={0}>
-                <h1 className="font-serif text-[64px] lg:text-[72px] leading-[1.05] font-medium text-landing-heading mb-8 tracking-[-0.02em]">
-                Triage software for <em className="not-italic text-landing-primary">clinical radiology</em>.
-              </h1>
-              <p className="text-xl text-landing-body leading-relaxed mb-10">
-                Automated prioritization that moves <strong className="font-semibold text-landing-heading">critical respiratory cases</strong> to the front of the worklist, so radiologists read the right scans first.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
-                  <DialogTrigger asChild>
-                    <button
-                      ref={heroCta.ref}
-                      onMouseMove={heroCta.onMouseMove}
-                      onMouseLeave={heroCta.onMouseLeave}
-                      className="px-7 py-3.5 bg-landing-primary text-white rounded-[10px] text-[15px] font-medium hover:bg-[#265A4C] transition-[background-color] duration-150 flex items-center gap-2"
-                      style={{ transition: "transform 0.15s ease-out, background-color 0.15s ease" }}
-                    >
-                      Request demo
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md bg-landing-bg border-[rgba(0,0,0,0.06)]">
+      {/* Hero — footage behind a narrow centred column, CTAs inside the first fold */}
+      <section
+        ref={reticle.ref}
+        className="relative min-h-[92vh] flex flex-col justify-center px-6 pt-32 pb-20 overflow-hidden"
+      >
+        <HeroVideoBackdrop src="/hero.mp4" scrim={0.7} fadeBottom={false} />
+
+        {/* cursor reticle */}
+        {reticle.enabled && reticle.pos && (
+          <div
+            className="absolute pointer-events-none z-20 w-8 h-8 -translate-x-1/2 -translate-y-1/2"
+            style={{ left: reticle.pos.x, top: reticle.pos.y }}
+          >
+            <div className="w-full h-full rounded-full border border-white/50" />
+            <div className="absolute top-1/2 left-1/2 w-2 h-px bg-white/70 -translate-x-1/2 -translate-y-1/2" />
+            <div className="absolute top-1/2 left-1/2 w-px h-2 bg-white/70 -translate-x-1/2 -translate-y-1/2" />
+          </div>
+        )}
+
+        <div className="relative z-10 max-w-3xl mx-auto text-center w-full">
+          <Reveal delayMs={0} direction="none">
+            <h1 className="font-editorial text-[50px] md:text-[80px] leading-[0.96] tracking-[-0.02em] text-white mb-6">
+              Every scan scored.
+              <br />
+              <span className="italic text-white/55">The urgent one surfaced.</span>
+            </h1>
+            <p className="text-[17px] text-white/60 max-w-md mx-auto mb-10 leading-relaxed">
+              AI triage for chest radiography — built so the radiologist reads in the
+              order the patients actually need.
+            </p>
+
+            <div className="flex flex-wrap gap-3 justify-center">
+              <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
+                <DialogTrigger asChild>
+                  <button
+                    ref={heroCta.ref}
+                    onMouseMove={heroCta.onMouseMove}
+                    onMouseLeave={heroCta.onMouseLeave}
+                    className="px-7 py-3.5 bg-white text-kx-ink rounded-full text-[15px] font-semibold hover:opacity-90 transition-opacity duration-150 flex items-center gap-2"
+                    style={{ transition: "transform 0.15s ease-out, background-color 0.15s ease" }}
+                  >
+                    Request demo
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </DialogTrigger>
+                  <DialogContent className="sm:max-w-md bg-kx-surface border-kx-border text-kx-ink">
                     <DialogHeader>
-                      <DialogTitle className="font-serif text-2xl text-landing-heading">Request a Demo</DialogTitle>
-                      <DialogDescription className="text-landing-body">
+                      <DialogTitle className="font-grotesk text-2xl text-kx-ink">Request a demo</DialogTitle>
+                      <DialogDescription className="text-kx-muted">
                         Fill out the form below and we'll get back to you within 24 hours.
                       </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                       <div className="space-y-2">
-                        <Label htmlFor="contact-name" className="text-landing-body">Name</Label>
+                        <Label htmlFor="contact-name" className="text-kx-muted">Name</Label>
                         <Input
                           id="contact-name"
                           placeholder="Dr. Jane Smith"
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                           required
-                          className="bg-white border-[rgba(0,0,0,0.06)] text-landing-heading"
+                          className="bg-kx-surface2 border-kx-border text-kx-ink"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="contact-email" className="text-landing-body">Email</Label>
+                        <Label htmlFor="contact-email" className="text-kx-muted">Email</Label>
                         <Input
                           id="contact-email"
                           type="email"
@@ -239,21 +237,21 @@ const Landing = () => {
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           required
-                          className="bg-white border-[rgba(0,0,0,0.06)] text-landing-heading"
+                          className="bg-kx-surface2 border-kx-border text-kx-ink"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="contact-institution" className="text-landing-body">Institution (Optional)</Label>
+                        <Label htmlFor="contact-institution" className="text-kx-muted">Institution (Optional)</Label>
                         <Input
                           id="contact-institution"
                           placeholder="General Hospital"
                           value={formData.institution}
                           onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                          className="bg-white border-[rgba(0,0,0,0.06)] text-landing-heading"
+                          className="bg-kx-surface2 border-kx-border text-kx-ink"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="contact-message" className="text-landing-body">Message</Label>
+                        <Label htmlFor="contact-message" className="text-kx-muted">Message</Label>
                         <Textarea
                           id="contact-message"
                           placeholder="Tell us about your radiology workflow..."
@@ -261,12 +259,12 @@ const Landing = () => {
                           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                           required
                           rows={3}
-                          className="bg-white border-[rgba(0,0,0,0.06)] text-landing-heading"
+                          className="bg-kx-surface2 border-kx-border text-kx-ink"
                         />
                       </div>
-                      <button 
-                        type="submit" 
-                        className="w-full px-7 py-3.5 bg-landing-primary text-white rounded-[10px] text-[15px] font-medium hover:bg-[#265A4C] transition-colors disabled:opacity-50"
+                      <button
+                        type="submit"
+                        className="w-full px-7 py-3.5 bg-kx-ink text-kx-canvas rounded-[8px] text-[15px] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
                         disabled={isSubmitting}
                       >
                         {isSubmitting ? (
@@ -275,396 +273,177 @@ const Landing = () => {
                             Sending...
                           </span>
                         ) : (
-                          "Send Message"
+                          "Send message"
                         )}
                       </button>
                     </form>
                   </DialogContent>
                 </Dialog>
-                <Link to="/dashboard">
-                  <button className="px-7 py-3.5 border border-landing-primary text-landing-primary rounded-[10px] text-[15px] font-medium hover:bg-landing-primary hover:text-white transition-colors">
-                    See how it works
-                  </button>
-                </Link>
-              </div>
-            </Reveal>
+              <Link to="/dashboard">
+                <button className="px-7 py-3.5 border border-white/25 text-white rounded-full text-[15px] font-medium hover:border-white/60 hover:bg-white/5 transition-colors">
+                  See how it works
+                </button>
+              </Link>
+            </div>
 
-            {/* Right: Abstract visual */}
-            <Reveal className="relative hidden lg:flex items-center justify-center" delayMs={150}>
-              <div className="relative w-[480px] h-[480px]">
-                {/* Organic flowing gradient */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-landing-secondary/20 via-landing-primary/10 to-landing-bg blur-3xl" />
-                <div className="absolute inset-8 rounded-full bg-gradient-to-tr from-landing-primary/15 to-landing-secondary/5 blur-2xl" />
-                {/* Central abstract form */}
-                <div className="absolute inset-16 rounded-full border border-landing-primary/10 flex items-center justify-center">
-                  <div className="w-3/4 h-3/4 rounded-full bg-gradient-to-br from-landing-primary/8 to-transparent" />
-                </div>
-                {/* Subtle scan silhouette lines */}
-                <svg className="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 480 480">
-                  <ellipse cx="240" cy="200" rx="100" ry="120" fill="none" stroke="#2F6F5E" strokeWidth="0.5" />
-                  <ellipse cx="240" cy="220" rx="80" ry="100" fill="none" stroke="#2F6F5E" strokeWidth="0.5" />
-                  <path d="M 180 320 Q 240 380 300 320" fill="none" stroke="#2F6F5E" strokeWidth="0.5" />
-                </svg>
-              </div>
+            <div className="mt-12 flex items-center justify-center gap-6 flex-wrap">
+              {["DenseNet121", "GoogLeNet", "ResNet18"].map((m) => (
+                <span key={m} className="font-mono text-[11px] text-white/35 tracking-wide">
+                  {m}
+                </span>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* The live queue, now below the fold */}
+      <section className="py-24 px-6 bg-kx-canvas border-t border-kx-border">
+        <div className="max-w-6xl mx-auto">
+          <SectionRule n="01" title="The queue, live" />
+          <div className="grid lg:grid-cols-[1fr_auto] gap-12 items-center">
+            <Reveal>
+              <h2 className="font-display text-[30px] md:text-[42px] leading-[1.05] tracking-[-0.03em] text-kx-ink mb-5 max-w-lg">
+                The worklist that sorts itself.
+              </h2>
+              <p className="text-[17px] text-kx-muted leading-relaxed max-w-lg">
+                A 3-model ensemble reads every chest X-ray the moment it arrives and moves the
+                critical cases to the front, before a radiologist has to go looking.
+              </p>
+            </Reveal>
+            <Reveal className="relative w-full lg:w-[380px]" delayMs={150}>
+              <LiveQueueHero />
             </Reveal>
           </div>
         </div>
       </section>
 
-      {/* Scroll-pinned statement */}
-      <section>
-        <ScrollHighlightText
-          bgClass="bg-gradient-to-b from-white via-[#EEF3F1] to-white"
-          text="A chest X-ray sits in a queue. Minutes pass. The critical case waits behind the routine ones. Kroix reads every scan the moment it arrives and moves the urgent ones to the front, before anyone has to go looking."
-        />
+      {/* The product, walking itself through dashboard → reviewer → analytics */}
+      <section className="py-24 px-6 bg-kx-surface border-t border-kx-border">
+        <div className="max-w-4xl mx-auto">
+          <SectionRule n="02" title="The whole workflow, start to sign-off" />
+          <AppTourDemo />
+        </div>
       </section>
 
+      {/* The problem, the architecture that answers it, then one study end-to-end */}
+      <AboutScatter />
+      <AboutLayerStack />
+      <AboutStaircase />
+
       {/* Features Section */}
-      <section className="py-32 px-8 bg-white">
+      <section className="py-32 px-8 bg-kx-canvas border-t border-kx-border">
         <div className="max-w-7xl mx-auto">
-          {/* Feature 1 - Comprehensive Analysis */}
+          {/* Feature 1 */}
           <Reveal className="grid lg:grid-cols-2 gap-16 items-center mb-32">
             <div className="max-w-lg">
-              <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
-                Analysis
+              <span className="text-kx-critical text-[12px] font-mono font-medium tracking-wide uppercase mb-4 block">
+                01 · Analysis
               </span>
-              <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading mb-6 tracking-[-0.01em]">
-                Comprehensive <span className="text-landing-primary">Analysis</span>
+              <h2 className="font-grotesk text-[36px] lg:text-[44px] leading-[1.1] mb-6 tracking-[-0.01em]">
+                Comprehensive analysis
               </h2>
-              <p className="text-lg text-landing-body leading-relaxed mb-6">
-                Automated detection that flags <em>critical findings</em> across every chest X-ray study.
+              <p className="text-[17px] text-kx-muted leading-relaxed mb-6">
+                Automated detection that flags critical findings across every chest X-ray study.
               </p>
               <div className="space-y-2">
                 {[
-                  ["Pneumonia & COPD", "Pattern recognition across respiratory findings"],
-                  ["Opacity mapping", "Consolidation and infiltrate localization"],
-                  ["Biomarker correlation", "Findings tied to severity signals"],
-                ].map(([title, desc]) => (
-                  <div key={title} className="flex items-start gap-3 p-3 rounded-xl bg-white border border-[rgba(0,0,0,0.05)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-12px_rgba(47,111,94,0.25)] hover:border-landing-primary/30">
-                    <span className="w-1.5 h-1.5 rounded-full bg-landing-primary mt-2 flex-shrink-0" />
+                  ["Pneumonia & COPD", "Pattern recognition across respiratory findings", "bg-kx-critical"],
+                  ["Opacity mapping", "Consolidation and infiltrate localization", "bg-kx-accent2"],
+                  ["Biomarker correlation", "Findings tied to severity signals", "bg-kx-accent3"],
+                ].map(([title, desc, dot]) => (
+                  <div key={title} className="flex items-start gap-3 p-3 rounded-xl bg-kx-surface border border-kx-border transition-all duration-200 hover:-translate-y-0.5 hover:border-kx-critical/30">
+                    <span className={`w-1.5 h-1.5 rounded-full ${dot} mt-2 flex-shrink-0`} />
                     <div>
-                      <p className="text-[15px] font-medium text-landing-heading">{title}</p>
-                      <p className="text-[13px] text-landing-muted">{desc}</p>
+                      <p className="text-[15px] font-medium text-kx-ink">{title}</p>
+                      <p className="text-[13px] text-kx-muted">{desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="relative h-[400px] rounded-2xl overflow-hidden">
+            <div className="relative h-[380px] rounded-2xl overflow-hidden border border-kx-border">
               <img
                 src={featureAnalysis}
-                alt="AI-powered chest X-ray analysis visualization" 
+                alt="AI-powered chest X-ray analysis visualization"
                 className="w-full h-full object-cover"
               />
             </div>
           </Reveal>
 
-          {/* Feature 2 - Real-time Processing with Chart */}
-          <Reveal className="grid lg:grid-cols-2 gap-16 items-center mb-32">
-            <div className="order-2 lg:order-1 relative h-[400px] rounded-2xl overflow-hidden bg-landing-bg/50 border border-[rgba(0,0,0,0.06)] p-6">
-              <div className="mb-4">
-                <h4 className="text-sm font-medium text-landing-heading mb-1">Scans Reviewed per Hour</h4>
-                <p className="text-xs text-landing-muted">7-day comparison: with vs. without Kroix</p>
-              </div>
-              <ResponsiveContainer width="100%" height="85%">
-                <AreaChart data={throughputData}>
-                  <defs>
-                    <linearGradient id="withKroixGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2F6F5E" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#2F6F5E" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="withoutKroixGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#7C8B85" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="#7C8B85" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-                  <XAxis 
-                    dataKey="day" 
-                    stroke="#7C8B85"
-                    tick={{ fill: '#7C8B85', fontSize: 11 }}
-                    axisLine={{ stroke: 'rgba(0,0,0,0.06)' }}
-                  />
-                  <YAxis 
-                    stroke="#7C8B85"
-                    tick={{ fill: '#7C8B85', fontSize: 11 }}
-                    axisLine={{ stroke: 'rgba(0,0,0,0.06)' }}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#F7F8F9', 
-                      border: '1px solid rgba(0,0,0,0.06)',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                    }}
-                  />
-                  <Legend 
-                    wrapperStyle={{ fontSize: '11px' }}
-                    iconType="circle"
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="withKroix" 
-                    name="With Kroix"
-                    stroke="#2F6F5E" 
-                    fill="url(#withKroixGradient)"
-                    strokeWidth={2}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="withoutKroix" 
-                    name="Without Kroix"
-                    stroke="#7C8B85" 
-                    fill="url(#withoutKroixGradient)"
-                    strokeWidth={1.5}
-                    strokeDasharray="4 4"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="order-1 lg:order-2 max-w-lg">
-              <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
-                Speed
-              </span>
-              <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading mb-6 tracking-[-0.01em]">
-                Fast <span className="text-landing-primary">Processing</span>
-              </h2>
-              <p className="text-lg text-landing-body leading-relaxed mb-6">
-                Sub-5 second inference times that slot into existing PACS workflows without disruption.
-              </p>
-              <div className="relative pl-6">
-                {/* connecting line */}
-                <span className="absolute left-[7px] top-2 bottom-2 w-px bg-landing-primary/20" />
-                {[
-                  ["Immediate scoring", "Priority assigned the moment a scan arrives"],
-                  ["Auto reordering", "Worklist re-sorts with no manual triage"],
-                  ["Zero disruption", "Runs inside your existing PACS flow"],
-                ].map(([title, desc]) => (
-                  <div key={title} className="relative mb-6 last:mb-0">
-                    <span className="absolute -left-6 top-1 w-3.5 h-3.5 rounded-full border-2 border-landing-primary bg-landing-bg" />
-                    <p className="text-[16px] font-medium text-landing-heading">{title}</p>
-                    <p className="text-[14px] text-landing-muted">{desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Reveal>
-
-          {/* Feature 3 - Clinical-grade Accuracy with Comparison Chart */}
-          <Reveal className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="max-w-lg">
-              <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
-                Precision
-              </span>
-              <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading mb-6 tracking-[-0.01em]">
-                Clinical-grade <span className="text-landing-primary">Accuracy</span>
-              </h2>
-              <p className="text-lg text-landing-body leading-relaxed mb-6">
-                Validated performance metrics that meet the demands of <em>clinical environments</em>.
-              </p>
-              <div className="divide-y divide-[rgba(0,0,0,0.06)] border-t border-b border-[rgba(0,0,0,0.06)]">
-                <div className="flex items-baseline justify-between py-4">
-                  <span className="text-[15px] text-landing-body">Critical case detection</span>
-                  <span className="font-serif text-3xl font-medium text-landing-primary">95%</span>
-                </div>
-                <div className="flex items-baseline justify-between py-4">
-                  <span className="text-[15px] text-landing-body">5-fold CV accuracy</span>
-                  <span className="font-serif text-3xl font-medium text-landing-primary">98.9%</span>
-                </div>
-                <div className="flex items-baseline justify-between py-4">
-                  <span className="text-[15px] text-landing-body">Confidence on every read</span>
-                  <span className="font-serif text-3xl font-medium text-landing-primary">100%</span>
-                </div>
-              </div>
-            </div>
-            <div className="relative h-[400px] rounded-2xl overflow-hidden bg-landing-bg/50 border border-[rgba(0,0,0,0.06)] p-6">
-              <div className="mb-4">
-                <h4 className="text-sm font-medium text-landing-heading mb-1">Accuracy Comparison</h4>
-                <p className="text-xs text-landing-muted">Radiologist performance: with vs. without Kroix (%)</p>
-              </div>
-              <ResponsiveContainer width="100%" height="85%">
-                <BarChart data={accuracyData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-                  <XAxis 
-                    type="number" 
-                    domain={[0, 100]}
-                    stroke="#7C8B85"
-                    tick={{ fill: '#7C8B85', fontSize: 11 }}
-                    axisLine={{ stroke: 'rgba(0,0,0,0.06)' }}
-                  />
-                  <YAxis 
-                    type="category" 
-                    dataKey="category" 
-                    stroke="#7C8B85"
-                    tick={{ fill: '#4A5A54', fontSize: 10 }}
-                    width={100}
-                    axisLine={{ stroke: 'rgba(0,0,0,0.06)' }}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#F7F8F9', 
-                      border: '1px solid rgba(0,0,0,0.06)',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                    }}
-                    formatter={(value: number) => [`${value}%`, '']}
-                  />
-                  <Legend 
-                    wrapperStyle={{ fontSize: '11px' }}
-                    iconType="circle"
-                  />
-                  <Bar 
-                    dataKey="withKroix" 
-                    name="With Kroix"
-                    fill="#2F6F5E" 
-                    radius={[0, 4, 4, 0]}
-                    barSize={16}
-                  />
-                  <Bar 
-                    dataKey="withoutKroix" 
-                    name="Without Kroix"
-                    fill="#C4CCC8" 
-                    radius={[0, 4, 4, 0]}
-                    barSize={16}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Reveal>
         </div>
       </section>
 
-      {/* Live Triage Trace Section — dark technical band */}
-      <section className="py-28 px-8 bg-landing-deep relative overflow-hidden">
-        {/* faint grid + glow */}
-        <div className="absolute inset-0 opacity-[0.5] pointer-events-none"
-          style={{ background: "radial-gradient(700px circle at 50% -10%, rgba(47,111,94,0.35), transparent 65%)" }}
-        />
-        <div className="max-w-3xl mx-auto relative z-10">
-          <Reveal className="text-center mb-12">
-            <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
-              Under the Hood
-            </span>
-            <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-white tracking-[-0.01em] mb-4">
-              Every score, traceable.
-            </h2>
-            <p className="text-lg text-white/60 max-w-xl mx-auto">
-              Three models, one fused score. No black box — see exactly where the time and the decision go.
-            </p>
-          </Reveal>
-          <TraceWaterfall />
-        </div>
-      </section>
+      {/* Speed + accuracy, paired as one two-card section instead of two stacked blocks */}
+      <SpeedAccuracyDuo />
 
-      {/* Workflow Section - stacking cards ("60-second story") */}
-      <section className="py-24 px-8 bg-landing-bg">
+      {/* Live Triage Trace Section */}
+      <TraceBento />
+
+      {/* Workflow Section */}
+      <section className="py-24 px-8 bg-kx-canvas border-t border-kx-border">
         <div className="max-w-3xl mx-auto">
           <Reveal className="text-center mb-16">
-            <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
+            <span className="text-kx-accent2 text-[12px] font-mono font-medium tracking-wide uppercase mb-4 block">
               Workflow
             </span>
-            <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading tracking-[-0.01em]">
+            <h2 className="font-grotesk text-[36px] lg:text-[44px] leading-[1.1] tracking-[-0.01em]">
               From scan to sorted, in one pass.
             </h2>
           </Reveal>
-
           <StackingCards cards={workflowSteps} />
         </div>
       </section>
 
       {/* Clinical Impact Section */}
-      <section className="py-32 px-8 bg-white">
+      <section className="py-32 px-8 bg-kx-canvas border-t border-kx-border">
         <div className="max-w-6xl mx-auto">
           <Reveal className="text-center mb-20">
-            <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
-              Clinical Impact
+            <span className="text-kx-critical text-[12px] font-mono font-medium tracking-wide uppercase mb-4 block">
+              Clinical impact
             </span>
-            <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading tracking-[-0.01em] mb-6">
-              Measurable Outcomes
+            <h2 className="font-grotesk text-[36px] lg:text-[44px] leading-[1.1] tracking-[-0.01em] mb-6">
+              Measurable outcomes
             </h2>
-            <p className="text-lg text-landing-body max-w-2xl mx-auto">
+            <p className="text-[17px] text-kx-muted max-w-2xl mx-auto">
               Performance benchmarks from automated triage compared to manual-only worklist management.
             </p>
           </Reveal>
 
-          {/* 2x2 Metrics Grid - uniform rectangles */}
-          <div className="grid md:grid-cols-2 gap-6 mb-20 max-w-4xl mx-auto">
-            {/* Metric 1 */}
-            <Reveal delayMs={0} className="p-5 rounded-xl border border-landing-primary/20 bg-landing-bg/50">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-10 h-10 rounded-md border border-landing-primary/20 flex items-center justify-center flex-shrink-0">
-                  <Clock className="w-6 h-6 text-landing-primary" />
+          <Reveal className="rounded-2xl border border-kx-border bg-white shadow-[0_8px_30px_-18px_rgba(18,21,26,0.12)] mb-20 overflow-hidden">
+            <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-kx-border">
+              {[
+                { icon: Clock, value: "40%", label: "Faster MTTR", sub: "Scan to read", color: "text-kx-critical" },
+                { icon: TrendingUp, value: "25%", label: "Throughput", sub: "Studies per shift", color: "text-kx-accent2" },
+                { icon: Target, value: "95%", label: "Critical Detection", sub: "High-acuity findings", color: "text-kx-accent3" },
+                { icon: Zap, value: "<5s", label: "Inference Time", sub: "Per-study latency", color: "text-amber-500" },
+              ].map(({ icon: Icon, value, label, sub, color }) => (
+                <div key={label} className="p-6 md:p-8 text-center">
+                  <Icon className={`w-5 h-5 mx-auto mb-3 ${color}`} />
+                  <p className="text-3xl md:text-4xl font-mono font-medium text-kx-ink mb-1">{value}</p>
+                  <p className="text-[14px] font-medium text-kx-ink">{label}</p>
+                  <p className="text-[12px] text-kx-muted mt-1">{sub}</p>
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-serif font-medium text-landing-heading">40%</span>
-                  <span className="text-xl font-serif text-landing-heading">Faster MTTR</span>
-                </div>
-              </div>
-              <p className="text-sm text-landing-primary">Cut time from scan to read.</p>
-            </Reveal>
+              ))}
+            </div>
+          </Reveal>
 
-            {/* Metric 2 */}
-            <Reveal delayMs={80} className="p-5 rounded-xl border border-landing-primary/20 bg-landing-bg/50">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-10 h-10 rounded-md border border-landing-primary/20 flex items-center justify-center flex-shrink-0">
-                  <TrendingUp className="w-6 h-6 text-landing-primary" />
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-serif font-medium text-landing-heading">25%</span>
-                  <span className="text-xl font-serif text-landing-heading">Throughput Increase</span>
-                </div>
-              </div>
-              <p className="text-sm text-landing-primary">Process more studies per shift.</p>
-            </Reveal>
-
-            {/* Metric 3 */}
-            <Reveal delayMs={160} className="p-5 rounded-xl border border-landing-primary/20 bg-landing-bg/50">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-10 h-10 rounded-md border border-landing-primary/20 flex items-center justify-center flex-shrink-0">
-                  <Target className="w-6 h-6 text-landing-primary" />
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-serif font-medium text-landing-heading">95%</span>
-                  <span className="text-xl font-serif text-landing-heading">Critical Detection</span>
-                </div>
-              </div>
-              <p className="text-sm text-landing-primary">High-acuity respiratory findings.</p>
-            </Reveal>
-
-            {/* Metric 4 */}
-            <Reveal delayMs={240} className="p-5 rounded-xl border border-landing-primary/20 bg-landing-bg/50">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-10 h-10 rounded-md border border-landing-primary/20 flex items-center justify-center flex-shrink-0">
-                  <Zap className="w-6 h-6 text-landing-primary" />
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-serif font-medium text-landing-heading">&lt;5s</span>
-                  <span className="text-xl font-serif text-landing-heading">Inference Time</span>
-                </div>
-              </div>
-              <p className="text-sm text-landing-primary">Per-study classification latency.</p>
-            </Reveal>
-          </div>
-
-          {/* Value Propositions */}
           <div className="grid md:grid-cols-3 gap-12">
             <Reveal delayMs={0} className="space-y-4">
-              <h3 className="font-serif text-xl text-landing-heading"><strong>Surface</strong> Urgent Cases Faster</h3>
-              <p className="text-landing-body leading-relaxed">
+              <h3 className="font-grotesk text-xl text-kx-ink"><strong>Surface</strong> urgent cases faster</h3>
+              <p className="text-kx-muted leading-relaxed">
                 Critical respiratory findings get moved to the top of the worklist, so high-acuity cases get read first instead of sitting in a FIFO queue.
               </p>
             </Reveal>
-
             <Reveal delayMs={100} className="space-y-4">
-              <h3 className="font-serif text-xl text-landing-heading"><strong>Free Up</strong> Radiologist Time</h3>
-              <p className="text-landing-body leading-relaxed">
+              <h3 className="font-grotesk text-xl text-kx-ink"><strong>Free up</strong> radiologist time</h3>
+              <p className="text-kx-muted leading-relaxed">
                 Kroix handles initial triage and sorting, so radiologists spend their time on interpretation and diagnosis instead of queue management.
               </p>
             </Reveal>
-
             <Reveal delayMs={200} className="space-y-4">
-              <h3 className="font-serif text-xl text-landing-heading"><strong>Track</strong> Workflow Metrics</h3>
-              <p className="text-landing-body leading-relaxed">
+              <h3 className="font-grotesk text-xl text-kx-ink"><strong>Track</strong> workflow metrics</h3>
+              <p className="text-kx-muted leading-relaxed">
                 Built-in analytics track MTTR, throughput, and accuracy, giving department leadership concrete data on workflow performance.
               </p>
             </Reveal>
@@ -672,39 +451,42 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Case Study Section */}
-      <section className="py-24 px-8 bg-[#EEF3F1]">
+      {/* Case Study Section, paired with the morning-read chat narrative right after it
+          so two asymmetric two-column sections run back to back instead of one more
+          full-width single-column block. */}
+      <section className="py-24 px-8 bg-kx-tint2 border-t border-kx-border">
         <div className="max-w-4xl mx-auto">
           <CaseStudy />
         </div>
       </section>
+      <InfoChatNarrative bgClass="bg-kx-surface" />
 
       {/* FAQ Section */}
-      <section className="py-24 px-8 bg-landing-bg">
+      <section className="py-24 px-8 bg-kx-canvas border-t border-kx-border">
         <div className="max-w-3xl mx-auto">
           <Reveal className="text-center mb-14">
-            <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
+            <span className="text-kx-accent2 text-[12px] font-mono font-medium tracking-wide uppercase mb-4 block">
               FAQ
             </span>
-            <h2 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading tracking-[-0.01em]">
-              Common Questions
+            <h2 className="font-grotesk text-[36px] lg:text-[44px] leading-[1.1] tracking-[-0.01em]">
+              Common questions
             </h2>
           </Reveal>
           <LandingFaq />
         </div>
       </section>
 
-      {/* CTA Section — bold colored band */}
-      <section className="py-32 px-8 bg-gradient-to-br from-landing-primary to-landing-dark relative overflow-hidden">
-        {/* soft radial glow */}
-        <div className="absolute inset-0 opacity-40 pointer-events-none"
-          style={{ background: "radial-gradient(600px circle at 50% 0%, rgba(255,255,255,0.15), transparent 70%)" }}
+      {/* CTA Section */}
+      <section className="py-32 px-8 bg-kx-critical relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-30 pointer-events-none"
+          style={{ background: "radial-gradient(600px circle at 50% 0%, rgba(255,255,255,0.25), transparent 70%)" }}
         />
         <Reveal className="max-w-3xl mx-auto text-center relative z-10">
-          <h2 className="font-serif text-[40px] lg:text-[56px] leading-[1.1] text-white mb-8 tracking-[-0.02em]">
+          <h2 className="font-grotesk text-[36px] lg:text-[52px] leading-[1.1] text-white mb-8 tracking-[-0.02em]">
             Try it in your department.
           </h2>
-          <p className="text-xl text-white/70 mb-10 max-w-xl mx-auto">
+          <p className="text-xl text-white/80 mb-10 max-w-xl mx-auto">
             See how automated triage prioritization fits into your existing reading workflow.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
@@ -714,7 +496,7 @@ const Landing = () => {
                   ref={finalCta.ref}
                   onMouseMove={finalCta.onMouseMove}
                   onMouseLeave={finalCta.onMouseLeave}
-                  className="px-8 py-4 bg-white text-landing-primary rounded-[10px] text-[16px] font-semibold hover:bg-white/90 transition-[background-color] flex items-center gap-2"
+                  className="px-8 py-4 bg-kx-ink text-white rounded-[8px] text-[16px] font-semibold hover:bg-black transition-colors flex items-center gap-2"
                   style={{ transition: "transform 0.15s ease-out, background-color 0.15s ease" }}
                 >
                   Request demo
@@ -723,7 +505,7 @@ const Landing = () => {
               </DialogTrigger>
             </Dialog>
             <Link to="/contact">
-              <button className="px-8 py-4 border border-white/40 text-white rounded-[10px] text-[16px] font-medium hover:bg-white/10 transition-colors">
+              <button className="px-8 py-4 border border-white/40 text-white rounded-[8px] text-[16px] font-medium hover:bg-white/10 transition-colors">
                 Contact
               </button>
             </Link>
@@ -732,53 +514,62 @@ const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-16 px-8 bg-landing-dark text-white/80">
+      <footer className="py-16 px-8 bg-kx-canvas border-t border-kx-border text-kx-muted">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-start justify-between gap-12">
             <div>
-              <span className="text-2xl font-serif font-semibold text-white tracking-tight">
+              <span className="font-grotesk font-semibold text-kx-ink tracking-tight text-xl">
                 Kroix
               </span>
-              <p className="text-white/50 text-[14px] mt-2 max-w-xs">
+              <p className="text-[14px] mt-2 max-w-xs">
                 Automated triage and worklist prioritization for clinical radiology.
               </p>
             </div>
 
             <div className="flex gap-16">
               <div className="space-y-4">
-                <p className="text-white/50 text-[13px] uppercase tracking-wide">Company</p>
+                <p className="text-[13px] uppercase tracking-wide">Company</p>
                 <div className="space-y-3">
-                  <Link to="/about" className="block text-[15px] hover:text-white transition-colors">
+                  <Link to="/about" className="block text-[15px] hover:text-kx-ink transition-colors">
                     About
                   </Link>
-                  <Link to="/contact" className="block text-[15px] hover:text-white transition-colors">
+                  <Link to="/contact" className="block text-[15px] hover:text-kx-ink transition-colors">
                     Contact
                   </Link>
                 </div>
               </div>
 
               <div className="space-y-4">
-                <p className="text-white/50 text-[13px] uppercase tracking-wide">Legal</p>
+                <p className="text-[13px] uppercase tracking-wide">Legal</p>
                 <div className="space-y-3">
-                  <span className="block text-[15px] text-white/60">Privacy Policy</span>
-                  <span className="block text-[15px] text-white/60">HIPAA Compliance</span>
+                  <span className="block text-[15px]">Privacy Policy</span>
+                  <span className="block text-[15px]">HIPAA Compliance</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-[14px] text-white/40">
-              © 2025 Kroix. All rights reserved.
-            </p>
-            <p className="text-[13px] text-white/40">
-              Non-diagnostic workflow tool. For clinical decision support only.
-            </p>
+          <div className="border-t border-kx-border mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-[14px]">© 2025 Kroix. All rights reserved.</p>
+            <p className="text-[13px]">Non-diagnostic workflow tool. For clinical decision support only.</p>
           </div>
         </div>
       </footer>
+
+      <StayHookToast />
     </div>
   );
 };
+
+/** Hairline section rule used to number the sections below the hero. */
+function SectionRule({ n, title }: { n: string; title: string }) {
+  return (
+    <div className="flex items-baseline gap-3 mb-8">
+      <span className="font-mono text-[11px] text-kx-critical">{n}</span>
+      <span className="font-display text-[15px] font-medium text-kx-ink tracking-[-0.01em]">{title}</span>
+      <span className="flex-1 h-px bg-kx-border" />
+    </div>
+  );
+}
 
 export default Landing;

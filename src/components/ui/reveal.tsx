@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { CSSProperties, ReactNode } from "react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { cn } from "@/lib/utils";
 
@@ -8,9 +8,11 @@ interface RevealProps {
   delayMs?: number;
   /** "up" (default) slides content in from 24px below; "none" fades only. */
   direction?: "up" | "none";
+  /** Merged under the reveal's own transition/opacity/transform values. */
+  style?: CSSProperties;
 }
 
-export function Reveal({ children, className, delayMs = 0, direction = "up" }: RevealProps) {
+export function Reveal({ children, className, delayMs = 0, direction = "up", style }: RevealProps) {
   const { ref, isVisible } = useScrollReveal<HTMLDivElement>();
 
   return (
@@ -18,6 +20,7 @@ export function Reveal({ children, className, delayMs = 0, direction = "up" }: R
       ref={ref}
       className={cn("transition-all ease-out", className)}
       style={{
+        ...style,
         transitionDuration: "700ms",
         transitionDelay: `${delayMs}ms`,
         opacity: isVisible ? 1 : 0,

@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import {
   Mail,
   Building2,
-  MessageSquare,
   Send,
   MapPin,
   Clock,
@@ -107,8 +106,8 @@ export default function Contact() {
   };
 
   const inputClass = (hasError: boolean) =>
-    `bg-landing-bg/50 border-[rgba(0,0,0,0.06)] text-landing-heading placeholder:text-landing-muted h-11 rounded-[10px] hover:border-landing-primary focus:border-landing-primary focus-visible:ring-landing-primary/20 transition-colors ${
-      hasError ? "border-[#B4453A] focus:border-[#B4453A]" : ""
+    `bg-kx-surface2 border-kx-border text-kx-ink placeholder:text-kx-muted h-11 rounded-[8px] hover:border-kx-critical/40 focus:border-kx-critical/40 transition-colors ${
+      hasError ? "border-red-400 focus:border-red-400" : ""
     }`;
 
   const contactInfo = [
@@ -118,33 +117,20 @@ export default function Contact() {
   ];
 
   return (
-    <div className="min-h-screen bg-landing-bg text-landing-heading overflow-x-hidden">
-      {/* Subtle grain texture overlay */}
-      <div
-        className="fixed inset-0 pointer-events-none opacity-[0.03] z-50"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-        }}
-      />
-
+    <div className="min-h-screen bg-kx-canvas text-kx-ink font-sans">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-40 px-8 py-6 bg-landing-bg/80 backdrop-blur-sm">
+      <nav className="fixed top-0 left-0 right-0 z-40 px-8 py-6 bg-kx-canvas/85 backdrop-blur-md border-b border-kx-border">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <span className="text-2xl font-serif font-semibold text-landing-heading tracking-tight">
-              Kroix
-            </span>
+          <Link to="/" className="flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-kx-critical" />
+            <span className="font-grotesk font-semibold tracking-tight text-[20px]">Kroix</span>
           </Link>
           <div className="flex items-center gap-8">
-            <Link to="/about" className="text-landing-body hover:text-landing-heading transition-colors text-[15px]">
-              About
-            </Link>
-            <Link to="/contact" className="text-landing-heading font-medium text-[15px]">
-              Contact
-            </Link>
+            <Link to="/about" className="text-kx-muted hover:text-kx-ink transition-colors text-[14px]">About</Link>
+            <Link to="/contact" className="text-kx-ink text-[14px] font-medium">Contact</Link>
             <Link to="/login">
-              <button className="px-5 py-2.5 rounded-[10px] border border-landing-primary text-landing-primary hover:bg-landing-primary hover:text-white transition-colors text-[15px]">
-                Sign In
+              <button className="px-4 py-2 rounded-[8px] border border-kx-border text-kx-ink hover:border-kx-critical/50 transition-colors text-[14px] font-mono">
+                Sign in
               </button>
             </Link>
           </div>
@@ -153,17 +139,15 @@ export default function Contact() {
 
       {/* Hero + Form */}
       <section className="relative pt-40 pb-24 px-8">
-        <div className="absolute inset-0 bg-gradient-to-br from-landing-bg via-landing-bg to-[#EDF1EF]" />
-
         <div className="relative z-10 max-w-4xl mx-auto">
           <Reveal className="text-center mb-14">
-            <span className="text-landing-accent text-[13px] font-medium tracking-wide uppercase mb-4 block">
-              Get in Touch
+            <span className="font-mono text-[12px] text-kx-critical uppercase tracking-wider mb-4 block">
+              Get in touch
             </span>
-            <h1 className="font-serif text-[40px] md:text-[48px] leading-[1.1] text-landing-heading mb-6 tracking-[-0.01em]">
+            <h1 className="font-grotesk text-[40px] md:text-[48px] leading-[1.1] mb-6 tracking-[-0.01em]">
               Let's talk about your workflow.
             </h1>
-            <p className="text-lg text-landing-body max-w-xl mx-auto">
+            <p className="text-[17px] text-kx-muted max-w-xl mx-auto">
               Whether you're exploring AI triage for your radiology department or have
               questions about our platform, we'd love to hear from you.
             </p>
@@ -176,34 +160,34 @@ export default function Contact() {
                 <Reveal
                   key={item.label}
                   delayMs={index * 90}
-                  className="p-5 rounded-2xl bg-white border border-[rgba(0,0,0,0.06)] hover:border-landing-primary/30 transition-colors"
+                  className="p-5 rounded-2xl bg-kx-surface border border-kx-border hover:border-kx-critical/30 transition-colors"
                 >
-                  <item.icon className="w-7 h-7 text-landing-primary mb-3" />
-                  <p className="text-[11px] text-landing-muted uppercase tracking-wide mb-1">{item.label}</p>
-                  <p className="font-medium text-landing-heading">{item.value}</p>
-                  <p className="text-sm text-landing-body mt-1">{item.description}</p>
+                  <item.icon className="w-6 h-6 text-kx-critical mb-3" />
+                  <p className="text-[11px] text-kx-muted uppercase tracking-wide mb-1">{item.label}</p>
+                  <p className="font-medium text-kx-ink">{item.value}</p>
+                  <p className="text-sm text-kx-muted mt-1">{item.description}</p>
                 </Reveal>
               ))}
 
-              <Reveal delayMs={270} className="p-5 rounded-2xl bg-white border border-[rgba(0,0,0,0.06)]">
-                <MapPin className="w-7 h-7 text-landing-primary mb-3" />
-                <p className="text-[11px] text-landing-muted uppercase tracking-wide mb-1">Location</p>
-                <p className="font-medium text-landing-heading">Remote-First</p>
-                <p className="text-sm text-landing-body mt-1">Serving healthcare globally</p>
+              <Reveal delayMs={270} className="p-5 rounded-2xl bg-kx-surface border border-kx-border">
+                <MapPin className="w-6 h-6 text-kx-critical mb-3" />
+                <p className="text-[11px] text-kx-muted uppercase tracking-wide mb-1">Location</p>
+                <p className="font-medium text-kx-ink">Remote-First</p>
+                <p className="text-sm text-kx-muted mt-1">Serving healthcare globally</p>
               </Reveal>
             </div>
 
             {/* Contact Form */}
-            <Reveal delayMs={100} className="md:col-span-2 p-7 rounded-2xl bg-white border border-[rgba(0,0,0,0.06)]">
+            <Reveal delayMs={100} className="md:col-span-2 p-7 rounded-2xl bg-kx-surface border border-kx-border">
               <div className="flex items-center gap-2 mb-6">
-                <Send className="w-5 h-5 text-landing-primary" />
-                <h2 className="font-serif text-xl text-landing-heading">Send a Message</h2>
+                <Send className="w-5 h-5 text-kx-critical" />
+                <h2 className="font-grotesk text-xl text-kx-ink">Send a message</h2>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-landing-body text-[14px]">Name</Label>
+                    <Label htmlFor="name" className="text-kx-muted text-[14px]">Name</Label>
                     <Input
                       id="name"
                       placeholder="Dr. Jane Smith"
@@ -211,11 +195,11 @@ export default function Contact() {
                       onChange={(e) => handleChange("name", e.target.value)}
                       maxLength={100}
                       required
-                      className={`bg-landing-bg/50 border-[rgba(0,0,0,0.06)] text-landing-heading placeholder:text-landing-muted h-11 rounded-[10px] hover:border-landing-primary focus:border-landing-primary focus-visible:ring-landing-primary/20 transition-colors ${errors.name ? "border-red-400" : ""}`}
+                      className={inputClass(!!errors.name)}
                       aria-describedby={errors.name ? "name-error" : undefined}
                     />
                     {errors.name && (
-                      <p id="name-error" className="text-xs text-red-500 flex items-center gap-1">
+                      <p id="name-error" className="text-xs text-red-400 flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" />
                         {errors.name}
                       </p>
@@ -223,7 +207,7 @@ export default function Contact() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-landing-body text-[14px]">Email</Label>
+                    <Label htmlFor="email" className="text-kx-muted text-[14px]">Email</Label>
                     <Input
                       id="email"
                       type="email"
@@ -232,11 +216,11 @@ export default function Contact() {
                       onChange={(e) => handleChange("email", e.target.value)}
                       maxLength={255}
                       required
-                      className={`bg-landing-bg/50 border-[rgba(0,0,0,0.06)] text-landing-heading placeholder:text-landing-muted h-11 rounded-[10px] hover:border-landing-primary focus:border-landing-primary focus-visible:ring-landing-primary/20 transition-colors ${errors.email ? "border-red-400" : ""}`}
+                      className={inputClass(!!errors.email)}
                       aria-describedby={errors.email ? "email-error" : undefined}
                     />
                     {errors.email && (
-                      <p id="email-error" className="text-xs text-red-500 flex items-center gap-1">
+                      <p id="email-error" className="text-xs text-red-400 flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" />
                         {errors.email}
                       </p>
@@ -245,18 +229,18 @@ export default function Contact() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="institution" className="text-landing-body text-[14px]">Institution (Optional)</Label>
+                  <Label htmlFor="institution" className="text-kx-muted text-[14px]">Institution (Optional)</Label>
                   <Input
                     id="institution"
                     placeholder="General Hospital"
                     value={formData.institution}
                     onChange={(e) => handleChange("institution", e.target.value)}
                     maxLength={200}
-                    className={`bg-landing-bg/50 border-[rgba(0,0,0,0.06)] text-landing-heading placeholder:text-landing-muted h-11 rounded-[10px] hover:border-landing-primary focus:border-landing-primary focus-visible:ring-landing-primary/20 transition-colors ${errors.institution ? "border-red-400" : ""}`}
+                    className={inputClass(!!errors.institution)}
                     aria-describedby={errors.institution ? "institution-error" : undefined}
                   />
                   {errors.institution && (
-                    <p id="institution-error" className="text-xs text-red-500 flex items-center gap-1">
+                    <p id="institution-error" className="text-xs text-red-400 flex items-center gap-1">
                       <AlertCircle className="w-3 h-3" />
                       {errors.institution}
                     </p>
@@ -264,9 +248,9 @@ export default function Contact() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="message" className="text-landing-body text-[14px]">
+                  <Label htmlFor="message" className="text-kx-muted text-[14px]">
                     Message
-                    <span className="text-landing-muted text-xs ml-2">
+                    <span className="text-kx-muted text-xs ml-2">
                       ({formData.message.length}/2000)
                     </span>
                   </Label>
@@ -278,11 +262,11 @@ export default function Contact() {
                     maxLength={2000}
                     required
                     rows={5}
-                    className={`bg-landing-bg/50 border-[rgba(0,0,0,0.06)] text-landing-heading placeholder:text-landing-muted rounded-[10px] hover:border-landing-primary focus:border-landing-primary focus-visible:ring-landing-primary/20 transition-colors resize-none ${errors.message ? "border-red-400" : ""}`}
+                    className={`${inputClass(!!errors.message)} resize-none`}
                     aria-describedby={errors.message ? "message-error" : undefined}
                   />
                   {errors.message && (
-                    <p id="message-error" className="text-xs text-red-500 flex items-center gap-1">
+                    <p id="message-error" className="text-xs text-red-400 flex items-center gap-1">
                       <AlertCircle className="w-3 h-3" />
                       {errors.message}
                     </p>
@@ -291,7 +275,7 @@ export default function Contact() {
 
                 <button
                   type="submit"
-                  className="w-full px-7 py-3.5 bg-landing-primary text-white rounded-[10px] text-[15px] font-medium hover:bg-[#265A4C] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full px-7 py-3.5 bg-kx-ink text-kx-canvas rounded-[8px] text-[15px] font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
                   disabled={isSubmitting || Object.keys(errors).length > 0}
                 >
                   {isSubmitting ? (
@@ -302,7 +286,7 @@ export default function Contact() {
                   ) : (
                     <>
                       <Send className="w-4 h-4" />
-                      Send Message
+                      Send message
                     </>
                   )}
                 </button>
@@ -311,9 +295,9 @@ export default function Contact() {
           </div>
 
           {/* FAQ Teaser */}
-          <Reveal delayMs={150} className="mt-12 text-center p-8 rounded-2xl border border-[rgba(0,0,0,0.06)] bg-white/60">
-            <h3 className="font-serif text-lg text-landing-heading mb-2">Common Questions</h3>
-            <p className="text-landing-body text-sm max-w-md mx-auto">
+          <Reveal delayMs={150} className="mt-12 text-center p-8 rounded-2xl border border-kx-border bg-kx-surface/40">
+            <h3 className="font-grotesk text-lg text-kx-ink mb-2">Common questions</h3>
+            <p className="text-kx-muted text-sm max-w-md mx-auto">
               Looking for quick answers about HIPAA compliance, integration requirements, or
               pilot programs? Check out our documentation or reach out directly.
             </p>
@@ -322,44 +306,44 @@ export default function Contact() {
       </section>
 
       {/* Footer */}
-      <footer className="py-16 px-8 bg-landing-dark text-white/80">
+      <footer className="py-16 px-8 bg-kx-canvas border-t border-kx-border text-kx-muted">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-start justify-between gap-12">
             <div>
-              <span className="text-2xl font-serif font-semibold text-white tracking-tight">
+              <span className="font-grotesk font-semibold text-kx-ink tracking-tight text-xl">
                 Kroix
               </span>
-              <p className="text-white/50 text-[14px] mt-2 max-w-xs">
+              <p className="text-[14px] mt-2 max-w-xs">
                 Automated triage and worklist prioritization for clinical radiology.
               </p>
             </div>
 
             <div className="flex gap-16">
               <div className="space-y-4">
-                <p className="text-white/50 text-[13px] uppercase tracking-wide">Company</p>
+                <p className="text-[13px] uppercase tracking-wide">Company</p>
                 <div className="space-y-3">
-                  <Link to="/about" className="block text-[15px] hover:text-white transition-colors">
+                  <Link to="/about" className="block text-[15px] hover:text-kx-ink transition-colors">
                     About
                   </Link>
-                  <Link to="/contact" className="block text-[15px] hover:text-white transition-colors">
+                  <Link to="/contact" className="block text-[15px] hover:text-kx-ink transition-colors">
                     Contact
                   </Link>
                 </div>
               </div>
 
               <div className="space-y-4">
-                <p className="text-white/50 text-[13px] uppercase tracking-wide">Legal</p>
+                <p className="text-[13px] uppercase tracking-wide">Legal</p>
                 <div className="space-y-3">
-                  <span className="block text-[15px] text-white/60">Privacy Policy</span>
-                  <span className="block text-[15px] text-white/60">HIPAA Compliance</span>
+                  <span className="block text-[15px]">Privacy Policy</span>
+                  <span className="block text-[15px]">HIPAA Compliance</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-[14px] text-white/40">© 2025 Kroix. All rights reserved.</p>
-            <p className="text-[13px] text-white/40">
+          <div className="border-t border-kx-border mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-[14px]">© 2025 Kroix. All rights reserved.</p>
+            <p className="text-[13px]">
               Non-diagnostic workflow tool. For clinical decision support only.
             </p>
           </div>

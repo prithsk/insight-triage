@@ -1,6 +1,6 @@
 import { useRef } from "react";
 
-/** Cursor-reactive "magnetic" pull on hover — element leans toward the pointer. */
+/** Cursor-reactive "magnetic" pull on hover, element leans toward the pointer. */
 export function useMagneticHover<T extends HTMLElement>(strength = 0.25) {
   const ref = useRef<T | null>(null);
 
