@@ -26,34 +26,9 @@ import { HeroVideoBackdrop } from "@/components/landing/HeroVideoBackdrop";
 import { AboutLayerStack, AboutScatter } from "@/components/landing/AboutSections";
 import { AboutStaircase } from "@/components/landing/AboutStaircase";
 import { StayHookToast } from "@/components/landing/StayHookToast";
-import { StackingCards, StackCard } from "@/components/landing/StackingCards";
 import { LiveQueueHero } from "@/components/landing/LiveQueueHero";
 import { SpeedAccuracyDuo } from "@/components/landing/SpeedAccuracyDuo";
 import { InfoChatNarrative } from "@/components/landing/InfoSections";
-import featureAnalysis from "@/assets/landing/feature-analysis.jpg";
-
-const workflowSteps: StackCard[] = [
-  {
-    step: "01",
-    title: "A scan lands in the queue",
-    body: "It arrives as DICOM from your existing PACS, same viewer, same reporting tools, nothing new to learn.",
-  },
-  {
-    step: "02",
-    title: "Three models take a look",
-    body: "The ensemble reads it in under a second and returns a risk score plus a heatmap showing the exact region that drove the call.",
-  },
-  {
-    step: "03",
-    title: "The queue rearranges itself",
-    body: "Urgent studies rise to the top on their own. The routine ones settle below. No FIFO backlog, no manual sorting.",
-  },
-  {
-    step: "04",
-    title: "The radiologist has the final say",
-    body: "They read the right scan first and confirm or overrule the call. Every correction is logged to sharpen the next model.",
-  },
-];
 
 const Landing = () => {
   const [isContactOpen, setIsContactOpen] = useState(false);
@@ -331,69 +306,11 @@ const Landing = () => {
       <AboutLayerStack />
       <AboutStaircase />
 
-      {/* Features Section */}
-      <section className="py-32 px-8 bg-kx-canvas border-t border-kx-border">
-        <div className="max-w-7xl mx-auto">
-          {/* Feature 1 */}
-          <Reveal className="grid lg:grid-cols-2 gap-16 items-center mb-32">
-            <div className="max-w-lg">
-              <span className="text-kx-critical text-[12px] font-mono font-medium tracking-wide uppercase mb-4 block">
-                01 · Analysis
-              </span>
-              <h2 className="font-grotesk text-[36px] lg:text-[44px] leading-[1.1] mb-6 tracking-[-0.01em]">
-                Comprehensive analysis
-              </h2>
-              <p className="text-[17px] text-kx-muted leading-relaxed mb-6">
-                Automated detection that flags critical findings across every chest X-ray study.
-              </p>
-              <div className="space-y-2">
-                {[
-                  ["Pneumonia & COPD", "Pattern recognition across respiratory findings", "bg-kx-critical"],
-                  ["Opacity mapping", "Consolidation and infiltrate localization", "bg-kx-accent2"],
-                  ["Biomarker correlation", "Findings tied to severity signals", "bg-kx-accent3"],
-                ].map(([title, desc, dot]) => (
-                  <div key={title} className="flex items-start gap-3 p-3 rounded-xl bg-kx-surface border border-kx-border transition-all duration-200 hover:-translate-y-0.5 hover:border-kx-critical/30">
-                    <span className={`w-1.5 h-1.5 rounded-full ${dot} mt-2 flex-shrink-0`} />
-                    <div>
-                      <p className="text-[15px] font-medium text-kx-ink">{title}</p>
-                      <p className="text-[13px] text-kx-muted">{desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="relative h-[380px] rounded-2xl overflow-hidden border border-kx-border">
-              <img
-                src={featureAnalysis}
-                alt="AI-powered chest X-ray analysis visualization"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </Reveal>
-
-        </div>
-      </section>
-
       {/* Speed + accuracy, paired as one two-card section instead of two stacked blocks */}
       <SpeedAccuracyDuo />
 
       {/* Live Triage Trace Section */}
       <TraceBento />
-
-      {/* Workflow Section */}
-      <section className="py-24 px-8 bg-kx-canvas border-t border-kx-border">
-        <div className="max-w-3xl mx-auto">
-          <Reveal className="text-center mb-16">
-            <span className="text-kx-accent2 text-[12px] font-mono font-medium tracking-wide uppercase mb-4 block">
-              Workflow
-            </span>
-            <h2 className="font-grotesk text-[36px] lg:text-[44px] leading-[1.1] tracking-[-0.01em]">
-              From scan to sorted, in one pass.
-            </h2>
-          </Reveal>
-          <StackingCards cards={workflowSteps} />
-        </div>
-      </section>
 
       {/* Clinical Impact Section */}
       <section className="py-32 px-8 bg-kx-canvas border-t border-kx-border">
@@ -406,16 +323,17 @@ const Landing = () => {
               Measurable outcomes
             </h2>
             <p className="text-[17px] text-kx-muted max-w-2xl mx-auto">
-              Performance benchmarks from automated triage compared to manual-only worklist management.
+              Model performance measured on held-out evaluation data. Workflow figures are
+              modeled projections, not results from clinical deployment.
             </p>
           </Reveal>
 
           <Reveal className="rounded-2xl border border-kx-border bg-white shadow-[0_8px_30px_-18px_rgba(18,21,26,0.12)] mb-20 overflow-hidden">
             <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-kx-border">
               {[
-                { icon: Clock, value: "40%", label: "Faster MTTR", sub: "Scan to read", color: "text-kx-critical" },
-                { icon: TrendingUp, value: "25%", label: "Throughput", sub: "Studies per shift", color: "text-kx-accent2" },
-                { icon: Target, value: "95%", label: "Critical Detection", sub: "High-acuity findings", color: "text-kx-accent3" },
+                { icon: Clock, value: "40%", label: "Faster MTTR", sub: "Projected, scan to read", color: "text-kx-critical" },
+                { icon: TrendingUp, value: "25%", label: "Throughput", sub: "Projected, per shift", color: "text-kx-accent2" },
+                { icon: Target, value: "95%", label: "Critical Detection", sub: "Held-out evaluation", color: "text-kx-accent3" },
                 { icon: Zap, value: "<5s", label: "Inference Time", sub: "Per-study latency", color: "text-amber-500" },
               ].map(({ icon: Icon, value, label, sub, color }) => (
                 <div key={label} className="p-6 md:p-8 text-center">
@@ -451,15 +369,18 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Case Study Section, paired with the morning-read chat narrative right after it
-          so two asymmetric two-column sections run back to back instead of one more
-          full-width single-column block. */}
+      {/* Case study and the morning-read narrative share one frame, side by side, so
+          the two proof points read as a single screen instead of two full scrolls. */}
       <section className="py-24 px-8 bg-kx-tint2 border-t border-kx-border">
-        <div className="max-w-4xl mx-auto">
-          <CaseStudy />
+        <div className="max-w-[1400px] mx-auto grid lg:grid-cols-2 gap-10 items-start">
+          <div className="rounded-3xl bg-white border border-kx-border p-8 md:p-10">
+            <CaseStudy />
+          </div>
+          <div className="rounded-3xl bg-white border border-kx-border overflow-hidden">
+            <InfoChatNarrative bgClass="bg-white" compact />
+          </div>
         </div>
       </section>
-      <InfoChatNarrative bgClass="bg-kx-surface" />
 
       {/* FAQ Section */}
       <section className="py-24 px-8 bg-kx-canvas border-t border-kx-border">

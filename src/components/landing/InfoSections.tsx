@@ -197,7 +197,14 @@ const CHAT = [
   { from: "kroix", text: "Grad-CAM ready. Right lower lobe opacity, all three models agree." },
 ];
 
-export function InfoChatNarrative({ bgClass = "bg-kx-tint2" }: { bgClass?: string }) {
+export function InfoChatNarrative({
+  bgClass = "bg-kx-tint2",
+  compact = false,
+}: {
+  bgClass?: string;
+  /** Renders inside an existing card: drops the section chrome and stacks to one column. */
+  compact?: boolean;
+}) {
   const [shown, setShown] = useState(1);
 
   useEffect(() => {
@@ -211,16 +218,28 @@ export function InfoChatNarrative({ bgClass = "bg-kx-tint2" }: { bgClass?: strin
   }, [shown]);
 
   return (
-    <section className={`py-28 md:py-36 px-6 ${bgClass} relative overflow-hidden`}>
-      <div className="max-w-4xl mx-auto grid lg:grid-cols-[0.9fr_1.1fr] gap-14 items-center">
+    <section
+      className={`${compact ? "p-8 md:p-10" : "py-28 md:py-36 px-6"} ${bgClass} relative overflow-hidden`}
+    >
+      <div
+        className={`mx-auto items-center ${
+          compact
+            ? "max-w-none grid gap-8"
+            : "max-w-4xl grid lg:grid-cols-[0.9fr_1.1fr] gap-14"
+        }`}
+      >
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-kx-muted mb-4">
             The morning read
           </p>
-          <h2 className="font-display text-[30px] md:text-[40px] leading-[1.1] tracking-[-0.025em] text-kx-ink mb-5">
+          <h2
+            className={`font-display leading-[1.1] tracking-[-0.025em] text-kx-ink mb-5 ${
+              compact ? "text-[28px] md:text-[34px]" : "text-[30px] md:text-[40px]"
+            }`}
+          >
             It reads like a conversation, not a report.
           </h2>
-          <p className="text-[15px] leading-relaxed text-kx-muted max-w-sm">
+          <p className={`text-[15px] leading-relaxed text-kx-muted ${compact ? "" : "max-w-sm"}`}>
             The worklist already knows what's urgent by the time a radiologist opens it.
             Nobody has to ask twice.
           </p>

@@ -104,14 +104,22 @@ export function useUploadDicom() {
         throw new Error(`Failed to create study: ${studyError.message}`);
       }
       
-      // 3. Trigger ML inference
+      // 3. Trigger ML inference.
+      // infer-cxr calls getUser() on this token, so it must be the signed-in
+      // user's session JWT. The publishable anon key authenticates as no one
+      // and comes back 401.
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Your session expired. Sign in again to run inference.');
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/infer-cxr`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+            'Authorization': `Bearer ${session.access_token}`
           },
           body: JSON.stringify({ study_id: study.id })
         }

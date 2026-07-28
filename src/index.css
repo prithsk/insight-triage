@@ -1,8 +1,12 @@
+/* MUST be the first rule in this file. CSS requires @import to precede all
+   other rules, so when this sat below the @tailwind directives PostCSS stripped
+   it from the production bundle: `grep -c fonts.googleapis dist/assets/*.css`
+   returned 0 and every font token silently fell back to system-ui / Times. */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Playfair+Display:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Playfair+Display:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 /* Kroix Design System - Clinical, High-Contrast, Dark-Mode First */
 

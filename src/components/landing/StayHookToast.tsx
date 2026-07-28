@@ -16,7 +16,15 @@ export function StayHookToast() {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    if (sessionStorage.getItem(DISMISS_KEY)) return;
+    // sessionStorage throws a SecurityError when site data is blocked (Safari
+    // tracking prevention in embedded contexts, locked-down enterprise/hospital
+    // browsers). Unguarded, that throw escapes useEffect and unmounts the whole
+    // landing page to a blank screen. Failing open just shows the nudge again.
+    try {
+      if (sessionStorage.getItem(DISMISS_KEY)) return;
+    } catch {
+      /* storage unavailable — treat as not dismissed */
+    }
     const t = setTimeout(() => setVisible(true), DELAY_MS);
     return () => clearTimeout(t);
   }, []);
@@ -24,7 +32,11 @@ export function StayHookToast() {
   const close = () => {
     setVisible(false);
     setDismissed(true);
-    sessionStorage.setItem(DISMISS_KEY, "1");
+    try {
+      sessionStorage.setItem(DISMISS_KEY, "1");
+    } catch {
+      /* storage unavailable — dismissal holds for this mount via state */
+    }
   };
 
   if (!visible || dismissed) return null;
@@ -32,7 +44,12 @@ export function StayHookToast() {
   return (
     <div
       className="fixed bottom-6 right-6 z-50 w-[320px] kx-fadein"
-      role="dialog"
+      // Not role="dialog": this is a non-modal nudge that never receives focus,
+      // so claiming the dialog contract (focus trap, Escape, aria-modal) without
+      // implementing it is worse than not claiming it. status + polite announces
+      // it without stealing focus mid-read.
+      role="status"
+      aria-live="polite"
       aria-label="Try Kroix"
     >
       <div className="relative rounded-2xl bg-white border border-kx-border shadow-[0_30px_70px_-24px_rgba(18,21,26,0.35)] p-5">

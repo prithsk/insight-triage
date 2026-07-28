@@ -34,11 +34,17 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Landing />} />
-            <Route path="/hero-variants" element={<HeroVariants />} />
-            <Route path="/about-variants" element={<AboutVariants />} />
-            <Route path="/info-variants" element={<InfoVariants />} />
-            <Route path="/metric-variants" element={<MetricVariants />} />
-            <Route path="/trace-variants" element={<TraceVariants />} />
+            {/* Design comparison galleries. Internal tooling for picking section
+                variants — dev-only so they aren't publicly browsable in production. */}
+            {import.meta.env.DEV && (
+              <>
+                <Route path="/hero-variants" element={<HeroVariants />} />
+                <Route path="/about-variants" element={<AboutVariants />} />
+                <Route path="/info-variants" element={<InfoVariants />} />
+                <Route path="/metric-variants" element={<MetricVariants />} />
+                <Route path="/trace-variants" element={<TraceVariants />} />
+              </>
+            )}
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />

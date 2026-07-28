@@ -1,4 +1,23 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+/**
+ * Tracks the user's reduced-motion preference, including mid-session changes.
+ * The rest of this page's motion honors it via the `@media (prefers-reduced-motion)`
+ * block in index.css, but a <video> element can't be stopped from CSS.
+ */
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const onChange = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  return reduced;
+}
 
 interface HeroVideoBackdropProps {
   /** Drop an .mp4 in /public and pass e.g. "/hero.mp4". Falls back gracefully. */
@@ -28,6 +47,7 @@ export function HeroVideoBackdrop({
 }: HeroVideoBackdropProps) {
   const [playing, setPlaying] = useState(false);
   const ref = useRef<HTMLVideoElement>(null);
+  const reducedMotion = usePrefersReducedMotion();
 
   return (
     <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`} aria-hidden="true">
@@ -59,7 +79,10 @@ export function HeroVideoBackdrop({
         />
       </div>
 
-      {src && (
+      {/* Reduced-motion users fall through to the static ambient field above.
+          A looping autoplay video is continuous motion with no pause control
+          (WCAG 2.2.2), and CSS alone cannot stop a <video>. */}
+      {src && !reducedMotion && (
         <video
           ref={ref}
           src={src}
@@ -68,7 +91,7 @@ export function HeroVideoBackdrop({
           muted
           loop
           playsInline
-          preload="auto"
+          preload="metadata"
           onPlaying={() => setPlaying(true)}
           onError={() => setPlaying(false)}
           className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"

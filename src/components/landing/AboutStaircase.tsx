@@ -177,7 +177,14 @@ export function AboutStaircase() {
                   setActive(i);
                 }}
                 onMouseLeave={() => (paused.current = false)}
-                onFocus={() => setActive(i)}
+                onFocus={() => {
+                  // Mirror the mouse pause. Without this, a keyboard user who
+                  // tabs to a step has the auto-advance move the panel out from
+                  // under them while their focus stays put.
+                  paused.current = true;
+                  setActive(i);
+                }}
+                onBlur={() => (paused.current = false)}
                 className="group relative flex-1 min-w-[172px] text-left rounded-2xl border bg-white p-4 md:p-5 transition-all duration-[550ms] ease-out"
                 style={{
                   transform: `translateY(${-i * 24 - (isActive ? 20 : 0)}px)`,

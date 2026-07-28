@@ -20,6 +20,62 @@ interface EmbedRequest {
   metadata?: Record<string, unknown>;
 }
 
+const VALID_ACTIONS = ["embed", "index_study", "index_literature", "index_decision"] as const;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const MAX_CONTENT_CHARS = 20_000;
+const MAX_METADATA_KEYS = 25;
+const MAX_METADATA_VALUE_CHARS = 1_000;
+
+/**
+ * This function builds a service-role client, so anything reaching the
+ * indexing helpers is written with RLS bypassed. Validate the caller's payload
+ * before that point: sourceId is interpolated into the Pinecone vector id, and
+ * metadata is persisted alongside content the assistant later surfaces as
+ * clinical context.
+ */
+function validateEmbedRequest(body: EmbedRequest): string | null {
+  const { action, content, sourceId, metadata } = body;
+
+  if (!action || !VALID_ACTIONS.includes(action)) {
+    return `action must be one of: ${VALID_ACTIONS.join(", ")}`;
+  }
+
+  if (typeof content !== "string" || content.trim().length === 0) {
+    return "content is required and must be a non-empty string";
+  }
+  if (content.length > MAX_CONTENT_CHARS) {
+    return `content exceeds ${MAX_CONTENT_CHARS} characters`;
+  }
+
+  // Every action except a bare "embed" writes a row keyed by sourceId.
+  if (action !== "embed") {
+    if (typeof sourceId !== "string" || !UUID_RE.test(sourceId)) {
+      return "sourceId is required and must be a UUID";
+    }
+  }
+
+  if (metadata !== undefined) {
+    if (typeof metadata !== "object" || metadata === null || Array.isArray(metadata)) {
+      return "metadata must be an object";
+    }
+    const keys = Object.keys(metadata);
+    if (keys.length > MAX_METADATA_KEYS) {
+      return `metadata exceeds ${MAX_METADATA_KEYS} keys`;
+    }
+    for (const k of keys) {
+      const v = (metadata as Record<string, unknown>)[k];
+      if (v !== null && ["object", "function"].includes(typeof v)) {
+        return `metadata.${k} must be a primitive value`;
+      }
+      if (typeof v === "string" && v.length > MAX_METADATA_VALUE_CHARS) {
+        return `metadata.${k} exceeds ${MAX_METADATA_VALUE_CHARS} characters`;
+      }
+    }
+  }
+
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -38,9 +94,29 @@ serve(async (req) => {
       throw new Error("PINECONE_API_KEY not configured");
     }
 
+    let body: EmbedRequest;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate BEFORE constructing the service-role client, so a malformed or
+    // hostile payload never reaches an RLS-bypassing connection.
+    const validationError = validateEmbedRequest(body);
+    if (validationError) {
+      return new Response(JSON.stringify({ error: validationError }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // deno-lint-ignore no-explicit-any
     const supabase: any = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
-    const { action, content, sourceId, metadata }: EmbedRequest = await req.json();
+    const { action, content, sourceId, metadata } = body;
 
     switch (action) {
       case "embed": {

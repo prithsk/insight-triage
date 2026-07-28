@@ -65,15 +65,15 @@ function Pill({
 /** Horizontal model-vote bar used by several variants. */
 function VoteBar({ m, on = true }: { m: (typeof MODELS)[number]; on?: boolean }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="font-mono text-[11px] text-kx-muted w-[86px] flex-shrink-0">{m.name}</span>
-      <div className="flex-1 h-1.5 rounded-full bg-kx-surface2 overflow-hidden">
+    <div className="flex items-center gap-4">
+      <span className="font-mono text-[13px] text-kx-muted w-[104px] flex-shrink-0">{m.name}</span>
+      <div className="flex-1 h-2.5 rounded-full bg-kx-surface2 overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-[900ms] ease-out"
           style={{ width: on ? `${m.p * 100}%` : "0%", background: m.color }}
         />
       </div>
-      <span className="font-mono text-[11px] text-kx-ink w-8 text-right">{m.p.toFixed(2)}</span>
+      <span className="font-mono text-[13px] text-kx-ink w-10 text-right">{m.p.toFixed(2)}</span>
     </div>
   );
 }
@@ -85,15 +85,15 @@ function VoteBar({ m, on = true }: { m: (typeof MODELS)[number]; on?: boolean })
 export function TraceBento() {
   return (
     <section className="py-28 md:py-32 px-6 bg-kx-surface border-t border-kx-border">
-      <div className="max-w-6xl mx-auto">
-        <Reveal className="max-w-2xl mb-12">
+      <div className="max-w-[1400px] mx-auto">
+        <Reveal className="max-w-3xl mb-16">
           <Eyebrow className="text-kx-accent3 mb-4 block">Under the hood</Eyebrow>
-          <h2 className="font-display text-[36px] md:text-[46px] leading-[1.05] tracking-[-0.03em] text-kx-ink">
+          <h2 className="font-display text-[42px] md:text-[58px] leading-[1.03] tracking-[-0.03em] text-kx-ink">
             Nothing about a score is hidden from you.
           </h2>
         </Reveal>
 
-        <div className="grid md:grid-cols-2 gap-5">
+        <div className="grid md:grid-cols-2 gap-7">
           <BentoCard
             lead="Three models vote, one number ships."
             body="Each network scores the study independently. The fused number is a weighted blend you can pull apart at any time."
@@ -101,13 +101,13 @@ export function TraceBento() {
             tint="from-[#FDF3F1]"
             delay={0}
           >
-            <div className="rounded-xl bg-white border border-kx-border p-5 space-y-3.5">
+            <div className="rounded-2xl bg-white border border-kx-border p-7 space-y-5">
               {MODELS.map((m) => (
                 <VoteBar key={m.name} m={m} />
               ))}
-              <div className="pt-3 mt-1 border-t border-kx-border flex items-baseline justify-between">
-                <span className="text-[13px] text-kx-muted">Fused priority</span>
-                <span className="font-mono text-[22px] text-kx-critical font-medium">
+              <div className="pt-5 mt-1 border-t border-kx-border flex items-baseline justify-between">
+                <span className="text-[15px] text-kx-muted">Fused priority</span>
+                <span className="font-mono text-[32px] text-kx-critical font-medium">
                   {FUSED.toFixed(2)}
                 </span>
               </div>
@@ -121,8 +121,8 @@ export function TraceBento() {
             tint="from-[#EEF1FF]"
             delay={90}
           >
-            <div className="rounded-xl bg-white border border-kx-border p-4">
-              <div className="relative h-[168px] rounded-lg bg-kx-ink overflow-hidden">
+            <div className="rounded-2xl bg-white border border-kx-border p-5">
+              <div className="relative h-[248px] rounded-xl bg-kx-ink overflow-hidden">
                 <div
                   className="absolute inset-0 opacity-70"
                   style={{
@@ -149,14 +149,14 @@ export function TraceBento() {
             tint="from-[#EAF7F1]"
             delay={0}
           >
-            <div className="rounded-xl bg-white border border-kx-border divide-y divide-kx-border">
+            <div className="rounded-2xl bg-white border border-kx-border divide-y divide-kx-border">
               {AUDIT.map((a) => (
-                <div key={a.t} className="flex items-center gap-3 px-4 py-2.5">
-                  <span className="font-mono text-[11px] text-kx-muted w-[58px] flex-shrink-0">{a.t}</span>
-                  <span className="font-mono text-[10px] uppercase tracking-wide text-kx-accent3 w-[62px] flex-shrink-0 truncate">
+                <div key={a.t} className="flex items-center gap-4 px-6 py-4">
+                  <span className="font-mono text-[13px] text-kx-muted w-[68px] flex-shrink-0">{a.t}</span>
+                  <span className="font-mono text-[11px] uppercase tracking-wide text-kx-accent3 w-[76px] flex-shrink-0 truncate">
                     {a.who}
                   </span>
-                  <span className="text-[12.5px] text-kx-ink truncate">{a.what}</span>
+                  <span className="text-[14.5px] text-kx-ink truncate">{a.what}</span>
                 </div>
               ))}
             </div>
@@ -195,13 +195,13 @@ function BentoCard({
   return (
     <Reveal
       delayMs={delay}
-      className={`rounded-2xl border border-kx-border bg-gradient-to-b ${tint} to-white p-6 md:p-7`}
+      className={`rounded-3xl border border-kx-border bg-gradient-to-b ${tint} to-white p-8 md:p-10`}
     >
-      <p className="font-display text-[19px] leading-snug tracking-[-0.01em] text-kx-ink mb-1.5">
+      <p className="font-display text-[23px] md:text-[25px] leading-snug tracking-[-0.01em] text-kx-ink mb-1.5">
         {lead}{" "}
         <span className="font-normal text-kx-muted">{body}</span>
       </p>
-      <Eyebrow className="text-kx-muted/80 block mb-5 mt-3">{tag}</Eyebrow>
+      <Eyebrow className="text-kx-muted/80 block mb-7 mt-4">{tag}</Eyebrow>
       {children}
     </Reveal>
   );

@@ -35,3 +35,6 @@ kaggle.json
 *.sln
 *.sw?
 .gbrain-source
+
+# Hero footage: keep large binaries out of git. Serve from CDN/object storage.
+*.mp4
