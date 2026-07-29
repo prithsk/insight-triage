@@ -62,8 +62,8 @@ export function WorklistCard({ item, isSelected, isChecked, isMinimized = false,
       className={cn(
         "group relative bg-white rounded-xl border px-5 py-4 cursor-pointer transition-all duration-200 overflow-hidden",
         isSelected
-          ? "border-landing-primary ring-2 ring-landing-primary/20 shadow-[0_10px_30px_-14px_rgba(47,111,94,0.35)]"
-          : "border-[rgba(0,0,0,0.06)] shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-landing-primary/30 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-16px_rgba(47,111,94,0.28)]"
+          ? "border-kx-accent3 ring-2 ring-kx-accent3/20 shadow-[0_10px_30px_-14px_rgba(47,111,94,0.35)]"
+          : "border-kx-border shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-kx-accent3/30 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-16px_rgba(18,21,26,0.18)]"
       )}
     >
       <div className="flex items-center gap-4">
@@ -72,7 +72,7 @@ export function WorklistCard({ item, isSelected, isChecked, isMinimized = false,
           <Checkbox 
             checked={isChecked}
             onCheckedChange={onCheck}
-            className="border-landing-muted data-[state=checked]:bg-landing-primary data-[state=checked]:border-landing-primary"
+            className="border-kx-muted data-[state=checked]:bg-kx-accent3 data-[state=checked]:border-kx-accent3"
           />
         </div>
 
@@ -85,30 +85,30 @@ export function WorklistCard({ item, isSelected, isChecked, isMinimized = false,
               : "w-[220px] opacity-100"
           )}
         >
-          <p className="font-mono text-[13px] text-landing-muted truncate whitespace-nowrap">
+          <p className="font-mono text-[13px] text-kx-muted truncate whitespace-nowrap">
             {item.study.id}
           </p>
         </div>
         
         {/* Patient Hash - Always visible */}
         <div className="shrink-0 w-[160px]">
-          <h3 className="font-serif text-[16px] font-medium text-landing-heading truncate">
+          <h3 className="font-display text-[16px] font-medium text-kx-ink truncate">
             {item.study.patient_hash}
           </h3>
         </div>
         
         {/* Time - reduce gap when minimized */}
         <div className={cn(
-          "shrink-0 flex items-center text-[13px] text-landing-body transition-all duration-300",
+          "shrink-0 flex items-center text-[13px] text-kx-muted transition-all duration-300",
           isMinimized ? "gap-0.5 -ml-2" : "gap-1.5"
         )}>
-          <Clock className="w-3.5 h-3.5 text-landing-muted" />
+          <Clock className="w-3.5 h-3.5 text-kx-muted" />
           {formatStudyTime(item.study.study_time)}
         </div>
         
         {/* Modality */}
         {item.study.modality && (
-          <span className="shrink-0 px-2 py-0.5 bg-landing-bg rounded text-[12px] text-landing-body">
+          <span className="shrink-0 px-2 py-0.5 bg-kx-surface rounded text-[12px] text-kx-muted">
             {item.study.modality}
           </span>
         )}
@@ -139,7 +139,7 @@ export function WorklistCard({ item, isSelected, isChecked, isMinimized = false,
             {/* Risk bar - Animated hide when minimized */}
             <div 
               className={cn(
-                "h-1.5 bg-landing-bg rounded-full overflow-hidden transition-all duration-300",
+                "h-1.5 bg-kx-surface rounded-full overflow-hidden transition-all duration-300",
                 isMinimized 
                   ? "w-0 opacity-0" 
                   : "w-20 opacity-100"
@@ -166,8 +166,8 @@ export function WorklistCard({ item, isSelected, isChecked, isMinimized = false,
           </div>
         ) : (
           <div className="flex items-center gap-2 shrink-0">
-            <div className="w-2 h-2 rounded-full bg-landing-muted animate-pulse" />
-            <span className="text-[12px] text-landing-muted italic">Pending...</span>
+            <div className="w-2 h-2 rounded-full bg-kx-muted animate-pulse" />
+            <span className="text-[12px] text-kx-muted italic">Pending...</span>
           </div>
         )}
 

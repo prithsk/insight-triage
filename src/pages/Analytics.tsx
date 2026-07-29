@@ -23,7 +23,7 @@ const CHART_RED    = "#EF4444";
 
 const TOOLTIP_STYLE = {
   backgroundColor: "white",
-  border: "1px solid rgba(0,0,0,0.06)",
+  border: "1px solid rgba(18,21,26,0.08)",
   borderRadius: "12px",
   boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
 };
@@ -97,14 +97,14 @@ export default function Analytics() {
       <div className="min-h-[calc(100vh-72px)]">
 
         {/* ── Header ────────────────────────────────────────────────────────── */}
-        <section className="px-8 py-10 border-b border-[rgba(0,0,0,0.06)] bg-white/40 backdrop-blur-sm">
+        <section className="px-8 py-10 border-b border-kx-border bg-white/40 backdrop-blur-sm">
           <div className="max-w-[1600px] mx-auto">
             <div className="flex items-start justify-between">
               <div>
-                <h1 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading tracking-[-0.01em]">
-                  Operational <span className="text-landing-primary">Analytics</span>
+                <h1 className="font-display text-[40px] lg:text-[48px] leading-[1.1] text-kx-ink tracking-[-0.01em]">
+                  Operational <span className="text-kx-accent3">Analytics</span>
                 </h1>
-                <p className="text-[17px] text-landing-body mt-3 max-w-xl">
+                <p className="text-[17px] text-kx-muted mt-3 max-w-xl">
                   Track workflow improvements and pilot metrics. Compare{" "}
                   <em>AI-assisted</em> performance against baseline.
                 </p>
@@ -112,7 +112,7 @@ export default function Analytics() {
               <button
                 onClick={handleExportCSV}
                 disabled={isLoading || !data}
-                className="px-5 py-2.5 bg-landing-primary text-white rounded-[10px] text-[14px] font-medium hover:bg-[#265A4C] transition-colors flex items-center gap-2 disabled:opacity-50"
+                className="px-5 py-2.5 bg-kx-accent3 text-white rounded-[10px] text-[14px] font-medium hover:opacity-90 transition-colors flex items-center gap-2 disabled:opacity-50"
               >
                 <Download className="w-4 h-4" />
                 Export CSV
@@ -131,7 +131,7 @@ export default function Analytics() {
 
             {/* View mode toggle */}
             <div className="flex items-center gap-4 mt-6">
-              <span className="text-[13px] text-landing-muted uppercase tracking-wide">Compare</span>
+              <span className="text-[13px] text-kx-muted uppercase tracking-wide">Compare</span>
               <div className="flex gap-1">
                 {[
                   { id: "with-kroix",    label: "With Kroix"    },
@@ -143,8 +143,8 @@ export default function Analytics() {
                     className={cn(
                       "px-4 py-2 rounded-[10px] text-[14px] font-medium transition-colors",
                       viewMode === m.id
-                        ? m.id === "with-kroix" ? "bg-landing-primary text-white" : "bg-landing-muted text-white"
-                        : "bg-landing-bg text-landing-body hover:bg-landing-primary/15 hover:text-landing-primary"
+                        ? m.id === "with-kroix" ? "bg-kx-accent3 text-white" : "bg-kx-muted text-white"
+                        : "bg-kx-surface text-kx-muted hover:bg-kx-accent3/15 hover:text-kx-accent3"
                     )}
                   >
                     {m.label}
@@ -158,28 +158,28 @@ export default function Analytics() {
         {/* ── Loading state ─────────────────────────────────────────────────── */}
         {isLoading && (
           <div className="flex items-center justify-center py-24">
-            <Loader2 className="w-8 h-8 animate-spin text-landing-primary" />
+            <Loader2 className="w-8 h-8 animate-spin text-kx-accent3" />
           </div>
         )}
 
         {error && (
           <div className="px-8 py-12 text-center">
-            <p className="text-landing-muted">Failed to load analytics. Please try again.</p>
+            <p className="text-kx-muted">Failed to load analytics. Please try again.</p>
           </div>
         )}
 
         {data && !isLoading && (
           <>
             {/* ── Summary Cards ──────────────────────────────────────────────── */}
-            <section className="px-8 py-8 border-b border-[rgba(0,0,0,0.06)]">
+            <section className="px-8 py-8 border-b border-kx-border">
               <div className="max-w-[1600px] mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
 
                   {/* MTTR */}
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-[rgba(0,0,0,0.06)] p-6 shadow-sm">
-                    <p className="text-[13px] text-landing-muted">Avg. Time to Review</p>
-                    <p className="text-[36px] font-serif font-medium text-landing-heading mt-1">
-                      {stats?.avgMTTR}<span className="text-[20px] text-landing-muted ml-1">min</span>
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-kx-border p-6 shadow-sm">
+                    <p className="text-[13px] text-kx-muted">Avg. Time to Review</p>
+                    <p className="text-[36px] font-display font-medium text-kx-ink mt-1">
+                      {stats?.avgMTTR}<span className="text-[20px] text-kx-muted ml-1">min</span>
                     </p>
                     {stats && stats.mttrTrend !== 0 && (
                       <div className={cn(
@@ -190,17 +190,17 @@ export default function Analytics() {
                         {Math.abs(stats.mttrTrend).toFixed(1)}m
                       </div>
                     )}
-                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)]">
-                      <Clock className="w-4 h-4 text-landing-primary" />
-                      <span className="text-[13px] text-landing-muted">Mean time to review (critical)</span>
+                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-kx-border">
+                      <Clock className="w-4 h-4 text-kx-accent3" />
+                      <span className="text-[13px] text-kx-muted">Mean time to review (critical)</span>
                     </div>
                   </div>
 
                   {/* Throughput */}
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-[rgba(0,0,0,0.06)] p-6 shadow-sm">
-                    <p className="text-[13px] text-landing-muted">Avg. Throughput</p>
-                    <p className="text-[36px] font-serif font-medium text-landing-heading mt-1">
-                      {stats?.avgThroughput}<span className="text-[20px] text-landing-muted ml-1">scans/hr</span>
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-kx-border p-6 shadow-sm">
+                    <p className="text-[13px] text-kx-muted">Avg. Throughput</p>
+                    <p className="text-[36px] font-display font-medium text-kx-ink mt-1">
+                      {stats?.avgThroughput}<span className="text-[20px] text-kx-muted ml-1">scans/hr</span>
                     </p>
                     {stats && stats.tpTrend !== 0 && (
                       <div className={cn(
@@ -211,33 +211,33 @@ export default function Analytics() {
                         {Math.abs(stats.tpTrend).toFixed(0)}
                       </div>
                     )}
-                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)]">
-                      <TrendingUp className="w-4 h-4 text-landing-primary" />
-                      <span className="text-[13px] text-landing-muted">Scans reviewed per hour</span>
+                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-kx-border">
+                      <TrendingUp className="w-4 h-4 text-kx-accent3" />
+                      <span className="text-[13px] text-kx-muted">Scans reviewed per hour</span>
                     </div>
                   </div>
 
                   {/* Override rate */}
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-[rgba(0,0,0,0.06)] p-6 shadow-sm">
-                    <p className="text-[13px] text-landing-muted">Override Rate</p>
-                    <p className="text-[36px] font-serif font-medium text-landing-heading mt-1">
-                      {stats?.avgOverride}<span className="text-[20px] text-landing-muted ml-1">%</span>
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-kx-border p-6 shadow-sm">
+                    <p className="text-[13px] text-kx-muted">Override Rate</p>
+                    <p className="text-[36px] font-display font-medium text-kx-ink mt-1">
+                      {stats?.avgOverride}<span className="text-[20px] text-kx-muted ml-1">%</span>
                     </p>
-                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)]">
-                      <RotateCcw className="w-4 h-4 text-landing-primary" />
-                      <span className="text-[13px] text-landing-muted">Priority corrections by radiologists</span>
+                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-kx-border">
+                      <RotateCcw className="w-4 h-4 text-kx-accent3" />
+                      <span className="text-[13px] text-kx-muted">Priority corrections by radiologists</span>
                     </div>
                   </div>
 
                   {/* Feedback quality (real data only, else preview) */}
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-[rgba(0,0,0,0.06)] p-6 shadow-sm">
-                    <p className="text-[13px] text-landing-muted">Feedback Quality</p>
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-kx-border p-6 shadow-sm">
+                    <p className="text-[13px] text-kx-muted">Feedback Quality</p>
                     {data.summary.totalFeedback > 0 ? (
                       <>
-                        <p className="text-[36px] font-serif font-medium text-emerald-600 mt-1">
-                          {data.summary.correctRate}<span className="text-[20px] text-landing-muted ml-1">%</span>
+                        <p className="text-[36px] font-display font-medium text-emerald-600 mt-1">
+                          {data.summary.correctRate}<span className="text-[20px] text-kx-muted ml-1">%</span>
                         </p>
-                        <div className="flex flex-col gap-1.5 mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)]">
+                        <div className="flex flex-col gap-1.5 mt-4 pt-4 border-t border-kx-border">
                           {[
                             { label: "Correct",     val: data.summary.correctRate,   color: "bg-emerald-500", icon: CheckCircle2, cls: "text-emerald-600" },
                             { label: "False Alarm", val: data.summary.falseAlarmRate, color: "bg-amber-500",   icon: AlertTriangle, cls: "text-amber-600" },
@@ -247,11 +247,11 @@ export default function Analytics() {
                             return (
                               <div key={f.label} className="flex items-center gap-2">
                                 <Icon className={cn("w-3 h-3", f.cls)} />
-                                <span className="text-[12px] text-landing-muted w-20">{f.label}</span>
-                                <div className="flex-1 h-1.5 bg-landing-bg rounded-full overflow-hidden">
+                                <span className="text-[12px] text-kx-muted w-20">{f.label}</span>
+                                <div className="flex-1 h-1.5 bg-kx-surface rounded-full overflow-hidden">
                                   <div className={cn("h-full rounded-full", f.color)} style={{ width: `${f.val}%` }} />
                                 </div>
-                                <span className="text-[11px] font-mono text-landing-body">{f.val}%</span>
+                                <span className="text-[11px] font-mono text-kx-muted">{f.val}%</span>
                               </div>
                             );
                           })}
@@ -259,8 +259,8 @@ export default function Analytics() {
                       </>
                     ) : (
                       <div className="mt-3">
-                        <p className="text-[28px] font-serif text-landing-muted">—</p>
-                        <p className="text-[13px] text-landing-muted mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)]">
+                        <p className="text-[28px] font-display text-kx-muted">—</p>
+                        <p className="text-[13px] text-kx-muted mt-4 pt-4 border-t border-kx-border">
                           Submit feedback in Reviewer to populate this metric.
                         </p>
                       </div>
@@ -275,7 +275,7 @@ export default function Analytics() {
               <div className="max-w-[1600px] mx-auto">
                 {/* Tabs */}
                 <div className="flex items-center gap-2 mb-6">
-                  <BarChart3 className="w-4 h-4 text-landing-muted" />
+                  <BarChart3 className="w-4 h-4 text-kx-muted" />
                   {tabs.map(tab => (
                     <button
                       key={tab.id}
@@ -283,8 +283,8 @@ export default function Analytics() {
                       className={cn(
                         "px-4 py-2 rounded-[10px] text-[14px] font-medium transition-colors",
                         activeTab === tab.id
-                          ? "bg-landing-primary text-white"
-                          : "bg-landing-bg text-landing-body hover:bg-landing-primary/15 hover:text-landing-primary"
+                          ? "bg-kx-accent3 text-white"
+                          : "bg-kx-surface text-kx-muted hover:bg-kx-accent3/15 hover:text-kx-accent3"
                       )}
                     >
                       {tab.label}
@@ -293,19 +293,19 @@ export default function Analytics() {
                 </div>
 
                 {/* Chart card */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-[rgba(0,0,0,0.06)] p-6 shadow-sm">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-kx-border p-6 shadow-sm">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-serif text-[18px] text-landing-heading">
+                    <h3 className="font-display text-[18px] text-kx-ink">
                       {activeTab === "mttr"      && "Mean Time to Review (Critical Bucket)"}
                       {activeTab === "throughput" && "Scans Reviewed per Hour"}
                       {activeTab === "overrides"  && "Priority Override Rate"}
                       {activeTab === "feedback"   && "Daily Feedback Breakdown"}
-                      <span className="text-[14px] text-landing-muted font-sans ml-2">— Last 7 Days</span>
+                      <span className="text-[14px] text-kx-muted font-sans ml-2">— Last 7 Days</span>
                     </h3>
                     {activeTab !== "feedback" && (
                       <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#2F6F5E]" /><span className="text-[12px] text-landing-body">With Kroix</span></div>
-                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#9CA3AF]" /><span className="text-[12px] text-landing-body">Without Kroix</span></div>
+                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#2F6F5E]" /><span className="text-[12px] text-kx-muted">With Kroix</span></div>
+                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#9CA3AF]" /><span className="text-[12px] text-kx-muted">Without Kroix</span></div>
                       </div>
                     )}
                   </div>
@@ -376,7 +376,7 @@ export default function Analytics() {
                           </BarChart>
                         </ResponsiveContainer>
                       ) : (
-                        <div className="h-full flex flex-col items-center justify-center gap-3 text-landing-muted">
+                        <div className="h-full flex flex-col items-center justify-center gap-3 text-kx-muted">
                           <CheckCircle2 className="w-12 h-12 opacity-30" />
                           <p className="text-[15px]">No feedback data yet.</p>
                           <p className="text-[13px]">Open the Reviewer and submit feedback on triaged studies.</p>
@@ -388,13 +388,13 @@ export default function Analytics() {
 
                 {/* Real data stats footer */}
                 {data.hasRealData && data.summary.totalStudies > 0 && (
-                  <div className="mt-4 flex items-center gap-6 text-[13px] text-landing-muted">
+                  <div className="mt-4 flex items-center gap-6 text-[13px] text-kx-muted">
                     <span>{data.summary.totalStudies} studies tracked</span>
-                    <span className="w-1 h-1 rounded-full bg-landing-muted" />
+                    <span className="w-1 h-1 rounded-full bg-kx-muted" />
                     <span>{data.summary.totalReviewed} reviewed</span>
-                    <span className="w-1 h-1 rounded-full bg-landing-muted" />
+                    <span className="w-1 h-1 rounded-full bg-kx-muted" />
                     <span>{data.summary.totalFeedback} feedback events</span>
-                    <span className="w-1 h-1 rounded-full bg-landing-muted" />
+                    <span className="w-1 h-1 rounded-full bg-kx-muted" />
                     <span className="text-emerald-600 font-medium">Live data</span>
                   </div>
                 )}

@@ -16,7 +16,7 @@ import { toast } from "sonner";
 function StreamCursor() {
   return (
     <span
-      className="inline-block w-[2px] h-[1em] bg-landing-primary align-middle ml-0.5 animate-blink"
+      className="inline-block w-[2px] h-[1em] bg-kx-accent3 align-middle ml-0.5 animate-blink"
       aria-hidden
     />
   );
@@ -32,8 +32,8 @@ function MessageBubble({ msg }: { msg: { id: string; role: string; content: stri
       <div className={cn(
         "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-[11px] font-bold mt-0.5",
         isUser
-          ? "bg-landing-primary/15 text-landing-primary"
-          : "bg-landing-dark/8 text-landing-primary"
+          ? "bg-kx-accent3/15 text-kx-accent3"
+          : "bg-kx-ink/8 text-kx-accent3"
       )}>
         {isUser ? "You" : <BrainCircuit className="w-4 h-4" />}
       </div>
@@ -42,8 +42,8 @@ function MessageBubble({ msg }: { msg: { id: string; role: string; content: stri
       <div className={cn(
         "max-w-[75%] rounded-2xl px-4 py-3 text-[14px] leading-relaxed shadow-sm",
         isUser
-          ? "bg-landing-primary text-white rounded-tr-sm"
-          : "bg-white border border-[rgba(0,0,0,0.06)] text-landing-heading rounded-tl-sm"
+          ? "bg-kx-accent3 text-white rounded-tr-sm"
+          : "bg-white border border-kx-border text-kx-ink rounded-tl-sm"
       )}>
         {msg.content || (msg.isStreaming && <StreamCursor />)}
         {msg.content && msg.isStreaming && <StreamCursor />}
@@ -60,7 +60,7 @@ const DOC_TYPE_LABELS: Record<string, string> = {
 function DocRow({ doc }: { doc: { id: string; name: string; doc_type: string; status: string | null; created_at: string } }) {
   return (
     <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-colors group">
-      <FileText className="w-4 h-4 text-landing-primary/70 mt-0.5 shrink-0" />
+      <FileText className="w-4 h-4 text-kx-accent3/70 mt-0.5 shrink-0" />
       <div className="flex-1 min-w-0">
         <p className="text-[12px] text-white/80 font-medium truncate">{doc.name}</p>
         <div className="flex items-center gap-2 mt-0.5">
@@ -101,7 +101,7 @@ function DocUploadZone({ onFile }: { onFile: (f: File) => void }) {
       onClick={() => inputRef.current?.click()}
       className={cn(
         "border border-dashed rounded-xl p-4 flex flex-col items-center gap-2 cursor-pointer transition-all",
-        over ? "border-landing-primary/60 bg-landing-primary/10" : "border-white/20 hover:border-white/40"
+        over ? "border-kx-accent3/60 bg-kx-accent3/10" : "border-white/20 hover:border-white/40"
       )}
     >
       <FileUp className="w-5 h-5 text-white/40" />
@@ -200,13 +200,13 @@ export default function Assistant() {
       <div className="h-[calc(100vh-72px)] flex overflow-hidden">
 
         {/* ── Left Sidebar ────────────────────────────────────────────────── */}
-        <aside className="w-[280px] shrink-0 bg-landing-dark flex flex-col border-r border-white/8">
+        <aside className="w-[280px] shrink-0 bg-kx-ink flex flex-col border-r border-white/8">
 
           {/* Header */}
           <div className="px-5 pt-6 pb-4 border-b border-white/8">
             <div className="flex items-center gap-2.5 mb-1">
-              <div className="w-7 h-7 rounded-lg bg-landing-primary/20 flex items-center justify-center">
-                <BrainCircuit className="w-4 h-4 text-landing-primary" />
+              <div className="w-7 h-7 rounded-lg bg-kx-accent3/20 flex items-center justify-center">
+                <BrainCircuit className="w-4 h-4 text-kx-accent3" />
               </div>
               <h2 className="text-[14px] font-semibold text-white">TriageAI Assistant</h2>
             </div>
@@ -247,7 +247,7 @@ export default function Assistant() {
             <DocUploadZone onFile={handleDocUpload} />
             {uploadDoc.isPending && (
               <div className="flex items-center gap-2 mt-2 px-3">
-                <Loader2 className="w-3.5 h-3.5 text-landing-primary animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 text-kx-accent3 animate-spin" />
                 <span className="text-[11px] text-white/40">Uploading & embedding…</span>
               </div>
             )}
@@ -274,8 +274,8 @@ export default function Assistant() {
           onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleDocUpload(f); }}
         >
           {isDragOver && (
-            <div className="absolute inset-0 z-50 bg-landing-primary/10 border-2 border-dashed border-landing-primary/40 flex items-center justify-center">
-              <div className="flex flex-col items-center gap-3 text-landing-primary">
+            <div className="absolute inset-0 z-50 bg-kx-accent3/10 border-2 border-dashed border-kx-accent3/40 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-3 text-kx-accent3">
                 <Upload className="w-10 h-10" />
                 <p className="text-[16px] font-medium">Drop to add to Knowledge Base</p>
               </div>
@@ -286,12 +286,12 @@ export default function Assistant() {
           <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
             {messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center gap-6 max-w-lg mx-auto text-center">
-                <div className="w-14 h-14 rounded-2xl bg-landing-primary/10 flex items-center justify-center">
-                  <BrainCircuit className="w-7 h-7 text-landing-primary" />
+                <div className="w-14 h-14 rounded-2xl bg-kx-accent3/10 flex items-center justify-center">
+                  <BrainCircuit className="w-7 h-7 text-kx-accent3" />
                 </div>
                 <div>
-                  <h2 className="font-serif text-[24px] text-landing-heading">TriageAI Assistant</h2>
-                  <p className="text-[14px] text-landing-body mt-2">
+                  <h2 className="font-display text-[24px] text-kx-ink">TriageAI Assistant</h2>
+                  <p className="text-[14px] text-kx-muted mt-2">
                     Ask evidence-based questions about chest X-ray findings, triage decisions, and clinical protocols.
                   </p>
                 </div>
@@ -302,16 +302,16 @@ export default function Assistant() {
                     <button
                       key={i}
                       onClick={() => setInputText(s)}
-                      className="flex items-center gap-3 px-4 py-3 rounded-[12px] bg-white border border-[rgba(0,0,0,0.06)] hover:border-landing-primary/30 hover:bg-landing-primary/5 transition-all text-left group"
+                      className="flex items-center gap-3 px-4 py-3 rounded-[12px] bg-white border border-kx-border hover:border-kx-accent3/30 hover:bg-kx-accent3/5 transition-all text-left group"
                     >
-                      <Sparkles className="w-4 h-4 text-landing-primary/50 group-hover:text-landing-primary shrink-0 transition-colors" />
-                      <span className="text-[13px] text-landing-body group-hover:text-landing-heading transition-colors">{s}</span>
-                      <ChevronRight className="w-3.5 h-3.5 text-landing-muted ml-auto shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <Sparkles className="w-4 h-4 text-kx-accent3/50 group-hover:text-kx-accent3 shrink-0 transition-colors" />
+                      <span className="text-[13px] text-kx-muted group-hover:text-kx-ink transition-colors">{s}</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-kx-muted ml-auto shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </button>
                   ))}
                 </div>
 
-                <p className="text-[11px] text-landing-muted">
+                <p className="text-[11px] text-kx-muted">
                   Non-diagnostic. For workflow prioritization only. Always rely on qualified radiologist interpretation.
                 </p>
               </div>
@@ -330,11 +330,11 @@ export default function Assistant() {
           </div>
 
           {/* ── Input Bar ───────────────────────────────────────────────── */}
-          <div className="px-6 pb-5 pt-3 border-t border-[rgba(0,0,0,0.06)] bg-white/60 backdrop-blur-sm">
+          <div className="px-6 pb-5 pt-3 border-t border-kx-border bg-white/60 backdrop-blur-sm">
             {studyContext && (
               <div className="flex items-center gap-2 mb-2">
-                <MessageSquare className="w-3.5 h-3.5 text-landing-primary/60" />
-                <span className="text-[12px] text-landing-muted">Asking about study {studyContext.studyId.slice(0,8)}… ({studyContext.riskBucket})</span>
+                <MessageSquare className="w-3.5 h-3.5 text-kx-accent3/60" />
+                <span className="text-[12px] text-kx-muted">Asking about study {studyContext.studyId.slice(0,8)}… ({studyContext.riskBucket})</span>
               </div>
             )}
             <div className="flex items-end gap-3">
@@ -347,7 +347,7 @@ export default function Assistant() {
                   disabled={isStreaming}
                   placeholder="Ask about chest X-ray findings, protocols, or this study…"
                   rows={1}
-                  className="w-full resize-none bg-white border border-[rgba(0,0,0,0.08)] rounded-[14px] px-4 py-3 text-[14px] text-landing-heading placeholder:text-landing-muted focus:outline-none focus:border-landing-primary/40 focus:ring-2 focus:ring-landing-primary/10 transition-all max-h-[140px] overflow-y-auto disabled:opacity-50 shadow-sm"
+                  className="w-full resize-none bg-white border border-kx-border rounded-[14px] px-4 py-3 text-[14px] text-kx-ink placeholder:text-kx-muted focus:outline-none focus:border-kx-accent3/40 focus:ring-2 focus:ring-kx-accent3/10 transition-all max-h-[140px] overflow-y-auto disabled:opacity-50 shadow-sm"
                   style={{ lineHeight: "1.5" }}
                   onInput={e => {
                     const el = e.currentTarget;
@@ -369,14 +369,14 @@ export default function Assistant() {
                 <button
                   onClick={handleSend}
                   disabled={!inputText.trim()}
-                  className="w-11 h-11 flex items-center justify-center rounded-[12px] bg-landing-primary text-white hover:bg-[#265A4C] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                  className="w-11 h-11 flex items-center justify-center rounded-[12px] bg-kx-accent3 text-white hover:opacity-90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                   title="Send (Enter)"
                 >
                   <Send className="w-4 h-4" />
                 </button>
               )}
             </div>
-            <p className="text-[11px] text-landing-muted mt-2 text-center">
+            <p className="text-[11px] text-kx-muted mt-2 text-center">
               Powered by RAG + Gemini. Non-diagnostic — for workflow support only.
             </p>
           </div>

@@ -30,7 +30,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-landing-bg text-landing-heading overflow-x-hidden">
+    <div className="min-h-screen bg-kx-surface text-kx-ink overflow-x-hidden">
       {/* Interactive 3D WebGPU lattice background */}
       <WebGPUBackground />
 
@@ -43,15 +43,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       />
 
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-40 px-8 py-5 bg-landing-bg/75 backdrop-blur-md border-b border-[rgba(0,0,0,0.06)]">
+      <nav className="fixed top-0 left-0 right-0 z-40 px-8 py-5 bg-kx-surface/75 backdrop-blur-md border-b border-kx-border">
         <div className="max-w-[1600px] mx-auto flex items-center justify-between">
           <div className="flex items-center gap-10">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3">
-              <span className="text-2xl font-serif font-semibold text-landing-heading tracking-tight">
+              <span className="text-2xl font-display font-semibold text-kx-ink tracking-tight">
                 Kroix
               </span>
-              <span className="text-[11px] font-medium text-landing-muted bg-landing-bg border border-[rgba(0,0,0,0.08)] px-2 py-0.5 rounded-md">
+              <span className="text-[11px] font-medium text-kx-muted bg-kx-surface border border-kx-border px-2 py-0.5 rounded-md">
                 PILOT
               </span>
             </Link>
@@ -72,14 +72,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     className={cn(
                       "flex items-center gap-2 px-4 py-2 rounded-[10px] text-[15px] transition-all duration-150",
                       isActive
-                        ? "bg-landing-primary/10 text-landing-primary font-medium"
-                        : "text-landing-body hover:text-landing-heading hover:bg-white/60"
+                        ? "bg-kx-accent3/10 text-kx-accent3 font-medium"
+                        : "text-kx-muted hover:text-kx-ink hover:bg-white/60"
                     )}
                   >
                     <Icon className="w-4 h-4" />
                     {item.label}
                     {item.href === "/assistant" && (
-                      <span className="text-[9px] font-bold tracking-widest text-landing-primary/70 bg-landing-primary/10 px-1.5 py-0.5 rounded-full uppercase">
+                      <span className="text-[9px] font-bold tracking-widest text-kx-accent3/70 bg-kx-accent3/10 px-1.5 py-0.5 rounded-full uppercase">
                         AI
                       </span>
                     )}
@@ -92,19 +92,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Right side */}
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-[13px]">
-              <span className="w-2 h-2 rounded-full bg-landing-primary animate-pulse" />
-              <span className="text-landing-muted">System Active</span>
+              <span className="w-2 h-2 rounded-full bg-kx-accent3 animate-pulse" />
+              <span className="text-kx-muted">System Active</span>
             </div>
 
-            <div className="h-5 w-px bg-[rgba(0,0,0,0.08)]" />
+            <div className="h-5 w-px bg-kx-border" />
 
             {user && (
-              <span className="text-[13px] text-landing-body">{user.email}</span>
+              <span className="text-[13px] text-kx-muted">{user.email}</span>
             )}
 
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 rounded-[10px] text-[14px] text-landing-body hover:text-landing-heading hover:bg-white/60 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 rounded-[10px] text-[14px] text-kx-muted hover:text-kx-ink hover:bg-white/60 transition-colors"
             >
               <LogOut className="w-4 h-4" />
               Sign Out

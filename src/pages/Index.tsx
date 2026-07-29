@@ -137,8 +137,8 @@ export default function Index() {
             <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-8 h-8 text-red-600" />
             </div>
-            <h2 className="font-serif text-[24px] text-landing-heading mb-2">Failed to load studies</h2>
-            <p className="text-[15px] text-landing-body">{error.message}</p>
+            <h2 className="font-display text-[24px] text-kx-ink mb-2">Failed to load studies</h2>
+            <p className="text-[15px] text-kx-muted">{error.message}</p>
           </div>
         </div>
       </DashboardLayout>
@@ -150,14 +150,14 @@ export default function Index() {
       <div className="min-h-[calc(100vh-72px)]">
 
         {/* ── Page Header ──────────────────────────────────────────────────── */}
-        <section className="px-8 py-10 border-b border-[rgba(0,0,0,0.06)] bg-white/40 backdrop-blur-sm">
+        <section className="px-8 py-10 border-b border-kx-border bg-white/40 backdrop-blur-sm">
           <div className="max-w-[1600px] mx-auto">
             <div className="flex items-start justify-between">
               <div>
-                <h1 className="font-serif text-[40px] lg:text-[48px] leading-[1.1] text-landing-heading tracking-[-0.01em]">
-                  Triage <span className="text-landing-primary">Command Center</span>
+                <h1 className="font-display text-[40px] lg:text-[48px] leading-[1.1] text-kx-ink tracking-[-0.01em]">
+                  Triage <span className="text-kx-accent3">Command Center</span>
                 </h1>
-                <p className="text-[17px] text-landing-body mt-3 max-w-xl">
+                <p className="text-[17px] text-kx-muted mt-3 max-w-xl">
                   Priority-sorted worklist for respiratory imaging. AI-powered triage puts{" "}
                   <em>critical cases</em> first.
                 </p>
@@ -168,29 +168,29 @@ export default function Index() {
             {/* Queue + bucket stats */}
             <div className="flex items-center gap-8 mt-8">
               <div className="flex items-center gap-3">
-                <span className="text-[13px] text-landing-muted uppercase tracking-wide">Queue</span>
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-landing-primary/10 text-landing-primary rounded-lg text-[13px] font-medium">
-                  <span className="w-2 h-2 rounded-full bg-landing-primary animate-pulse" />
+                <span className="text-[13px] text-kx-muted uppercase tracking-wide">Queue</span>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-kx-accent3/10 text-kx-accent3 rounded-lg text-[13px] font-medium">
+                  <span className="w-2 h-2 rounded-full bg-kx-accent3 animate-pulse" />
                   {queueState.status === "triaging" ? "Triaging" : "Up to date"}
                 </div>
               </div>
-              <div className="h-6 w-px bg-[rgba(0,0,0,0.08)]" />
+              <div className="h-6 w-px bg-kx-border" />
               <div className="flex items-center gap-6">
-                <span className="flex items-center gap-2 text-[14px] text-landing-body">
+                <span className="flex items-center gap-2 text-[14px] text-kx-muted">
                   <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
                   {criticalCount} Critical
                 </span>
-                <span className="flex items-center gap-2 text-[14px] text-landing-body">
+                <span className="flex items-center gap-2 text-[14px] text-kx-muted">
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
                   {reviewCount} Review
                 </span>
-                <span className="flex items-center gap-2 text-[14px] text-landing-body">
+                <span className="flex items-center gap-2 text-[14px] text-kx-muted">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                   {clearCount} Clear
                 </span>
                 {pendingCount > 0 && (
-                  <span className="flex items-center gap-2 text-[14px] text-landing-body">
-                    <span className="w-2.5 h-2.5 rounded-full bg-landing-muted" />
+                  <span className="flex items-center gap-2 text-[14px] text-kx-muted">
+                    <span className="w-2.5 h-2.5 rounded-full bg-kx-muted" />
                     {pendingCount} Pending
                   </span>
                 )}
@@ -202,7 +202,7 @@ export default function Index() {
         {/* ── Status Tabs ──────────────────────────────────────────────────── */}
         <section className="px-8 pt-5 pb-0 bg-white/30 backdrop-blur-sm">
           <div className="max-w-[1600px] mx-auto">
-            <div className="flex items-center gap-1 border-b border-[rgba(0,0,0,0.06)]">
+            <div className="flex items-center gap-1 border-b border-kx-border">
               {STATUS_TABS.map(tab => {
                 const count = tab.id === "ACTIVE" ? activeItems.length
                             : tab.id === "REVIEWED" ? reviewedItems.length
@@ -216,8 +216,8 @@ export default function Index() {
                     className={cn(
                       "flex items-center gap-2 px-5 py-3 text-[14px] font-medium transition-all duration-150 border-b-2 -mb-px",
                       isActive
-                        ? "border-landing-primary text-landing-primary"
-                        : "border-transparent text-landing-body hover:text-landing-heading"
+                        ? "border-kx-accent3 text-kx-accent3"
+                        : "border-transparent text-kx-muted hover:text-kx-ink"
                     )}
                   >
                     <Icon className="w-4 h-4" />
@@ -225,8 +225,8 @@ export default function Index() {
                     <span className={cn(
                       "text-[11px] font-mono px-1.5 py-0.5 rounded-full",
                       isActive
-                        ? "bg-landing-primary/15 text-landing-primary"
-                        : "bg-landing-bg text-landing-muted"
+                        ? "bg-kx-accent3/15 text-kx-accent3"
+                        : "bg-kx-surface text-kx-muted"
                     )}>
                       {count}
                     </span>
@@ -238,12 +238,12 @@ export default function Index() {
         </section>
 
         {/* ── Filters Bar ──────────────────────────────────────────────────── */}
-        <section className="px-8 py-4 bg-white/60 backdrop-blur-sm border-b border-[rgba(0,0,0,0.06)]">
+        <section className="px-8 py-4 bg-white/60 backdrop-blur-sm border-b border-kx-border">
           <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               {/* Bucket filter */}
               <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-landing-muted" />
+                <Filter className="w-4 h-4 text-kx-muted" />
                 <div className="flex gap-1">
                   {bucketFilters.map(f => (
                     <button
@@ -252,8 +252,8 @@ export default function Index() {
                       className={cn(
                         "px-3 py-1.5 rounded-[8px] font-mono text-[13px] font-medium transition-colors",
                         bucketFilter === f
-                          ? "bg-landing-primary text-white"
-                          : "bg-landing-bg text-landing-body hover:bg-landing-primary/15 hover:text-landing-primary"
+                          ? "bg-kx-accent3 text-white"
+                          : "bg-kx-surface text-kx-muted hover:bg-kx-accent3/15 hover:text-kx-accent3"
                       )}
                     >
                       {f}
@@ -262,16 +262,16 @@ export default function Index() {
                 </div>
               </div>
 
-              <div className="h-6 w-px bg-[rgba(0,0,0,0.08)]" />
+              <div className="h-6 w-px bg-kx-border" />
 
               {/* Sort */}
               <div className="flex items-center gap-1">
                 <Select value={sortField} onValueChange={v => setSortField(v as SortField)}>
-                  <SelectTrigger className="w-[120px] h-9 text-[13px] border-[rgba(0,0,0,0.06)] rounded-lg bg-white text-landing-body">
+                  <SelectTrigger className="w-[120px] h-9 text-[13px] border-kx-border rounded-lg bg-white text-kx-muted">
                     <ArrowUpDown className="w-3 h-3 mr-1" />
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-[rgba(0,0,0,0.06)] z-50">
+                  <SelectContent className="bg-white border-kx-border z-50">
                     {sortOptions.map(o => (
                       <SelectItem key={o.value} value={o.value} className="text-[13px]">{o.label}</SelectItem>
                     ))}
@@ -279,7 +279,7 @@ export default function Index() {
                 </Select>
                 <button
                   onClick={() => setSortDirection(p => p === "asc" ? "desc" : "asc")}
-                  className="h-9 w-9 flex items-center justify-center rounded-lg border border-[rgba(0,0,0,0.06)] bg-white text-landing-body hover:bg-landing-primary/10 hover:text-landing-primary transition-colors"
+                  className="h-9 w-9 flex items-center justify-center rounded-lg border border-kx-border bg-white text-kx-muted hover:bg-kx-accent3/10 hover:text-kx-accent3 transition-colors"
                 >
                   {sortDirection === "asc" ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
                 </button>
@@ -288,20 +288,20 @@ export default function Index() {
 
             {/* Search */}
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-landing-muted" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kx-muted" />
               <Input
                 placeholder="Search by Study ID or Patient..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="pl-10 bg-white/70 border-[rgba(0,0,0,0.06)] text-landing-heading placeholder:text-landing-muted h-10 rounded-[10px] focus:border-landing-primary"
+                className="pl-10 bg-white/70 border-kx-border text-kx-ink placeholder:text-kx-muted h-10 rounded-[10px] focus:border-kx-accent3"
               />
             </div>
 
             {/* Bulk actions */}
             {selectedIds.size > 0 && (
               <div className="flex items-center gap-2">
-                <div className="h-6 w-px bg-[rgba(0,0,0,0.08)]" />
-                <span className="text-[13px] text-landing-muted">{selectedIds.size} selected</span>
+                <div className="h-6 w-px bg-kx-border" />
+                <span className="text-[13px] text-kx-muted">{selectedIds.size} selected</span>
 
                 {/* Archive bulk */}
                 <AlertDialog>
@@ -314,9 +314,9 @@ export default function Index() {
                       Archive
                     </button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent className="bg-white border-[rgba(0,0,0,0.06)]">
+                  <AlertDialogContent className="bg-white border-kx-border">
                     <AlertDialogHeader>
-                      <AlertDialogTitle className="font-serif text-[20px]">Archive {selectedIds.size} {selectedIds.size === 1 ? "study" : "studies"}?</AlertDialogTitle>
+                      <AlertDialogTitle className="font-display text-[20px]">Archive {selectedIds.size} {selectedIds.size === 1 ? "study" : "studies"}?</AlertDialogTitle>
                       <AlertDialogDescription>Studies will be moved to the Archived tab. This can be reversed by contacting your admin.</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -337,9 +337,9 @@ export default function Index() {
                       Delete
                     </button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent className="bg-white border-[rgba(0,0,0,0.06)]">
+                  <AlertDialogContent className="bg-white border-kx-border">
                     <AlertDialogHeader>
-                      <AlertDialogTitle className="font-serif text-[20px]">Delete {selectedIds.size} {selectedIds.size === 1 ? "study" : "studies"}?</AlertDialogTitle>
+                      <AlertDialogTitle className="font-display text-[20px]">Delete {selectedIds.size} {selectedIds.size === 1 ? "study" : "studies"}?</AlertDialogTitle>
                       <AlertDialogDescription>This permanently deletes the selected studies. Cannot be undone.</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -358,7 +358,7 @@ export default function Index() {
           <div className="max-w-[1600px] mx-auto">
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
-                <Loader2 className="w-8 h-8 animate-spin text-landing-primary" />
+                <Loader2 className="w-8 h-8 animate-spin text-kx-accent3" />
               </div>
             ) : (
               <div className={cn(
@@ -395,12 +395,12 @@ export default function Index() {
                   ) : (
                     <div className="text-center py-20">
                       <div className="w-16 h-16 rounded-2xl bg-white/60 flex items-center justify-center mx-auto mb-4">
-                        <Search className="w-8 h-8 text-landing-muted" />
+                        <Search className="w-8 h-8 text-kx-muted" />
                       </div>
-                      <h3 className="font-serif text-[20px] text-landing-heading mb-2">
+                      <h3 className="font-display text-[20px] text-kx-ink mb-2">
                         {worklistItems.length === 0 ? "No studies yet" : "No matching studies"}
                       </h3>
-                      <p className="text-[15px] text-landing-body">
+                      <p className="text-[15px] text-kx-muted">
                         {worklistItems.length === 0
                           ? "Upload a DICOM study to get started"
                           : "Try adjusting your filters or switching tabs"}
@@ -409,7 +409,7 @@ export default function Index() {
                   )}
 
                   {filteredAndSortedItems.length > 0 && (
-                    <div className="mt-6 text-[13px] text-landing-muted">
+                    <div className="mt-6 text-[13px] text-kx-muted">
                       Showing {filteredAndSortedItems.length} of {worklistItems.length} studies
                     </div>
                   )}
@@ -418,7 +418,7 @@ export default function Index() {
                 {/* Preview panel */}
                 {selectedItem && (
                   <div className="hidden lg:block animate-slide-in">
-                    <div className="sticky top-[88px] bg-white rounded-2xl border border-[rgba(0,0,0,0.06)] max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-clinical shadow-sm">
+                    <div className="sticky top-[88px] bg-white rounded-2xl border border-kx-border max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-clinical shadow-sm">
                       <StudyPreview item={selectedItem} onDeleted={() => setSelectedItem(null)} />
                     </div>
                   </div>

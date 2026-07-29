@@ -10,8 +10,8 @@ const Switch = React.forwardRef<
   <SwitchPrimitives.Root
     className={cn(
       "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-      "data-[state=checked]:bg-landing-primary data-[state=unchecked]:bg-landing-muted/30",
-      "focus-visible:ring-landing-primary/20 focus-visible:ring-offset-white",
+      "data-[state=checked]:bg-kx-accent3 data-[state=unchecked]:bg-kx-muted/30",
+      "focus-visible:ring-kx-accent3/20 focus-visible:ring-offset-white",
       className,
     )}
     {...props}
