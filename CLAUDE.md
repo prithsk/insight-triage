@@ -67,9 +67,29 @@ those into the public bundle.
   deleting.
 - Run `npx tsc --noEmit` before claiming done.
 
+## Verification
+
+**There is no test suite and no CI.** Zero test files, no test script, no workflows
+directory. The only gates are `npx tsc --noEmit`, `npx vite build`, and `/preflight`.
+
+Say this plainly rather than implying coverage. When claiming something works,
+name what was actually checked. "Typecheck passes" is not "this works" — the font
+bug, the public DEV routes, and the fabricated ROI overlay all typechecked cleanly.
+
+Run `/preflight` before any push.
+
 ## Skills
 
-- `/section-variants` — build N design variants, gallery them, apply one, delete the
-  rest.
-- `/market-check` — competitor and regulatory research with primary-source
-  verification.
+- `/preflight` — pre-ship gate. Run before every push.
+- `/rls-audit` — cumulative RLS policy audit. Run before any migration ships.
+- `/edge-function` — write or review a Supabase function without opening a PHI hole.
+- `/validation-sprint` — the ranked-list experiment that gates the product thesis.
+- `/market-check` — competitor and regulatory research, primary sources only.
+- `/section-variants` — build N design variants, gallery them, apply one, delete the rest.
+
+## Docs
+
+- `docs/ARCHITECTURE.md` — system shape, trust boundaries, where PHI lives.
+- `docs/DECISIONS.md` — why things are the way they are, and what would reverse them.
+  Add an entry when making a durable call; skip turn-level choices.
+- `SECURITY.md` — private disclosure path.
