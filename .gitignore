@@ -38,3 +38,6 @@ kaggle.json
 
 # Hero footage: keep large binaries out of git. Serve from CDN/object storage.
 *.mp4
+
+# Exploit writeup for a live vulnerability — keep local until the fix is deployed
+docs/APPLY-SECURITY-FIX.md

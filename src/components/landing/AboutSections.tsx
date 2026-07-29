@@ -253,16 +253,16 @@ export function AboutLayerStack() {
 
   return (
     <section className="py-28 md:py-36 px-6 bg-kx-surface2">
-      <div className="max-w-6xl mx-auto">
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-kx-muted mb-3">What Kroix is</p>
-        <h2 className="font-display text-[32px] md:text-[46px] leading-[1.05] tracking-[-0.03em] text-kx-ink max-w-2xl mb-4">
+      <div className="max-w-[1240px] mx-auto">
+        <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-kx-muted mb-4">What Kroix is</p>
+        <h2 className="font-display text-[38px] md:text-[52px] leading-[1.04] tracking-[-0.03em] text-kx-ink max-w-3xl mb-5">
           A triage layer that sits on top of the worklist you already have.
         </h2>
-        <p className="text-[15px] text-kx-muted max-w-xl mb-14">
+        <p className="text-[17.5px] text-kx-muted max-w-2xl mb-16 leading-relaxed">
           Five layers, each one built on the one before it. Move down the list to assemble it.
         </p>
 
-        <div className="grid lg:grid-cols-[minmax(0,320px)_1fr] gap-10 lg:gap-16 items-center">
+        <div className="grid lg:grid-cols-[minmax(0,340px)_1fr] gap-10 lg:gap-14 items-center">
           {/* rail — hovering an entry stacks it on top of everything above */}
           <ol className="space-y-2">
             {LAYERS.map((l, i) => {
@@ -276,7 +276,7 @@ export function AboutLayerStack() {
                     }}
                     onMouseLeave={() => (paused.current = false)}
                     onFocus={() => setActive(i)}
-                    className={`w-full text-left pl-4 pr-4 py-3 rounded-xl border transition-all duration-300 flex items-center gap-3 ${
+                    className={`w-full text-left pl-5 pr-5 py-4 rounded-xl border transition-all duration-300 flex items-center gap-3.5 ${
                       i === active
                         ? "bg-kx-ink text-white border-kx-ink shadow-[0_10px_28px_-14px_rgba(18,21,26,0.5)]"
                         : included
@@ -285,15 +285,15 @@ export function AboutLayerStack() {
                     }`}
                   >
                     <span
-                      className={`font-mono text-[10px] w-5 flex-shrink-0 ${
+                      className={`font-mono text-[11px] w-6 flex-shrink-0 ${
                         i === active ? "text-white/50" : "text-kx-muted/50"
                       }`}
                     >
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <span className="text-[15px] font-medium flex-1">{l.name}</span>
+                    <span className="text-[17px] font-medium flex-1">{l.name}</span>
                     <span
-                      className={`font-mono text-[9px] uppercase tracking-wider ${
+                      className={`font-mono text-[10px] uppercase tracking-wider ${
                         i === active ? "text-white/45" : "text-kx-muted/50"
                       }`}
                     >
@@ -306,7 +306,7 @@ export function AboutLayerStack() {
           </ol>
 
           {/* the stack — cards accumulate, newest on top */}
-          <div className="relative h-[440px] sm:h-[470px] flex items-center justify-center">
+          <div className="relative h-[560px] sm:h-[620px] flex items-center justify-center">
             {LAYERS.map((l, i) => {
               const included = i <= active;
               const isTop = i === active;
@@ -315,7 +315,7 @@ export function AboutLayerStack() {
               return (
                 <div
                   key={l.name}
-                  className="absolute w-full max-w-[440px] rounded-2xl border p-6 transition-all duration-[600ms] ease-out"
+                  className="absolute w-full max-w-[660px] rounded-3xl border p-9 md:p-10 transition-all duration-[600ms] ease-out"
                   style={{
                     background: l.tint,
                     borderColor: l.border,
@@ -329,11 +329,11 @@ export function AboutLayerStack() {
                     pointerEvents: "none",
                   }}
                 >
-                  <div className="flex items-baseline justify-between mb-4">
-                    <span className="font-display text-[19px] font-medium text-kx-ink tracking-[-0.01em]">
+                  <div className="flex items-baseline justify-between mb-5">
+                    <span className="font-display text-[23px] font-medium text-kx-ink tracking-[-0.015em]">
                       {l.name}
                     </span>
-                    <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-kx-muted">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-kx-muted">
                       {l.tag}
                     </span>
                   </div>
@@ -343,8 +343,8 @@ export function AboutLayerStack() {
                     className="transition-opacity duration-500"
                     style={{ opacity: isTop ? 1 : 0 }}
                   >
-                    <div className="min-h-[104px] mb-4">{l.visual(isTop)}</div>
-                    <p className="text-[13.5px] leading-relaxed text-kx-muted border-t border-kx-border pt-4">
+                    <div className="min-h-[160px] mb-6">{l.visual(isTop)}</div>
+                    <p className="text-[16px] leading-relaxed text-kx-muted border-t border-kx-border pt-6">
                       {l.body}
                     </p>
                   </div>
@@ -384,14 +384,16 @@ export function AboutScatter() {
             "radial-gradient(900px circle at 80% 20%, rgba(59,91,255,0.12), transparent 60%), radial-gradient(700px circle at 10% 80%, rgba(59,91,255,0.08), transparent 55%)",
         }}
       />
-      <div className="relative z-10 max-w-6xl mx-auto">
+      <div className="relative z-10 max-w-[1240px] mx-auto">
         <div className="grid md:grid-cols-[1.1fr_0.9fr] gap-8 md:gap-16 items-start mb-16">
-          <h2 className="font-display text-[38px] md:text-[58px] leading-[1.0] tracking-[-0.035em] text-kx-ink">
+          {/* Deliberately one step under TraceBento's 58px — that section is the
+              visual ceiling for the page. */}
+          <h2 className="font-display text-[38px] md:text-[52px] leading-[1.02] tracking-[-0.035em] text-kx-ink">
             The queue has no
             <br />
             idea who's sick.
           </h2>
-          <p className="text-[16px] leading-[1.7] text-kx-muted md:pt-3">
+          <p className="text-[17.5px] leading-[1.7] text-kx-muted md:pt-3">
             A chest X-ray arrives with a timestamp, a location, and nothing else.
             The order it gets read in is the order it happened to arrive in. Kroix
             reads every study on arrival and turns that pile into a ranking.

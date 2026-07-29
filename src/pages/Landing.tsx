@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowRight, Loader2, Clock, TrendingUp, Target, Zap } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Dialog,
@@ -24,7 +24,6 @@ import { LandingFaq } from "@/components/landing/LandingFaq";
 import { AppTourDemo } from "@/components/landing/AppTourDemo";
 import { HeroVideoBackdrop } from "@/components/landing/HeroVideoBackdrop";
 import { AboutLayerStack, AboutScatter } from "@/components/landing/AboutSections";
-import { AboutStaircase } from "@/components/landing/AboutStaircase";
 import { StayHookToast } from "@/components/landing/StayHookToast";
 import { LiveQueueHero } from "@/components/landing/LiveQueueHero";
 import { SpeedAccuracyDuo } from "@/components/landing/SpeedAccuracyDuo";
@@ -278,15 +277,15 @@ const Landing = () => {
           <SectionRule n="01" title="The queue, live" />
           <div className="grid lg:grid-cols-[1fr_auto] gap-12 items-center">
             <Reveal>
-              <h2 className="font-display text-[30px] md:text-[42px] leading-[1.05] tracking-[-0.03em] text-kx-ink mb-5 max-w-lg">
+              <h2 className="font-display text-[36px] md:text-[50px] leading-[1.04] tracking-[-0.03em] text-kx-ink mb-6 max-w-xl">
                 The worklist that sorts itself.
               </h2>
-              <p className="text-[17px] text-kx-muted leading-relaxed max-w-lg">
+              <p className="text-[18.5px] text-kx-muted leading-relaxed max-w-xl">
                 A 3-model ensemble reads every chest X-ray the moment it arrives and moves the
                 critical cases to the front, before a radiologist has to go looking.
               </p>
             </Reveal>
-            <Reveal className="relative w-full lg:w-[380px]" delayMs={150}>
+            <Reveal className="relative w-full lg:w-[440px]" delayMs={150}>
               <LiveQueueHero />
             </Reveal>
           </div>
@@ -301,10 +300,9 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* The problem, the architecture that answers it, then one study end-to-end */}
+      {/* The problem, then the architecture that answers it */}
       <AboutScatter />
       <AboutLayerStack />
-      <AboutStaircase />
 
       {/* Speed + accuracy, paired as one two-card section instead of two stacked blocks */}
       <SpeedAccuracyDuo />
@@ -312,62 +310,6 @@ const Landing = () => {
       {/* Live Triage Trace Section */}
       <TraceBento />
 
-      {/* Clinical Impact Section */}
-      <section className="py-32 px-8 bg-kx-canvas border-t border-kx-border">
-        <div className="max-w-6xl mx-auto">
-          <Reveal className="text-center mb-20">
-            <span className="text-kx-critical text-[12px] font-mono font-medium tracking-wide uppercase mb-4 block">
-              Clinical impact
-            </span>
-            <h2 className="font-grotesk text-[36px] lg:text-[44px] leading-[1.1] tracking-[-0.01em] mb-6">
-              Measurable outcomes
-            </h2>
-            <p className="text-[17px] text-kx-muted max-w-2xl mx-auto">
-              Model performance measured on held-out evaluation data. Workflow figures are
-              modeled projections, not results from clinical deployment.
-            </p>
-          </Reveal>
-
-          <Reveal className="rounded-2xl border border-kx-border bg-white shadow-[0_8px_30px_-18px_rgba(18,21,26,0.12)] mb-20 overflow-hidden">
-            <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-kx-border">
-              {[
-                { icon: Clock, value: "40%", label: "Faster MTTR", sub: "Projected, scan to read", color: "text-kx-critical" },
-                { icon: TrendingUp, value: "25%", label: "Throughput", sub: "Projected, per shift", color: "text-kx-accent2" },
-                { icon: Target, value: "95%", label: "Critical Detection", sub: "Held-out evaluation", color: "text-kx-accent3" },
-                { icon: Zap, value: "<5s", label: "Inference Time", sub: "Per-study latency", color: "text-amber-500" },
-              ].map(({ icon: Icon, value, label, sub, color }) => (
-                <div key={label} className="p-6 md:p-8 text-center">
-                  <Icon className={`w-5 h-5 mx-auto mb-3 ${color}`} />
-                  <p className="text-3xl md:text-4xl font-mono font-medium text-kx-ink mb-1">{value}</p>
-                  <p className="text-[14px] font-medium text-kx-ink">{label}</p>
-                  <p className="text-[12px] text-kx-muted mt-1">{sub}</p>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-
-          <div className="grid md:grid-cols-3 gap-12">
-            <Reveal delayMs={0} className="space-y-4">
-              <h3 className="font-grotesk text-xl text-kx-ink"><strong>Surface</strong> urgent cases faster</h3>
-              <p className="text-kx-muted leading-relaxed">
-                Critical respiratory findings get moved to the top of the worklist, so high-acuity cases get read first instead of sitting in a FIFO queue.
-              </p>
-            </Reveal>
-            <Reveal delayMs={100} className="space-y-4">
-              <h3 className="font-grotesk text-xl text-kx-ink"><strong>Free up</strong> radiologist time</h3>
-              <p className="text-kx-muted leading-relaxed">
-                Kroix handles initial triage and sorting, so radiologists spend their time on interpretation and diagnosis instead of queue management.
-              </p>
-            </Reveal>
-            <Reveal delayMs={200} className="space-y-4">
-              <h3 className="font-grotesk text-xl text-kx-ink"><strong>Track</strong> workflow metrics</h3>
-              <p className="text-kx-muted leading-relaxed">
-                Built-in analytics track MTTR, throughput, and accuracy, giving department leadership concrete data on workflow performance.
-              </p>
-            </Reveal>
-          </div>
-        </div>
-      </section>
 
       {/* Case study and the morning-read narrative share one frame, side by side, so
           the two proof points read as a single screen instead of two full scrolls. */}
@@ -383,13 +325,13 @@ const Landing = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-24 px-8 bg-kx-canvas border-t border-kx-border">
-        <div className="max-w-3xl mx-auto">
-          <Reveal className="text-center mb-14">
-            <span className="text-kx-accent2 text-[12px] font-mono font-medium tracking-wide uppercase mb-4 block">
+      <section className="py-28 px-8 bg-kx-canvas border-t border-kx-border">
+        <div className="max-w-4xl mx-auto">
+          <Reveal className="text-center mb-16">
+            <span className="text-kx-accent2 text-[12.5px] font-mono font-medium tracking-wide uppercase mb-4 block">
               FAQ
             </span>
-            <h2 className="font-grotesk text-[36px] lg:text-[44px] leading-[1.1] tracking-[-0.01em]">
+            <h2 className="font-display text-[38px] lg:text-[50px] leading-[1.04] tracking-[-0.025em]">
               Common questions
             </h2>
           </Reveal>
@@ -403,11 +345,11 @@ const Landing = () => {
           className="absolute inset-0 opacity-30 pointer-events-none"
           style={{ background: "radial-gradient(600px circle at 50% 0%, rgba(255,255,255,0.25), transparent 70%)" }}
         />
-        <Reveal className="max-w-3xl mx-auto text-center relative z-10">
-          <h2 className="font-grotesk text-[36px] lg:text-[52px] leading-[1.1] text-white mb-8 tracking-[-0.02em]">
+        <Reveal className="max-w-4xl mx-auto text-center relative z-10">
+          <h2 className="font-display text-[40px] lg:text-[54px] leading-[1.04] text-white mb-8 tracking-[-0.03em]">
             Try it in your department.
           </h2>
-          <p className="text-xl text-white/80 mb-10 max-w-xl mx-auto">
+          <p className="text-[19px] text-white/80 mb-10 max-w-2xl mx-auto leading-relaxed">
             See how automated triage prioritization fits into your existing reading workflow.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
@@ -485,9 +427,11 @@ const Landing = () => {
 /** Hairline section rule used to number the sections below the hero. */
 function SectionRule({ n, title }: { n: string; title: string }) {
   return (
-    <div className="flex items-baseline gap-3 mb-8">
-      <span className="font-mono text-[11px] text-kx-critical">{n}</span>
-      <span className="font-display text-[15px] font-medium text-kx-ink tracking-[-0.01em]">{title}</span>
+    <div className="flex items-baseline gap-4 mb-10">
+      <span className="font-mono text-[12.5px] text-kx-critical">{n}</span>
+      <span className="font-display text-[22px] md:text-[26px] font-medium text-kx-ink tracking-[-0.02em]">
+        {title}
+      </span>
       <span className="flex-1 h-px bg-kx-border" />
     </div>
   );
