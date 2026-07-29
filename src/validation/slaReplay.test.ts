@@ -222,6 +222,41 @@ describe("verdictFor — pre-registered thresholds", () => {
   });
 });
 
+describe("segmentation must reuse the full replay", () => {
+  /**
+   * Re-replaying a subset rebuilds a different queue with different slots, so the
+   * numbers do not describe anything real. This guards the fix for that bug.
+   */
+  const rows = [
+    row("a", 0, 100, "medium", 0.2),
+    row("b", 1, 110, "medium", 0.9),
+    row("c", 2, 120, "medium", 0.5),
+    row("d", 3, 130, "medium", 0.1),
+  ];
+
+  it("segment counts sum to the whole when the replay is shared", () => {
+    const full = analyse(rows, DEFAULT_TARGETS, byScore);
+    const half1 = analyse(rows.slice(0, 2), DEFAULT_TARGETS, byScore, full.replayReadAt);
+    const half2 = analyse(rows.slice(2), DEFAULT_TARGETS, byScore, full.replayReadAt);
+    expect(half1.overall.total + half2.overall.total).toBe(full.overall.total);
+    expect(half1.overall.breachedReplay + half2.overall.breachedReplay).toBe(
+      full.overall.breachedReplay
+    );
+    expect(half1.overall.avoided + half2.overall.avoided).toBe(full.overall.avoided);
+  });
+
+  it("re-replaying a subset gives a DIFFERENT answer, which is why we must not", () => {
+    const full = analyse(rows, DEFAULT_TARGETS, byScore);
+    const shared = analyse(rows.slice(0, 2), DEFAULT_TARGETS, byScore, full.replayReadAt);
+    const rereplayed = analyse(rows.slice(0, 2), DEFAULT_TARGETS, byScore);
+    // Not asserting a specific value — only that the two approaches diverge, so a
+    // future refactor cannot quietly go back to re-replaying subsets.
+    const sharedTimes = [...shared.replayReadAt.values()].sort();
+    const reTimes = [...rereplayed.replayReadAt.values()].sort();
+    expect(sharedTimes).not.toEqual(reTimes);
+  });
+});
+
 describe("expedite requests — the radiologist-facing metric", () => {
   const withExp = (
     id: string,

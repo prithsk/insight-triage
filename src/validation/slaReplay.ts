@@ -130,9 +130,19 @@ export function breached(row: WorklistRow, readAt: number, targets: Targets): bo
 export function analyse(
   rows: WorklistRow[],
   targets: Targets = DEFAULT_TARGETS,
-  rank: Ranker = byScore
+  rank: Ranker = byScore,
+  /**
+   * Precomputed replay, for segmenting results without re-replaying.
+   *
+   * This exists because re-running the replay on a subset is WRONG: a subset has
+   * fewer studies and fewer read slots, so the queue reconstruction produces
+   * entirely different dynamics. To report "avoided breaches among busy-period
+   * studies", replay once over the full worklist and pass that result in here
+   * alongside the subset.
+   */
+  precomputed?: Map<string, number>
 ): ReplayResult {
-  const replayReadAt = replay(rows, rank);
+  const replayReadAt = precomputed ?? replay(rows, rank);
 
   const byBand: Record<Band, ReplayCounts> = {
     critical: emptyCounts(),
