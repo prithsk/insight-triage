@@ -1,0 +1,41 @@
+{
+  "_readme": [
+    "Validation sprint fixture. 20 studies selected BY GROUND-TRUTH LABEL, never by model score.",
+    "Selecting by score would let the ensemble pick its own exam and make the result circular.",
+    "",
+    "band:        selection criterion. medium = clinically actionable but non-emergent (the thesis).",
+    "             normal / critical are anchors so the rater has a spread to work against.",
+    "arrivalIndex: order the studies landed. This is the FIFO baseline, i.e. the incumbent.",
+    "kroixScore:  PLACEHOLDER. Replace with real ensemble output before running with a radiologist.",
+    "             See _scoresAreReal below.",
+    "imagePath:   drop PNGs at public/validation-studies/<id>.png. Renders a labelled",
+    "             placeholder when absent so the harness is usable before images are staged.",
+    "",
+    "Source: label vocabulary follows NIH ChestX-ray14. Use that dataset first (no credentialing).",
+    "Never place real PHI here — this file is bundled by Vite and is not access-controlled."
+  ],
+  "_scoresAreReal": false,
+  "_datasetSource": "NIH ChestX-ray14 (placeholder selection)",
+  "studies": [
+    { "id": "VS-01", "arrivalIndex": 1,  "band": "medium",   "label": "Small left pleural effusion",            "kroixScore": 0.61 },
+    { "id": "VS-02", "arrivalIndex": 2,  "band": "normal",   "label": "No finding",                             "kroixScore": 0.08 },
+    { "id": "VS-03", "arrivalIndex": 3,  "band": "critical", "label": "Large right pneumothorax",               "kroixScore": 0.94 },
+    { "id": "VS-04", "arrivalIndex": 4,  "band": "medium",   "label": "Patchy right lower lobe consolidation",  "kroixScore": 0.55 },
+    { "id": "VS-05", "arrivalIndex": 5,  "band": "medium",   "label": "8mm right upper lobe nodule",            "kroixScore": 0.34 },
+    { "id": "VS-06", "arrivalIndex": 6,  "band": "medium",   "label": "Mild cardiomegaly",                      "kroixScore": 0.29 },
+    { "id": "VS-07", "arrivalIndex": 7,  "band": "normal",   "label": "No finding",                             "kroixScore": 0.11 },
+    { "id": "VS-08", "arrivalIndex": 8,  "band": "medium",   "label": "Subtle bibasilar interstitial change",   "kroixScore": 0.47 },
+    { "id": "VS-09", "arrivalIndex": 9,  "band": "critical", "label": "Extensive bilateral consolidation",      "kroixScore": 0.91 },
+    { "id": "VS-10", "arrivalIndex": 10, "band": "medium",   "label": "Blunted left costophrenic angle",        "kroixScore": 0.42 },
+    { "id": "VS-11", "arrivalIndex": 11, "band": "medium",   "label": "Left lower lobe atelectasis",            "kroixScore": 0.38 },
+    { "id": "VS-12", "arrivalIndex": 12, "band": "normal",   "label": "No finding",                             "kroixScore": 0.06 },
+    { "id": "VS-13", "arrivalIndex": 13, "band": "medium",   "label": "Right middle lobe infiltrate",           "kroixScore": 0.58 },
+    { "id": "VS-14", "arrivalIndex": 14, "band": "critical", "label": "Pulmonary edema, bilateral",             "kroixScore": 0.88 },
+    { "id": "VS-15", "arrivalIndex": 15, "band": "medium",   "label": "Pleural thickening, right apex",         "kroixScore": 0.22 },
+    { "id": "VS-16", "arrivalIndex": 16, "band": "medium",   "label": "Small nodule, left hilum, 6mm",          "kroixScore": 0.31 },
+    { "id": "VS-17", "arrivalIndex": 17, "band": "normal",   "label": "No finding",                             "kroixScore": 0.09 },
+    { "id": "VS-18", "arrivalIndex": 18, "band": "medium",   "label": "Early perihilar consolidation",          "kroixScore": 0.52 },
+    { "id": "VS-19", "arrivalIndex": 19, "band": "critical", "label": "Tension pneumothorax, left",             "kroixScore": 0.96 },
+    { "id": "VS-20", "arrivalIndex": 20, "band": "medium",   "label": "Mild pulmonary vascular congestion",     "kroixScore": 0.44 }
+  ]
+}

@@ -22,6 +22,7 @@ import AboutVariants from "./pages/AboutVariants";
 import InfoVariants from "./pages/InfoVariants";
 import MetricVariants from "./pages/MetricVariants";
 import TraceVariants from "./pages/TraceVariants";
+import Validation from "./pages/Validation";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
                 variants — dev-only so they aren't publicly browsable in production. */}
             {import.meta.env.DEV && (
               <>
+                <Route path="/validation" element={<Validation />} />
                 <Route path="/hero-variants" element={<HeroVariants />} />
                 <Route path="/about-variants" element={<AboutVariants />} />
                 <Route path="/info-variants" element={<InfoVariants />} />
