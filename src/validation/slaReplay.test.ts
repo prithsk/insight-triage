@@ -8,6 +8,8 @@ import {
   segmentByDepth,
   byScore,
   byArrival,
+  expediteMechanism,
+  expediteAnalysis,
   DEFAULT_TARGETS,
   MINUTES,
   HOURS,
@@ -217,6 +219,106 @@ describe("verdictFor — pre-registered thresholds", () => {
         verdictFor(c(100, avoided))
       );
     }
+  });
+});
+
+describe("expedite requests — the radiologist-facing metric", () => {
+  const withExp = (
+    id: string,
+    arrivedMin: number,
+    readMin: number,
+    band: WorklistRow["band"],
+    score: number,
+    expeditedMin?: number
+  ): WorklistRow => ({
+    ...row(id, arrivedMin, readMin, band, score),
+    ...(expeditedMin === undefined ? {} : { expeditedAt: T0 + expeditedMin * MINUTES }),
+  });
+
+  describe("mechanism — does waiting actually cause calling here?", () => {
+    it("detects the mechanism when expedites land on long-waiting studies", () => {
+      const rows = [
+        withExp("slow1", 0, 200, "medium", 0.5, 120),
+        withExp("slow2", 0, 240, "medium", 0.5, 150),
+        withExp("fast1", 0, 20, "medium", 0.5),
+        withExp("fast2", 0, 25, "medium", 0.5),
+      ];
+      const m = expediteMechanism(rows);
+      expect(m.expedited).toBe(2);
+      expect(m.notExpedited).toBe(2);
+      expect(m.ratio).toBeGreaterThan(1.5);
+    });
+
+    it("REJECTS the mechanism when calls are not wait-driven", () => {
+      // Expedites scattered across fast and slow reads alike. If this is what a
+      // department's data looks like, reading sooner will not stop the calls and
+      // the whole interruption argument does not apply there.
+      const rows = [
+        withExp("a", 0, 20, "medium", 0.5, 10),
+        withExp("b", 0, 200, "medium", 0.5),
+        withExp("c", 0, 25, "medium", 0.5, 12),
+        withExp("d", 0, 210, "medium", 0.5),
+      ];
+      const m = expediteMechanism(rows);
+      expect(m.ratio).toBeLessThan(1);
+    });
+
+    it("handles a department that logs no expedites at all", () => {
+      const rows = [row("a", 0, 10, "medium", 0.5), row("b", 1, 20, "medium", 0.5)];
+      const m = expediteMechanism(rows);
+      expect(m.expedited).toBe(0);
+      expect(m.medianWaitExpedited).toBe(0);
+    });
+  });
+
+  describe("avoided calls", () => {
+    it("counts a call as avoided when the replay reads before the call happened", () => {
+      // 'buried' was called about at t=60 and not read until t=200. Score-ordering
+      // gives it the t=10 slot, so the call never happens.
+      const rows = [
+        withExp("buried", 0, 200, "critical", 0.95, 60),
+        withExp("filler", 1, 10, "routine", 0.05),
+      ];
+      const rep = replay(rows, byScore);
+      const res = expediteAnalysis(rows, rep);
+      expect(res.avoided).toBe(1);
+      expect(res.remaining).toBe(0);
+    });
+
+    it("does not count a call the replay failed to beat", () => {
+      const rows = [
+        withExp("a", 0, 100, "medium", 0.5, 5),
+        withExp("b", 1, 110, "medium", 0.5),
+      ];
+      const rep = replay(rows, byScore);
+      const res = expediteAnalysis(rows, rep);
+      // earliest possible slot is t=100, well after the t=5 call
+      expect(res.avoided).toBe(0);
+      expect(res.remaining).toBe(1);
+    });
+
+    it("treats a simultaneous read and call as NOT avoided", () => {
+      // A read completing at the same instant would not have stopped the call.
+      const rows = [withExp("x", 0, 10, "medium", 0.5, 10)];
+      const rep = replay(rows, byScore);
+      expect(expediteAnalysis(rows, rep).avoided).toBe(0);
+    });
+
+    it("ignores studies with no expedite request", () => {
+      const rows = [row("a", 0, 10, "medium", 0.5), row("b", 1, 20, "medium", 0.5)];
+      const rep = replay(rows, byScore);
+      const res = expediteAnalysis(rows, rep);
+      expect(res.avoided).toBe(0);
+      expect(res.remaining).toBe(0);
+    });
+
+    it("skips malformed rows rather than counting them", () => {
+      // expedite logged before the study existed — a data error, not a saved call
+      const rows = [withExp("bad", 50, 100, "medium", 0.5, 10)];
+      const rep = replay(rows, byScore);
+      const res = expediteAnalysis(rows, rep);
+      expect(res.avoided + res.remaining).toBe(0);
+    });
   });
 });
 

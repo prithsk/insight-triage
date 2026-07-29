@@ -69,7 +69,7 @@ those into the public bundle.
 
 ## Verification
 
-`npm test` — 73 tests, Vitest. CI runs typecheck, tests, build, and a set of shell
+`npm test` — 81 tests, Vitest. CI runs typecheck, tests, build, and a set of shell
 assertions on the build output (`.github/workflows/ci.yml`).
 
 **What is covered:** the ranking statistics behind the validation sprint; the SLA

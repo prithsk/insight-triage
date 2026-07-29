@@ -27,6 +27,18 @@ export interface WorklistRow {
   band: Band;
   /** Kroix priority score in [0,1]. Higher = read sooner. */
   score: number;
+  /**
+   * epoch ms of the FIRST expedite request on this study — a callback, STAT
+   * upgrade, wet-read request, or chase call. Optional: many RIS exports carry
+   * it, some do not.
+   *
+   * This is the closest thing to a radiologist-facing incentive that is also
+   * countable. An expedite request is an interruption, and interruptions are a
+   * published error-rate multiplier (Balint et al., Academic Radiology 2014:
+   * one additional call in the preceding hour associated with a 12% increase in
+   * the likelihood of a discrepant report).
+   */
+  expeditedAt?: number;
 }
 
 /** Read-time target per band, in milliseconds. */
@@ -171,6 +183,97 @@ export const VERDICT_COPY: Record<Verdict, string> = {
   "no-breaches":
     "No breaches in the actual data, so there is nothing to avoid. This department is not queue-constrained and is not the ICP.",
 };
+
+/* ────────────────────────────────────────────────────────────
+   Expedite requests — the radiologist-facing metric
+   ──────────────────────────────────────────────────────────── */
+
+export interface ExpediteMechanism {
+  /** Studies carrying an expedite request. */
+  expedited: number;
+  /** Studies with no expedite request. */
+  notExpedited: number;
+  /** Median wait (ms) of expedited studies. */
+  medianWaitExpedited: number;
+  /** Median wait (ms) of the rest. */
+  medianWaitNotExpedited: number;
+  /**
+   * Ratio of the two medians. Above ~1.5 means expedites concentrate on
+   * long-waiting cases, which is the mechanism claim: waiting causes calling.
+   * Near 1.0 means calls are driven by something else and this whole line of
+   * argument does not hold in this department.
+   */
+  ratio: number;
+}
+
+export interface ExpediteResult {
+  mechanism: ExpediteMechanism;
+  /** Expedite requests that still occur under the replay. */
+  remaining: number;
+  /**
+   * Expedite requests avoided: the replay read the study BEFORE the moment
+   * someone called about it, so the call never happens.
+   */
+  avoided: number;
+}
+
+function median(xs: number[]): number {
+  if (xs.length === 0) return 0;
+  const s = [...xs].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+
+/**
+ * Step 1 of the proof: does waiting actually cause calling *in this department*?
+ *
+ * Compares how long expedited studies waited against everything else. This must
+ * be established before any claim about avoided interruptions means anything —
+ * if expedites are not wait-driven here, reading sooner will not prevent them.
+ */
+export function expediteMechanism(rows: WorklistRow[]): ExpediteMechanism {
+  const valid = rows.filter(
+    (r) => r.expeditedAt === undefined || r.expeditedAt >= r.arrivedAt
+  );
+  const exp = valid.filter((r) => r.expeditedAt !== undefined);
+  const not = valid.filter((r) => r.expeditedAt === undefined);
+
+  const mExp = median(exp.map((r) => r.readAt - r.arrivedAt));
+  const mNot = median(not.map((r) => r.readAt - r.arrivedAt));
+
+  return {
+    expedited: exp.length,
+    notExpedited: not.length,
+    medianWaitExpedited: mExp,
+    medianWaitNotExpedited: mNot,
+    ratio: mNot === 0 ? 0 : mExp / mNot,
+  };
+}
+
+/**
+ * Step 2: how many of those calls does the replay prevent?
+ *
+ * An expedite logged at time T is avoided when the replay finishes the study
+ * before T — nobody had reason to pick up the phone. Ties count as NOT avoided,
+ * since a read completing at the same instant would not have stopped the call.
+ */
+export function expediteAnalysis(
+  rows: WorklistRow[],
+  replayReadAt: Map<string, number>
+): ExpediteResult {
+  let avoided = 0;
+  let remaining = 0;
+
+  for (const r of rows) {
+    if (r.expeditedAt === undefined) continue;
+    if (r.expeditedAt < r.arrivedAt) continue; // malformed row, skip rather than count
+    const rep = replayReadAt.get(r.studyId);
+    if (rep !== undefined && rep < r.expeditedAt) avoided++;
+    else remaining++;
+  }
+
+  return { mechanism: expediteMechanism(rows), avoided, remaining };
+}
 
 /**
  * Queue depth at each read slot — the number of studies waiting.

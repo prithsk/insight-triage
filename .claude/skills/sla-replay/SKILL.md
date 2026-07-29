@@ -61,7 +61,12 @@ One CSV. No images, no clinician time, no deployment.
 | `priority` | Their own flag (STAT / routine / …) as recorded | yes |
 | `modality` | CXR, CT, … — filter to the modality Kroix scores | yes |
 | `finding` | Ground-truth or final-report label, if available | preferred |
+| `expedited_at` | Timestamp of the first callback / STAT upgrade / wet-read request | **ask for this** |
 | `site` / `shift` | For segmenting | optional |
+
+`expedited_at` is the highest-value optional column, because it is the only
+radiologist-facing metric in the export. Ask for it explicitly; many RIS systems
+log it and nobody thinks to request it.
 
 Prefer de-identified. **Do not solicit images.** If the department offers PHI,
 route it through the existing approved-user gate and say so explicitly; the replay
@@ -126,6 +131,37 @@ Also required:
   a year.
 
 ---
+
+## The interruption argument — three steps, only two are yours
+
+This is the only line of reasoning that reaches a radiologist personally rather
+than their department, and it reaches diagnostic error without ever claiming a
+patient outcome. Run it in this order and do not skip step 1.
+
+**Step 1 — establish the mechanism in THEIR data.** `expediteMechanism()` compares
+how long expedited studies waited against everything else.
+
+- `ratio` above ~1.5 → calls concentrate on long-waiting studies. Waiting causes
+  calling *here*, so reading sooner will prevent calls.
+- `ratio` near or below 1.0 → calls are driven by something else in this
+  department. **Stop. Do not make the interruption argument.** It does not hold
+  and a reader will find that out faster than you will.
+
+**Step 2 — count what the replay prevents.** `expediteAnalysis()` counts expedite
+requests where the replay finished the study *before* the moment someone called.
+The call had no reason to happen.
+
+**Step 3 — cite, do not claim.** You do not measure error reduction. You cite it:
+
+> On-call radiologists field roughly 72 calls in a 12-hour overnight shift.
+> Balint et al. (Academic Radiology, 2014) found one additional call in the
+> preceding hour associated with a 12% increase in the likelihood of a discrepant
+> report. Interruption time nearly equals interpretation time (52% interpreting,
+> 29% active interruptions, 18% passive).
+
+Steps 1 and 2 are your measurements on their data. Step 3 is someone else's
+published finding, attributed. Never blur that line — the whole value of this
+structure is that each claim is traceable to whoever actually earned it.
 
 ## Honesty constraints
 
