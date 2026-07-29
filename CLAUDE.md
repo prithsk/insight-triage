@@ -69,13 +69,15 @@ those into the public bundle.
 
 ## Verification
 
-`npm test` — 48 tests, Vitest. CI runs typecheck, tests, build, and a set of shell
+`npm test` — 73 tests, Vitest. CI runs typecheck, tests, build, and a set of shell
 assertions on the build output (`.github/workflows/ci.yml`).
 
-**What is covered:** the ranking statistics behind the validation sprint; cumulative
-RLS policy invariants read from `supabase/migrations/`; edge-function ordering
-(authorise before touching the service role). Both P0s from the 2026-07-28 review
-were mutation-tested: reintroducing either one fails the suite.
+**What is covered:** the ranking statistics behind the validation sprint; the SLA
+replay engine (including that it can return a *negative* result — a metric that
+cannot fail is a sales prop, not a measurement); cumulative RLS policy invariants
+read from `supabase/migrations/`; edge-function ordering (authorise before touching
+the service role). Both P0s from the 2026-07-28 review were mutation-tested:
+reintroducing either one fails the suite.
 
 **What is not covered:** no component tests, no E2E, no live-database tests. The RLS
 and edge-function suites are static analysis of SQL and source text, not behaviour.
@@ -95,7 +97,12 @@ Run `/preflight` before any push.
 - `/preflight` — pre-ship gate. Run before every push.
 - `/rls-audit` — cumulative RLS policy audit. Run before any migration ships.
 - `/edge-function` — write or review a Supabase function without opening a PHI hole.
-- `/validation-sprint` — the ranked-list experiment that gates the product thesis.
+- `/sla-replay` — replay Kroix's ranking over a department's historical worklist to
+  count avoided read-time breaches. Answers "would anyone pay" without deployment or
+  clearance. Run this before `/validation-sprint`.
+- `/validation-sprint` — the ranked-list experiment. Measures whether Kroix ranks
+  like a radiologist, which is necessary but not sufficient: it says nothing about
+  whether reordering helps anyone.
 - `/market-check` — competitor and regulatory research, primary sources only.
 - `/section-variants` — build N design variants, gallery them, apply one, delete the rest.
 

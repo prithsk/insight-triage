@@ -11,6 +11,111 @@ matters most — a decision without a stated reversal condition becomes dogma.
 
 ---
 
+## 2026-07-29 · Measure SLA compliance, not clinical outcome
+
+**Decided.** Stop framing Kroix's value as "better patient outcomes." Frame it as
+"fewer breached read-time targets."
+
+**Why.** Founders Inc CEO feedback, via an analogy worth keeping: someone offers to
+clean your floors and you say yes, but nobody can prove a visitor left *because of*
+the floors. You cannot see what their eyes saw. Triage has the same shape — the
+causal chain runs reorder → read earlier → clinician acts sooner → patient does
+better, and every arrow after the first is confounded.
+
+SLA breach rate escapes this. It is binary, countable, contractually tied to money
+(teleradiology penalties), and attributable by construction: did the study get read
+inside the window, yes or no. No counterfactual required, no patient-outcome
+inference, no IRB.
+
+**Reverses if.** A pilot department cares about outcomes and not SLAs, or a
+regulatory path requires outcome evidence anyway (a 510(k) may).
+
+---
+
+## 2026-07-29 · The medium-band wedge and the attribution problem are the same fact
+
+**Decided.** Treat "unclaimed" and "unprovable" as the same finding rather than two
+separate ones, and price that into every plan.
+
+**Why.** Critical-band attribution is easy: a missed pneumothorax is dramatic,
+litigable, and has a clean metric (door-to-read). That is why every incumbent went
+there. Medium-band attribution is hardest: a small effusion read four hours late
+usually produces nothing measurable, occasionally escalates, and the effect is
+statistical, low-frequency, high-consequence.
+
+The medium band is unclaimed **because** it resists proof, not because nobody
+thought of it. Any plan that treats the gap as free money is wrong.
+
+**Reverses if.** The retrospective replay (below) produces a clean medium-band SLA
+delta, which would mean the effect is measurable after all at the queue level even
+if not at the patient level.
+
+---
+
+## 2026-07-29 · Value is a function of queue depth, not ranking quality
+
+**Decided.** ICP is high-volume, backed-up departments. Deprioritise quiet
+outpatient sites regardless of how well the model ranks.
+
+**Why.** The JACR Aidoc study (11,252 CTPA exams, retrospective pre/post) found
+turnaround time fell 68.9 → 46.7 min during work hours, a 32% reduction — but
+off-hours savings were **2.8 minutes and not statistically significant (p=0.345)**.
+Reordering an empty queue does nothing. Value exists only where demand exceeds
+capacity.
+
+**Reverses if.** Never, structurally — but the threshold queue depth where value
+appears is unknown and worth measuring.
+
+---
+
+## 2026-07-29 · Retrospective replay before the radiologist ranking sprint
+
+**Decided.** Build the replay harness first. The ranking sprint becomes a
+follow-on that validates the replay's assumptions.
+
+**Why.** The ranking sprint measures Spearman ρ against one radiologist's ordering.
+That answers "does Kroix rank like a radiologist" and says nothing about whether
+anyone would pay. The replay answers the business question directly, and needs a
+CSV export rather than 30 minutes of a busy clinician's attention — a far smaller
+ask that produces a far larger artifact.
+
+If the replay shows no SLA improvement, ranking quality is moot.
+
+**Reverses if.** No department will share even a de-identified worklist export, in
+which case the ranking sprint is the only path left.
+
+---
+
+## 2026-07-29 · Do not pivot to diagnostic
+
+**Decided.** Stay non-diagnostic. Reject the "diagnostic is oversaturated,
+non-diagnostic isn't" framing.
+
+**Why.** That framing is backwards on the facts. Non-diagnostic triage is the CADt
+category, which has the largest installed base of any clinical AI in healthcare as
+of 2026, with hundreds of cleared products (Aidoc, Viz.ai, Annalise, Lunit, Qure).
+The uncrowded lane is not "non-diagnostic" — it is the medium-severity band, where
+Kroix already sits. Diagnostic (CADe/CADx) carries a higher regulatory bar and a
+worse competitive field.
+
+**Reverses if.** Primary-source evidence contradicts the CADt saturation finding.
+
+---
+
+## 2026-07-29 · The patent is not treated as a moat
+
+**Decided.** Record the patent as neutral, not as a strength, in any internal
+planning.
+
+**Why.** A workflow-method patent with no clearance, no users, and no revenue is a
+lottery ticket. Incumbents carry freedom-to-operate counsel. It may have value
+later; it defends nothing today.
+
+**Reverses if.** Counsel gives a specific opinion that the claims block a named
+competitor's shipped behaviour.
+
+---
+
 ## 2026-07-28 · Kroix is a Class II device; stop looking for an exemption
 
 **Decided.** Treat Kroix as regulated under 21 CFR 892.2080 (CADt, Class II,

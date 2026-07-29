@@ -12,17 +12,20 @@ import { useState } from "react";
  */
 
 const MODELS = [
-  { name: "DenseNet121", p: 0.94, weight: 0.42, color: "#E8503A" },
-  { name: "GoogLeNet", p: 0.88, weight: 0.33, color: "#3B5BFF" },
-  { name: "ResNet18", p: 0.79, weight: 0.25, color: "#0F9D6E" },
+  // Per-model votes for the illustrative study. The UI shows each model's
+  // contribution (p × weight), so these must actually sum to FUSED:
+  // 0.42(0.99) + 0.33(0.98) + 0.25(0.96) = 0.9792 → 0.98
+  { name: "DenseNet121", p: 0.99, weight: 0.42, color: "#E8503A" },
+  { name: "GoogLeNet", p: 0.98, weight: 0.33, color: "#3B5BFF" },
+  { name: "ResNet18", p: 0.96, weight: 0.25, color: "#0F9D6E" },
 ];
 
-const FUSED = 0.91;
+const FUSED = 0.98;
 
 const AUDIT = [
   { t: "07:41:02", who: "system", what: "Study received · chest_xray.dcm" },
   { t: "07:41:03", who: "ensemble", what: "3 forward passes · 830ms" },
-  { t: "07:41:03", who: "ensemble", what: "tanh-weighted fusion → 0.91" },
+  { t: "07:41:03", who: "ensemble", what: "tanh-weighted fusion → 0.98" },
   { t: "07:41:04", who: "queue", what: "Rank 5 → 1 (critical band)" },
   { t: "07:46:55", who: "Dr. Chen", what: "Confirmed · signed off" },
 ];

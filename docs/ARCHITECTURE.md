@@ -144,12 +144,13 @@ gate and are verified absent from production bundles by `/preflight`.
 
 ## Verification
 
-`npm test` runs 48 Vitest tests. CI (`.github/workflows/ci.yml`) runs typecheck,
+`npm test` runs 73 Vitest tests. CI (`.github/workflows/ci.yml`) runs typecheck,
 tests, build, then shell assertions against the build output.
 
 | Suite | Asserts |
 |---|---|
 | `src/validation/stats.test.ts` | Spearman with tie handling, Fisher-z CI, pre-registered verdict boundaries, seeded shuffle. A wrong rho silently invalidates the validation sprint. |
+| `src/validation/slaReplay.test.ts` | Throughput held fixed (the replay reuses exactly the historical read slots and never invents capacity), no study read before it arrived, negative results surface rather than clamp, and the metric discriminates a good ordering from an inverted one. |
 | `supabase/rls.test.ts` | Cumulative policy invariants: no `USING (true)` on PHI tables, no missing `TO` clause, no service_role policies, self-update policies carry `WITH CHECK`, privilege columns trigger-guarded, RLS enabled wherever policies exist, `SECURITY DEFINER` pins `search_path`. |
 | `supabase/functions/rag-embed/validate.test.ts` | Authorisation precedes any service-role use inside the handler; rag-embed validates before it can write; no hook sends the anon key where a session JWT belongs. |
 
