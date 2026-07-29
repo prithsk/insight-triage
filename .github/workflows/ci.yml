@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main, gstack-setup]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        run: npx vite build
+
+      # Every check below encodes a defect that actually reached this repo.
+      # They are shell assertions rather than unit tests because they inspect
+      # build output, which only exists after the step above.
+
+      - name: Fonts survive the build
+        # The @import in index.css must be the first rule. Below the @tailwind
+        # directives, PostCSS strips it and every font token silently falls back
+        # to system-ui. This shipped to production undetected.
+        run: |
+          head -1 src/index.css | grep -q '@import' \
+            || { echo "::error::@import is not the first rule in src/index.css"; exit 1; }
+          grep -rq "fonts.googleapis" dist/ \
+            || { echo "::error::Google Fonts stripped from the production build"; exit 1; }
+
+      - name: DEV-only surfaces absent from the production bundle
+        # import.meta.env.DEV gates the JSX, but whether the module is dropped
+        # depends on tree-shaking succeeding across the whole import graph.
+        run: |
+          for marker in "HeroBeforeAfter" "Sort these chest X-rays" "VS-01"; do
+            if grep -rq "$marker" dist/assets/ 2>/dev/null; then
+              echo "::error::DEV-only marker '$marker' shipped to production"
+              exit 1
+            fi
+          done
+
+      - name: No key-shaped strings in source
+        # VITE_-prefixed values are inlined into the public bundle, so a secret
+        # in one is published rather than configured.
+        run: |
+          if grep -rnE '(sk-[A-Za-z0-9_-]{20,}|fc-[a-f0-9]{24,})' src/ supabase/ public/ 2>/dev/null; then
+            echo "::error::key-shaped string found in source"
+            exit 1
+          fi
+
+      - name: No fabricated clinical evidence
+        # The reviewer previously drew hardcoded ROI circles over real patient
+        # images when no heatmap data existed, which reads as the model
+        # localizing a finding it never localized.
+        #
+        # Matches the code signature (fixed percentage positioning, hardcoded
+        # anatomical labels) rather than the phrase "synthetic fallback", which
+        # also appears in the comment documenting the removal.
+        run: |
+          if grep -rnE "left: '[0-9]+%'|top: '[0-9]+%'" src/pages/Reviewer.tsx 2>/dev/null; then
+            echo "::error::hardcoded overlay coordinates in the reviewer — is this a fabricated ROI?"
+            exit 1
+          fi
+          if grep -rnE ">(Right|Left) Lung<|>Lower Lobes<" src/pages/Reviewer.tsx 2>/dev/null; then
+            echo "::error::hardcoded anatomical label rendered in the reviewer"
+            exit 1
+          fi

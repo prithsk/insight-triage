@@ -144,20 +144,29 @@ gate and are verified absent from production bundles by `/preflight`.
 
 ## Verification
 
-**There is no test suite and no CI.** Zero test files, no test script, no
-workflows directory. The only automated gates are `tsc --noEmit`, `vite build`,
-and the `/preflight` checklist.
+`npm test` runs 48 Vitest tests. CI (`.github/workflows/ci.yml`) runs typecheck,
+tests, build, then shell assertions against the build output.
 
-This is the largest structural gap in the project. Two P0 security defects were
-found by manual review in a single session; nothing in the repo would catch
-either recurring.
+| Suite | Asserts |
+|---|---|
+| `src/validation/stats.test.ts` | Spearman with tie handling, Fisher-z CI, pre-registered verdict boundaries, seeded shuffle. A wrong rho silently invalidates the validation sprint. |
+| `supabase/rls.test.ts` | Cumulative policy invariants: no `USING (true)` on PHI tables, no missing `TO` clause, no service_role policies, self-update policies carry `WITH CHECK`, privilege columns trigger-guarded, RLS enabled wherever policies exist, `SECURITY DEFINER` pins `search_path`. |
+| `supabase/functions/rag-embed/validate.test.ts` | Authorisation precedes any service-role use inside the handler; rag-embed validates before it can write; no hook sends the anon key where a session JWT belongs. |
 
-If tests get added, the first three worth writing:
-1. RLS policy tests against a local Supabase — assert an unapproved user reads nothing.
-2. Edge-function input validation — assert malformed payloads 400 before reaching service-role.
-3. The ranking statistics in `src/validation/stats.ts` — pure functions, trivially testable, and a wrong ρ silently invalidates the validation sprint.
+CI additionally checks that the font `@import` survives the build, that DEV-only
+markers are absent from the production bundle, that no key-shaped strings appear in
+source, and that hardcoded overlay coordinates have not returned to the reviewer.
 
----
+Both P0s from the 2026-07-28 review were mutation-tested: reintroducing the open
+`USING (true)` policy trips three assertions, and reverting the profiles
+`WITH CHECK` trips one.
+
+**Limits, stated because a checklist implying completeness is worse than none.**
+The RLS and edge-function suites are static analysis of SQL and source text, not
+behaviour — they read files, they do not connect to a database or execute Deno.
+There are no component tests and no E2E. The next real upgrades are a live-Supabase
+test asserting an unapproved user reads nothing, and a behavioural test POSTing
+malformed payloads at a locally-served function.
 
 ## Regulatory position
 

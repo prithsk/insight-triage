@@ -69,12 +69,24 @@ those into the public bundle.
 
 ## Verification
 
-**There is no test suite and no CI.** Zero test files, no test script, no workflows
-directory. The only gates are `npx tsc --noEmit`, `npx vite build`, and `/preflight`.
+`npm test` — 48 tests, Vitest. CI runs typecheck, tests, build, and a set of shell
+assertions on the build output (`.github/workflows/ci.yml`).
 
-Say this plainly rather than implying coverage. When claiming something works,
-name what was actually checked. "Typecheck passes" is not "this works" — the font
-bug, the public DEV routes, and the fabricated ROI overlay all typechecked cleanly.
+**What is covered:** the ranking statistics behind the validation sprint; cumulative
+RLS policy invariants read from `supabase/migrations/`; edge-function ordering
+(authorise before touching the service role). Both P0s from the 2026-07-28 review
+were mutation-tested: reintroducing either one fails the suite.
+
+**What is not covered:** no component tests, no E2E, no live-database tests. The RLS
+and edge-function suites are static analysis of SQL and source text, not behaviour.
+They catch the specific defect classes already seen here; they cannot catch a new
+class on their own. The next real upgrades are a live-Supabase test asserting an
+unapproved user reads nothing, and a behavioural test POSTing malformed payloads at
+a locally-served function.
+
+Say this plainly rather than implying coverage. When claiming something works, name
+what was actually checked. "Typecheck passes" is not "this works" — the font bug,
+the public DEV routes, and the fabricated ROI overlay all typechecked cleanly.
 
 Run `/preflight` before any push.
 
