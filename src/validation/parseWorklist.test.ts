@@ -1,10 +1,13 @@
 import { describe, it, expect } from "vitest";
 import {
   parseWorklistCsv,
+  parseScoresCsv,
+  proxyScoreFromFinding,
   splitCsvLine,
   parseTime,
   bandFromPriority,
   bandFromFinding,
+  SCORE_MODES,
 } from "./parseWorklist";
 import type { Band } from "./slaReplay";
 
@@ -168,6 +171,113 @@ describe("parseWorklistCsv — nothing vanishes quietly", () => {
     ].join("\n");
     const r = parseWorklistCsv(csv, { scoreFor: score });
     expect(r.rows.length + r.issues.length).toBe(4);
+  });
+});
+
+describe("parseScoresCsv — the sidecar from real inference", () => {
+  it("parses id,score pairs", () => {
+    const { scores, issues } = parseScoresCsv("A1,0.9\nA2,0.25");
+    expect(scores.get("A1")).toBe(0.9);
+    expect(scores.get("A2")).toBe(0.25);
+    expect(issues).toHaveLength(0);
+  });
+
+  it("tolerates a header row without reporting it", () => {
+    const { scores, issues } = parseScoresCsv("study_id,score\nA1,0.9");
+    expect(scores.size).toBe(1);
+    expect(issues).toHaveLength(0);
+  });
+
+  it("REPORTS out-of-range scores rather than clamping", () => {
+    // A clamped score silently becomes a real queue position.
+    const { scores, issues } = parseScoresCsv("A1,1.7\nA2,-0.3");
+    expect(scores.size).toBe(0);
+    expect(issues).toHaveLength(2);
+    expect(issues[0].reason).toMatch(/outside/);
+  });
+
+  it("reports unparseable scores", () => {
+    const { scores, issues } = parseScoresCsv("A1,notanumber");
+    expect(scores.size).toBe(0);
+    expect(issues[0].reason).toMatch(/unparseable/);
+  });
+
+  it("does not swallow a bad FIRST data row as a header", () => {
+    // Header detection must require an id-like first cell. Keying only on "score
+    // is non-numeric" would silently drop the very row that needs reporting.
+    const { issues } = parseScoresCsv("A1,notanumber\nA2,0.4");
+    expect(issues).toHaveLength(1);
+    expect(issues[0].line).toBe(1);
+  });
+
+  it("reports duplicates instead of last-write-wins", () => {
+    const { scores, issues } = parseScoresCsv("A1,0.5\nA1,0.9");
+    expect(scores.get("A1")).toBe(0.5);
+    expect(issues[0].reason).toMatch(/duplicate/);
+  });
+
+  it("accepts the boundary values 0 and 1", () => {
+    const { scores, issues } = parseScoresCsv("A1,0\nA2,1");
+    expect(scores.size).toBe(2);
+    expect(issues).toHaveLength(0);
+  });
+});
+
+describe("joining scores to a worklist", () => {
+  const worklist = [
+    "study_id,arrived_at,read_at,priority",
+    "A1,2026-03-04T10:00:00Z,2026-03-04T10:20:00Z,STAT",
+    "A2,2026-03-04T10:05:00Z,2026-03-04T10:40:00Z,routine",
+  ].join("\n");
+
+  it("uses the joined score", () => {
+    const { scores } = parseScoresCsv("A1,0.77\nA2,0.11");
+    const r = parseWorklistCsv(worklist, { scoreFor: ({ studyId }) => scores.get(studyId) });
+    expect(r.rows.find((x) => x.studyId === "A1")!.score).toBe(0.77);
+  });
+
+  it("excludes and reports a study with no score in the sidecar", () => {
+    // Partial coverage must not silently sort unscored studies to an arbitrary spot.
+    const { scores } = parseScoresCsv("A1,0.77");
+    const r = parseWorklistCsv(worklist, { scoreFor: ({ studyId }) => scores.get(studyId) });
+    expect(r.rows).toHaveLength(1);
+    expect(r.issues.some((i) => /no Kroix score/.test(i.reason))).toBe(true);
+  });
+});
+
+describe("proxyScoreFromFinding — must never be mistaken for the model", () => {
+  it("orders findings by plausible read urgency", () => {
+    const tension = proxyScoreFromFinding("Tension pneumothorax, left", "critical");
+    const effusion = proxyScoreFromFinding("Small left pleural effusion", "medium");
+    const normal = proxyScoreFromFinding("No Finding", "routine");
+    expect(tension).toBeGreaterThan(effusion);
+    expect(effusion).toBeGreaterThan(normal);
+  });
+
+  it("falls back to the band midpoint on unrecognised text rather than inventing detail", () => {
+    expect(proxyScoreFromFinding("something nobody wrote a rule for", "medium")).toBe(0.5);
+    expect(proxyScoreFromFinding(undefined, "critical")).toBe(0.9);
+  });
+
+  it("stays inside [0,1]", () => {
+    for (const f of ["Tension pneumothorax", "No Finding", "", "nodule"]) {
+      const v = proxyScoreFromFinding(f, "medium");
+      expect(v).toBeGreaterThanOrEqual(0);
+      expect(v).toBeLessThanOrEqual(1);
+    }
+  });
+});
+
+describe("SCORE_MODES — only real inference is reportable", () => {
+  it("marks proxy and stub as not reportable", () => {
+    expect(SCORE_MODES.real.reportable).toBe(true);
+    expect(SCORE_MODES.proxy.reportable).toBe(false);
+    expect(SCORE_MODES.stub.reportable).toBe(false);
+  });
+
+  it("states in each note what the mode actually measures", () => {
+    expect(SCORE_MODES.proxy.note).toMatch(/NOTHING about Kroix/);
+    expect(SCORE_MODES.stub.note).toMatch(/must not be shown/);
   });
 });
 

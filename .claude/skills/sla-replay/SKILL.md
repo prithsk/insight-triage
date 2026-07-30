@@ -77,6 +77,40 @@ flag, which is weaker but not useless — say which mode ran in the writeup.
 
 ---
 
+## Getting scores without moving images
+
+The replay needs a Kroix score per study. A department's worklist export has no
+score in it, and the whole point of asking for a CSV is that no image moves. That
+tension resolves the way medical AI pilots normally do: **they run inference, not
+you.**
+
+Three modes. Only one produces a number you may show anyone.
+
+| Mode | How | Reportable |
+|---|---|---|
+| `--scores <file>` | They run inference inside their own network and send back `study_id,score` | **Yes** |
+| `--proxy` | Score derived from the report's finding text | No |
+| *(neither)* | Fixed constant per band | No |
+
+**The sidecar ask.** Give them something that runs locally against their PACS or a
+folder of studies and writes a two-column CSV. No images leave, no PHI transfers,
+no BAA or IRB needed for the imaging itself — only study identifiers and a number
+come back. Then:
+
+```
+npm run replay -- worklist.csv --scores scores.csv --stat 30 --medium 240
+```
+
+**`--proxy` is for the conversation before that.** It scores from the finding text,
+so it demonstrates the replay mechanics on their own data with zero setup. State
+plainly what it measures: how well a finding label predicts read urgency. That is a
+property of their labels, not of Kroix. Never present a proxy number as a model
+result — the CLI marks it `[NOT REPORTABLE]` for that reason.
+
+**Partial score coverage excludes rows rather than defaulting them.** A study with
+no score in the sidecar is reported and dropped. Filling in a default would let
+unscored studies sort to an arbitrary queue position and quietly move the result.
+
 ## Method
 
 **1. Reconstruct the queue.** For each moment a read completed, determine what was

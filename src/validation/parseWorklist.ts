@@ -117,10 +117,120 @@ export function bandFromFinding(raw: string): Band | null {
 export interface ParseOptions {
   /**
    * Score for each row. The replay needs Kroix's priority score; a CSV from a
-   * department will not contain one. Supply it by running inference, or pass a
-   * stub to test the pipeline. Rows with no score are reported as issues.
+   * department will not contain one. Rows with no score are reported as issues
+   * rather than defaulted — a silent default would let unscored studies sort to
+   * an arbitrary queue position and quietly change the result.
+   *
+   * See `parseScoresCsv` and SCORE_MODES for how scores are meant to arrive.
    */
   scoreFor?: (row: { studyId: string; finding?: string; band: Band }) => number | undefined;
+}
+
+/**
+ * How the scores in a given run were obtained. This must travel with every
+ * number the replay produces, because only one of these three says anything
+ * about the model.
+ */
+export type ScoreMode = "real" | "proxy" | "stub";
+
+export const SCORE_MODES: Record<ScoreMode, { label: string; reportable: boolean; note: string }> = {
+  real: {
+    label: "real inference",
+    reportable: true,
+    note: "Scores came from running the ensemble over the actual studies. This measures Kroix.",
+  },
+  proxy: {
+    label: "label-derived proxy",
+    reportable: false,
+    note:
+      "Scores were derived from the report's finding text, not from the model. This measures how well a finding label predicts read urgency — it says NOTHING about Kroix. Useful only to show the department the replay mechanics on their own data before any images move.",
+  },
+  stub: {
+    label: "band constants",
+    reportable: false,
+    note:
+      "Scores are fixed per band. Plumbing test only. Any figure from this run describes the band labels and must not be shown to anyone.",
+  },
+};
+
+/**
+ * Parse a scores sidecar: `study_id,score` (header optional).
+ *
+ * This is the file a department produces by running inference **inside their own
+ * network**, so no image ever leaves. It joins to the worklist on study id. Scores
+ * outside [0,1] or unparseable are reported rather than clamped, since a clamped
+ * score silently becomes a real queue position.
+ */
+export function parseScoresCsv(text: string): {
+  scores: Map<string, number>;
+  issues: ParseIssue[];
+} {
+  const scores = new Map<string, number>();
+  const issues: ParseIssue[] = [];
+  const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+
+  lines.forEach((raw, i) => {
+    const f = splitCsvLine(raw);
+    if (f.length < 2) {
+      issues.push({ line: i + 1, reason: "expected two columns: study_id,score" });
+      return;
+    }
+    const [id, scoreRaw] = f;
+    // Tolerate a header row, but only when the first cell actually looks like a
+    // header name. Checking "is the score non-numeric" alone would swallow a real
+    // first data row whose score is malformed — exactly the row we must report.
+    if (
+      i === 0 &&
+      Number.isNaN(Number(scoreRaw)) &&
+      ALIASES.studyId.includes(norm(id))
+    ) {
+      return;
+    }
+
+    const v = Number(scoreRaw);
+    if (!Number.isFinite(v)) {
+      issues.push({ line: i + 1, reason: `unparseable score "${scoreRaw}" for ${id}` });
+      return;
+    }
+    if (v < 0 || v > 1) {
+      issues.push({ line: i + 1, reason: `score ${v} outside [0,1] for ${id}` });
+      return;
+    }
+    if (scores.has(id)) {
+      issues.push({ line: i + 1, reason: `duplicate score for ${id}` });
+      return;
+    }
+    scores.set(id, v);
+  });
+
+  return { scores, issues };
+}
+
+/**
+ * Label-derived proxy score. NOT the model.
+ *
+ * Ranks a finding by how urgently a radiologist would plausibly want it read,
+ * from the report text alone. Its only legitimate use is demonstrating the replay
+ * mechanics on a department's own data before any image has moved — it measures
+ * how well a finding label predicts read urgency, which is a property of the
+ * labels, not of Kroix.
+ *
+ * Kept in a named export rather than inlined so it can never be mistaken for
+ * inference at a call site.
+ */
+export function proxyScoreFromFinding(finding: string | undefined, band: Band): number {
+  const s = (finding ?? "").toLowerCase();
+  if (/tension|massive|extensive/.test(s)) return 0.97;
+  if (/pneumothorax|hemorrhage|dissection|embol/.test(s)) return 0.92;
+  if (/edema|consolidation.*bilateral/.test(s)) return 0.88;
+  if (/consolidation|infiltrate|pneumonia/.test(s)) return 0.62;
+  if (/effusion/.test(s)) return 0.58;
+  if (/atelectasis|congestion/.test(s)) return 0.45;
+  if (/nodule|mass/.test(s)) return 0.38;
+  if (/cardiomegaly|interstitial|thickening/.test(s)) return 0.3;
+  if (/no finding|normal|unremarkable|clear|negative/.test(s)) return 0.08;
+  // Unrecognised text: fall back to the band midpoint rather than inventing detail.
+  return { critical: 0.9, medium: 0.5, routine: 0.12 }[band];
 }
 
 export function parseWorklistCsv(text: string, opts: ParseOptions = {}): ParseResult {

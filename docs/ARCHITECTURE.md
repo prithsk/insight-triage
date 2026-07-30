@@ -144,7 +144,7 @@ gate and are verified absent from production bundles by `/preflight`.
 
 ## Verification
 
-`npm test` runs 106 Vitest tests. CI (`.github/workflows/ci.yml`) runs typecheck,
+`npm test` runs 120 Vitest tests. CI (`.github/workflows/ci.yml`) runs typecheck,
 tests, build, then shell assertions against the build output.
 
 | Suite | Asserts |

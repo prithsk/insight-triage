@@ -18,7 +18,13 @@
  */
 
 import { readFileSync } from "fs";
-import { parseWorklistCsv } from "../src/validation/parseWorklist";
+import {
+  parseWorklistCsv,
+  parseScoresCsv,
+  proxyScoreFromFinding,
+  SCORE_MODES,
+  type ScoreMode,
+} from "../src/validation/parseWorklist";
 import {
   analyse,
   expediteAnalysis,
@@ -36,7 +42,22 @@ const args = process.argv.slice(2);
 const file = args.find((a) => !a.startsWith("--"));
 
 if (!file) {
-  console.error("usage: bun run scripts/slaReplay.ts <worklist.csv> [--stat 30] [--medium 240] [--routine 1440]");
+  console.error(
+    [
+      "usage: npm run replay -- <worklist.csv> [options]",
+      "",
+      "  --scores <file>   study_id,score CSV from real inference. THE ONLY REPORTABLE MODE.",
+      "                    The department runs inference inside their own network and sends",
+      "                    back scores only; no image ever leaves.",
+      "  --proxy           derive scores from the finding text. Demonstrates the mechanics",
+      "                    on their data before any images move. Not reportable.",
+      "  (neither)         band constants. Plumbing test only. Not reportable.",
+      "",
+      "  --stat <min>      critical read-time target (default 30)",
+      "  --medium <min>    medium target (default 240)",
+      "  --routine <min>   routine target (default 1440)",
+    ].join("\n")
+  );
   process.exit(1);
 }
 
@@ -58,12 +79,39 @@ const targets: Targets = {
   routine: rtnMin * MINUTES,
 };
 
-// Stand-in score. Replace with real inference output before reporting anything.
+/* ── Scores: three modes, only one of which measures the model ──────────── */
+
+const scoresArgIdx = args.indexOf("--scores");
+const scoresFile = scoresArgIdx === -1 ? undefined : args[scoresArgIdx + 1];
+const useProxy = args.includes("--proxy");
+
 const STUB_SCORE: Record<Band, number> = { critical: 0.9, medium: 0.55, routine: 0.15 };
-const usingStub = true;
+
+let mode: ScoreMode;
+let scoreFor: (r: { studyId: string; finding?: string; band: Band }) => number | undefined;
+let scoreIssues: { line: number; reason: string }[] = [];
+let scoreCount = 0;
+
+if (scoresFile) {
+  const parsedScores = parseScoresCsv(readFileSync(scoresFile, "utf8"));
+  scoreIssues = parsedScores.issues;
+  scoreCount = parsedScores.scores.size;
+  mode = "real";
+  // Missing score returns undefined, so the row is excluded and reported rather
+  // than silently filled in.
+  scoreFor = ({ studyId }) => parsedScores.scores.get(studyId);
+} else if (useProxy) {
+  mode = "proxy";
+  scoreFor = ({ finding, band }) => proxyScoreFromFinding(finding, band);
+} else {
+  mode = "stub";
+  scoreFor = ({ band }) => STUB_SCORE[band];
+}
+
+const modeInfo = SCORE_MODES[mode];
 
 const text = readFileSync(file, "utf8");
-const parsed = parseWorklistCsv(text, { scoreFor: ({ band }) => STUB_SCORE[band] });
+const parsed = parseWorklistCsv(text, { scoreFor });
 
 const line = (s = "") => console.log(s);
 const fmtH = (ms: number) => `${(ms / (60 * MINUTES)).toFixed(1)}h`;
@@ -75,6 +123,9 @@ line(`  file .................. ${file}`);
 line(`  rows parsed ........... ${parsed.rows.length}`);
 line(`  rows excluded ......... ${parsed.issues.length}`);
 line(`  band source ........... ${parsed.bandSource}`);
+line(`  score mode ............ ${modeInfo.label}${modeInfo.reportable ? "" : "   [NOT REPORTABLE]"}`);
+if (scoresFile) line(`  scores joined ......... ${scoreCount} from ${scoresFile}`);
+if (scoreIssues.length) line(`  score file issues ..... ${scoreIssues.length}`);
 line(`  expedite column ....... ${parsed.hasExpedite ? "present" : "ABSENT — ask for it"}`);
 line(`  targets ............... STAT ${statMin}m / medium ${medMin}m / routine ${rtnMin}m${usedDefaults ? "  [ASSUMED — get their real SLA]" : ""}`);
 line(`  throughput ............ held fixed`);
@@ -155,11 +206,37 @@ line();
 line("  LIMITS");
 line("    Retrospective, single-centre, read timing only.");
 line("    Not a clinical-benefit claim. Assumes full adherence to the ordering.");
-if (usingStub) {
+
+if (!modeInfo.reportable) {
   line();
-  line("  !! STUB SCORES IN USE !!");
-  line("    Scores were derived from band labels, not from the model. These numbers");
-  line("    describe the labels and say nothing about Kroix. Wire in real inference");
-  line("    before reporting any figure from this run.");
+  line(`  !! NOT REPORTABLE — score mode is "${modeInfo.label}" !!`);
+  for (const l of wrap(modeInfo.note, 72)) line("    " + l);
+  line();
+  line("    To get a reportable number, have the department run inference inside");
+  line("    their own network and send back only study_id,score — no images leave.");
+  line("    Then re-run with:  npm run replay -- <worklist.csv> --scores <scores.csv>");
+} else {
+  line();
+  line("  Score mode is real inference — this result is reportable, with the limits above.");
+}
+
+if (scoreIssues.length) {
+  line();
+  line("  SCORE FILE ISSUES (first 10)");
+  for (const iss of scoreIssues.slice(0, 10)) line(`    line ${iss.line}: ${iss.reason}`);
 }
 line();
+
+function wrap(s: string, width: number): string[] {
+  const words = s.split(/\s+/);
+  const out: string[] = [];
+  let cur = "";
+  for (const w of words) {
+    if ((cur + " " + w).trim().length > width) {
+      out.push(cur.trim());
+      cur = w;
+    } else cur += " " + w;
+  }
+  if (cur.trim()) out.push(cur.trim());
+  return out;
+}
