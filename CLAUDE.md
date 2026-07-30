@@ -54,6 +54,35 @@ PHI-handling with RLS behind an approval gate. When touching `supabase/migration
 Never commit `.env`. Never put a secret in a `VITE_`-prefixed variable — Vite inlines
 those into the public bundle.
 
+## Public claims
+
+The landing page is promotion for an uncleared Class II device. Three fabrications
+shipped there and were removed on 2026-07-30; the pattern matters more than the
+instances, because every one of them typechecked and looked convincing:
+
+- a `Math.random()` "scans reviewed per hour, with vs. without Kroix" chart under a
+  `LIVE · 7-DAY` badge — a head-to-head that has never been run;
+- a testimonial block attributed to "Pilot deployment, regional imaging network" —
+  no pilot and no network exist;
+- "Clinical-grade accuracy" and a `VALIDATED` badge over a number that is 5-fold CV
+  on `paultimothymooney/chest-xray-pneumonia` (Kermany et al., Cell 2018): a
+  **public, pediatric, single-centre** dataset, **binary pneumonia vs normal**, with
+  train/val/test **pooled before the split** (`services/ml-api/train.py`).
+
+Rules, so this is not re-litigated:
+
+- No performance number without its task, dataset, cohort, and method beside it.
+- No "clinical", "validated", or "clinical-grade" until a clearance exists.
+- No customer, pilot, logo, or quote until a real one has agreed in writing.
+- No comparative or outcome claim without a study behind it. Illustrative UI is
+  fine; illustrative UI wearing a `LIVE` badge is not.
+- `Math.random()` must never feed anything a visitor could read as a measurement.
+
+**Still outstanding:** `src/hooks/useAnalytics.ts:62-65` always synthesises the
+"without Kroix" baseline from mock generators, even when `hasRealData` is true, and
+`Analytics.tsx` exports those comparisons to CSV. Auth-gated, so not public — but a
+logged-in partner sees an invented comparison arm. Not yet fixed.
+
 ## Frontend
 
 - Colors: `kx-*` tokens only. Type: `font-display` (Inter Tight), `font-editorial`
@@ -69,15 +98,17 @@ those into the public bundle.
 
 ## Verification
 
-`npm test` — 143 tests, Vitest. CI runs typecheck, tests, build, and a set of shell
+`npm test` — 148 tests, Vitest. CI runs typecheck, tests, build, and a set of shell
 assertions on the build output (`.github/workflows/ci.yml`).
 
 **What is covered:** the ranking statistics behind the validation sprint; the SLA
 replay engine (including that it can return a *negative* result — a metric that
 cannot fail is a sales prop, not a measurement); cumulative RLS policy invariants
 read from `supabase/migrations/`; edge-function ordering (authorise before touching
-the service role). Both P0s from the 2026-07-28 review were mutation-tested:
-reintroducing either one fails the suite.
+the service role); the waitlist invariant that `anon` may INSERT and nothing else,
+at both the policy and table-grant level. Both P0s from the 2026-07-28 review and
+both waitlist mutations were mutation-tested: reintroducing any of them fails the
+suite.
 
 **What is not covered:** no component tests, no E2E, no live-database tests. The RLS
 and edge-function suites are static analysis of SQL and source text, not behaviour.

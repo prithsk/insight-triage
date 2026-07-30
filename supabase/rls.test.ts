@@ -193,6 +193,74 @@ describe("RLS: enabled wherever policies exist", () => {
   });
 });
 
+describe("RLS: the public waitlist is write-only for anon", () => {
+  // waitlist_signups is the ONLY table an unauthenticated visitor may write to.
+  // The asymmetry is the whole design: anon INSERTs, anon never reads. A signup
+  // list is names, work emails, and institutions — an anon-readable one publishes
+  // the pipeline to anyone who finds the REST endpoint, and it would look
+  // completely normal in the app.
+  const waitlistPolicies = () =>
+    livePolicies().filter((p) => p.table.toLowerCase().endsWith("waitlist_signups"));
+
+  it("exists at all, so the rest of this block cannot pass vacuously", () => {
+    expect(waitlistPolicies().length).toBeGreaterThan(0);
+  });
+
+  it("grants anon nothing except INSERT", () => {
+    const offenders = waitlistPolicies()
+      .filter((p) => /\bTO\b[^)]*?\banon\b/i.test(p.body))
+      .filter((p) => !/FOR\s+INSERT/i.test(p.body))
+      .map((p) => `${p.table}: "${p.name}"`);
+
+    expect(
+      offenders,
+      `anon may only INSERT into the waitlist. These policies give it more:\n${offenders.join("\n")}`
+    ).toEqual([]);
+  });
+
+  it("has no policy missing a TO clause, which would silently include anon", () => {
+    const offenders = waitlistPolicies()
+      .filter((p) => !/\bTO\s+/i.test(p.body))
+      .map((p) => `${p.table}: "${p.name}"`);
+
+    expect(
+      offenders,
+      `A policy with no TO clause applies to every role including anon:\n${offenders.join("\n")}`
+    ).toEqual([]);
+  });
+
+  it("gates every SELECT behind is_admin_user()", () => {
+    const selects = waitlistPolicies().filter((p) => /FOR\s+SELECT/i.test(p.body));
+    expect(selects.length).toBeGreaterThan(0);
+    for (const p of selects) {
+      expect(p.body, `"${p.name}" must gate reads on is_admin_user()`).toMatch(
+        /is_admin_user\s*\(\s*\)/i
+      );
+    }
+  });
+
+  it("does not GRANT anon anything beyond INSERT at the table level", () => {
+    // RLS filters rows; table grants decide whether the verb may be attempted at
+    // all. Both have to be narrow or the other one is decorative.
+    const sql = allSql();
+    const grants = [
+      ...sql.matchAll(/GRANT\s+([\w\s,]+?)\s+ON\s+([\w.]*waitlist_signups)\s+TO\s+([\w\s,]+?);/gi),
+    ];
+    expect(grants.length).toBeGreaterThan(0);
+
+    for (const [, verbs, , roles] of grants) {
+      if (!/\banon\b/i.test(roles)) continue;
+      const granted = verbs
+        .split(",")
+        .map((v) => v.trim().toUpperCase())
+        .filter(Boolean);
+      expect(granted, `anon was granted more than INSERT: ${granted.join(", ")}`).toEqual([
+        "INSERT",
+      ]);
+    }
+  });
+});
+
 describe("RLS: security definer helpers are hardened", () => {
   it("every SECURITY DEFINER function pins search_path", () => {
     const sql = allSql();

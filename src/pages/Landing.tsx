@@ -27,6 +27,7 @@ import { AboutLayerStack, AboutScatter } from "@/components/landing/AboutSection
 import { StayHookToast } from "@/components/landing/StayHookToast";
 import { LiveQueueHero } from "@/components/landing/LiveQueueHero";
 import { SpeedAccuracyDuo } from "@/components/landing/SpeedAccuracyDuo";
+import { WaitlistSection } from "@/components/landing/WaitlistSection";
 import { InfoChatNarrative } from "@/components/landing/InfoSections";
 
 const Landing = () => {
@@ -50,7 +51,6 @@ const Landing = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
   const heroCta = useMagneticHover<HTMLButtonElement>(0.15);
-  const finalCta = useMagneticHover<HTMLButtonElement>(0.15);
   const reticle = useCursorReticle<HTMLDivElement>();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -339,42 +339,10 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-32 px-8 bg-kx-critical relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-30 pointer-events-none"
-          style={{ background: "radial-gradient(600px circle at 50% 0%, rgba(255,255,255,0.25), transparent 70%)" }}
-        />
-        <Reveal className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="font-display text-[40px] lg:text-[54px] leading-[1.04] text-white mb-8 tracking-[-0.03em]">
-            Try it in your department.
-          </h2>
-          <p className="text-[19px] text-white/80 mb-10 max-w-2xl mx-auto leading-relaxed">
-            See how automated triage prioritization fits into your existing reading workflow.
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
-              <DialogTrigger asChild>
-                <button
-                  ref={finalCta.ref}
-                  onMouseMove={finalCta.onMouseMove}
-                  onMouseLeave={finalCta.onMouseLeave}
-                  className="px-8 py-4 bg-kx-ink text-white rounded-[8px] text-[16px] font-semibold hover:bg-black transition-colors flex items-center gap-2"
-                  style={{ transition: "transform 0.15s ease-out, background-color 0.15s ease" }}
-                >
-                  Request demo
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </DialogTrigger>
-            </Dialog>
-            <Link to="/contact">
-              <button className="px-8 py-4 border border-white/40 text-white rounded-[8px] text-[16px] font-medium hover:bg-white/10 transition-colors">
-                Contact
-              </button>
-            </Link>
-          </div>
-        </Reveal>
-      </section>
+      {/* Closing CTA — the waitlist replaced a "Try it in your department" block.
+          That copy promised availability for an uncleared Class II device and
+          offered a deployment Kroix cannot currently provide. */}
+      <WaitlistSection />
 
       {/* Footer */}
       <footer className="py-16 px-8 bg-kx-canvas border-t border-kx-border text-kx-muted">
