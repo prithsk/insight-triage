@@ -41,3 +41,12 @@ kaggle.json
 
 # Exploit writeup for a live vulnerability — keep local until the fix is deployed
 docs/APPLY-SECURITY-FIX.md
+
+# Credentialed and clinical data must never enter this public repo.
+# MIMIC is governed by a signed PhysioNet DUA; a department's worklist export is
+# their data. Keep both outside the project, and treat this as a backstop.
+*.csv
+!src/**/*.test.csv
+worklist*.csv
+scores*.csv
+radiology*.csv
