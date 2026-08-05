@@ -3,18 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kroix | AI-Powered Radiology Triage</title>
-    <meta name="description" content="Non-diagnostic AI workflow tool for chest X-ray prioritization. Reduce time-to-review and increase radiologist throughput." />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+
+    <!-- CLAIMS. These tags are promotion for an uncleared Class II CADt device
+         (21 CFR 892.2080) and are quoted verbatim in link previews, where they
+         travel further than the page itself. They previously read "Reduce
+         time-to-review and increase radiologist throughput" and "Reduce
+         mistimed findings, improve throughput" — outcome claims with no study
+         behind them, and the same class of fabrication removed from the page
+         body. Describe what Kroix does and what stage it is at. Nothing else. -->
+    <title>Kroix | AI triage for chest X-rays</title>
+    <meta name="description" content="A three-model ensemble scores chest X-rays and reorders the radiologist worklist, with every score traceable to the models behind it. Currently in validation." />
     <meta name="author" content="Kroix" />
 
-    <meta property="og:title" content="Kroix - AI Traffic Controller for Chest X-Rays" />
-    <meta property="og:description" content="Priority-sorted radiology worklists powered by AI. Reduce mistimed findings, improve throughput." />
+    <meta property="og:title" content="Kroix — AI triage for chest X-rays" />
+    <meta property="og:description" content="Scores studies and reorders the radiologist worklist, with every score traceable. Currently in validation." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <!-- og:image intentionally omitted rather than left pointing at Lovable's
+         default artwork, which branded every shared link as someone else's. A
+         preview with no image beats a preview with the wrong logo. Add one when
+         a real 1200x630 asset exists, and set og:url alongside it. -->
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Kroix" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:card" content="summary" />
 
     <!-- Fonts loaded here rather than only via @import in index.css: a <link>
          is discoverable in the initial HTML, so the browser starts fetching
