@@ -28,7 +28,7 @@ bucket, a confidence value, and a Grad-CAM heatmap. Trained via 5-fold cross-val
 Kermany chest X-ray pneumonia dataset (see `services/ml-api/train_colab.ipynb`).
 
 Lab values (CO2, pH, O2, WBC, CRP, procalcitonin) shown alongside triage results are **simulated**
-— back-calculated from the AI risk score for demo/pilot purposes, not real lab draws. This is
+— back-calculated from the AI risk score for demo purposes, not real lab draws. This is
 labeled in the UI wherever it appears.
 
 ## Project structure
@@ -125,8 +125,25 @@ This repo is connected to [Lovable](https://lovable.dev) — changes pushed here
 project and vice versa. You can also edit locally in any IDE, via GitHub directly, or in GitHub
 Codespaces; all paths push to the same `main` branch.
 
-## Compliance note
+## Regulatory and compliance status
 
-Currently in active pilot testing with de-identified data. Production use with real PHI requires
-BAA-covered infrastructure for every service in the pipeline (hosting, Supabase, ML API) — this is
-part of the clinical rollout plan, not yet in place.
+Kroix is **pre-clearance and not deployed**. There is no pilot, no customer, and no
+clinical use. It has never run against a live worklist.
+
+Scoring images and reordering a queue is the definition of computer-assisted triage
+under **21 CFR 892.2080** — Class II, 510(k) required. Being non-diagnostic is what
+places software in that category, not what exempts it from it. The Cures Act §3060
+clinical-decision-support exclusion does not apply, because its first criterion fails
+for any software that processes or analyzes a medical image.
+
+Validation is not deployment. Showing a radiologist a ranked list, or replaying a
+ranking against a historical worklist, needs no clearance. Shipping into live clinical
+workflow does.
+
+Model performance to date is 5-fold cross-validation on a public dataset
+(`paultimothymooney/chest-xray-pneumonia`, Kermany et al., *Cell* 2018) — pediatric,
+single-centre, binary pneumonia vs. normal, with train/val/test pooled before the
+split. That is not clinical validation and should not be described as such.
+
+Production use with real PHI would additionally require BAA-covered infrastructure for
+every service in the pipeline (hosting, Supabase, ML API). Not in place.
