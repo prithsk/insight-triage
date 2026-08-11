@@ -41,6 +41,7 @@ kaggle.json
 
 # Exploit writeup for a live vulnerability — keep local until the fix is deployed
 docs/APPLY-SECURITY-FIX.md
+docs/LOVABLE-PASTE.txt
 
 # Credentialed and clinical data must never enter this public repo.
 # MIMIC is governed by a signed PhysioNet DUA; a department's worklist export is
@@ -50,3 +51,6 @@ docs/APPLY-SECURITY-FIX.md
 worklist*.csv
 scores*.csv
 radiology*.csv
+
+# tsc --build writes these next to the tsconfigs
+*.tsbuildinfo

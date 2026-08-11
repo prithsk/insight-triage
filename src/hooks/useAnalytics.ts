@@ -1,15 +1,28 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  generateMTTRData,
-  generateThroughputData,
-  generateOverrideData,
-  generateMTTRDataBaseline,
-  generateThroughputDataBaseline,
-  generateOverrideDataBaseline,
-} from "@/lib/mock-data";
+
+/**
+ * Analytics for the authenticated app.
+ *
+ * NO SYNTHETIC COMPARISON ARM. This hook used to build a "without Kroix"
+ * baseline from `@/lib/mock-data` generators on EVERY render — including when
+ * `hasRealData` was true — and `Analytics.tsx` charted it against the real
+ * series and exported both to CSV. A logged-in partner therefore saw, and could
+ * download, a head-to-head against an arm that was invented.
+ *
+ * There is no counterfactual. Measuring what these numbers would have been
+ * without Kroix requires the department's historical worklist and the SLA replay
+ * (`src/validation/slaReplay.ts`) — which is the entire reason that harness
+ * exists. A mock generator cannot stand in for it.
+ *
+ * So this hook now returns only what was actually measured, plus `hasRealData`
+ * so the UI can say "no data yet" instead of drawing a plausible line. If a
+ * comparison is ever added back, it must come from a replay over real historical
+ * data, be labelled with its method, and never be synthesised client-side.
+ */
 
 export interface AnalyticsData {
+  /** False until real studies have been reviewed. The UI must show an empty state, not mock data. */
   hasRealData: boolean;
   dates: string[];
   mttr: number[];
@@ -25,10 +38,12 @@ export interface AnalyticsData {
     missedRate: number;
     overrideRate: number;
   };
-  // Combined series for charts (withKroix = real/simulated; withoutKroix = baseline mock)
-  combinedMTTR:       { date: string; withKroix: number; withoutKroix: number }[];
-  combinedThroughput: { date: string; withKroix: number; withoutKroix: number }[];
-  combinedOverride:   { date: string; withKroix: number; withoutKroix: number }[];
+  /** Measured series only. There is deliberately no `withoutKroix` field. */
+  series: {
+    mttr:       { date: string; value: number }[];
+    throughput: { date: string; value: number }[];
+    override:   { date: string; value: number }[];
+  };
 }
 
 async function fetchAnalytics(): Promise<AnalyticsData> {
@@ -59,49 +74,28 @@ async function fetchAnalytics(): Promise<AnalyticsData> {
 
   const dates = sliceD(raw.dates);
 
-  // Baseline (without-Kroix) from mock generators — stable shape
-  const baseMTTR       = generateMTTRDataBaseline();
-  const baseThroughput = generateThroughputDataBaseline();
-  const baseOverride   = generateOverrideDataBaseline();
+  // Measured series only. When hasRealData is false these are empty rather than
+  // filled from mock generators — an empty chart is honest, a plausible one is not.
+  const mttr       = slice(raw.mttr);
+  const throughput = slice(raw.throughput);
+  const overrideRate = slice(raw.overrideRate);
 
-  // If no real data yet, show preview mock data as "with-kroix"
-  let withMTTR       = slice(raw.mttr);
-  let withThroughput = slice(raw.throughput);
-  let withOverride   = slice(raw.overrideRate);
-
-  if (!raw.hasRealData) {
-    withMTTR       = generateMTTRData().map(d => d.value);
-    withThroughput = generateThroughputData().map(d => d.value);
-    withOverride   = generateOverrideData().map(d => d.value);
-  }
-
-  const combinedMTTR = dates.map((date, i) => ({
-    date,
-    withKroix:    withMTTR[i]       ?? 0,
-    withoutKroix: baseMTTR[i]?.value ?? 0,
-  }));
-  const combinedThroughput = dates.map((date, i) => ({
-    date,
-    withKroix:    withThroughput[i]       ?? 0,
-    withoutKroix: baseThroughput[i]?.value ?? 0,
-  }));
-  const combinedOverride = dates.map((date, i) => ({
-    date,
-    withKroix:    withOverride[i]        ?? 0,
-    withoutKroix: baseOverride[i]?.value ?? 0,
-  }));
+  const zip = (values: number[]) =>
+    dates.map((date, i) => ({ date, value: values[i] ?? 0 }));
 
   return {
     hasRealData:      raw.hasRealData,
     dates,
-    mttr:             withMTTR,
-    throughput:       withThroughput,
-    overrideRate:     withOverride,
+    mttr,
+    throughput,
+    overrideRate,
     feedbackBreak:    sliceAny(raw.feedbackBreak ?? []),
     summary:          raw.summary,
-    combinedMTTR,
-    combinedThroughput,
-    combinedOverride,
+    series: {
+      mttr:       zip(mttr),
+      throughput: zip(throughput),
+      override:   zip(overrideRate),
+    },
   };
 }
 

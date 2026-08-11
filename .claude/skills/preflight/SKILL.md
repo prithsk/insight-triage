@@ -31,8 +31,14 @@ Fail fast: stop at the first RED and fix before continuing.
 ## 1. Types and build
 
 ```bash
-npx tsc --noEmit && npx vite build
+npm run typecheck && npx vite build
 ```
+
+**Use the npm script, never `npx tsc --noEmit`.** The root `tsconfig.json` is a
+solution file — `"files": []` with only `"references"` — and tsc ignores project
+references unless given `--build`. `npx tsc --noEmit` therefore compiles nothing
+and exits 0 no matter what is broken. It was the CI typecheck step and the
+instruction in CLAUDE.md for weeks, and it never once checked a file.
 
 RED on any error. A warning about chunk size is expected and not a failure.
 

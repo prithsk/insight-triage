@@ -78,10 +78,16 @@ Rules, so this is not re-litigated:
   fine; illustrative UI wearing a `LIVE` badge is not.
 - `Math.random()` must never feed anything a visitor could read as a measurement.
 
-**Still outstanding:** `src/hooks/useAnalytics.ts:62-65` always synthesises the
-"without Kroix" baseline from mock generators, even when `hasRealData` is true, and
-`Analytics.tsx` exports those comparisons to CSV. Auth-gated, so not public — but a
-logged-in partner sees an invented comparison arm. Not yet fixed.
+A fourth lived in `README.md` ("Currently in active pilot testing") and a fifth in
+`useAnalytics.ts`, which synthesised the entire "without Kroix" comparison arm from
+mock generators — even when `hasRealData` was true — and exported it to CSV. Both
+removed 2026-08-10. `AnalyticsData` no longer has a `withoutKroix` field at all, so
+the comparison cannot be reintroduced by accident; a real one requires the SLA
+replay over historical data.
+
+**How these keep surviving:** `npx tsc --noEmit` checked zero files (see Frontend),
+so "typecheck passes" was meaningless, and none of them were covered by a test.
+Every instance was found by reading, not by tooling.
 
 ## Frontend
 
@@ -94,7 +100,11 @@ logged-in partner sees an invented comparison arm. Not yet fixed.
   browsers and an unguarded throw in `useEffect` blanks the page.
 - `noUnusedLocals` is `false`. Dead imports will not fail the build. Grep when
   deleting.
-- Run `npx tsc --noEmit` before claiming done.
+- Run `npm run typecheck` before claiming done. **Not `npx tsc --noEmit`** — the
+  root `tsconfig.json` is a solution file (`"files": []`, only `"references"`),
+  and tsc ignores references without `--build`, so that command compiles nothing
+  and always exits 0. It was CI's typecheck step and this file's instruction for
+  weeks while checking zero files.
 
 ## Verification
 

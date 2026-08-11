@@ -27,7 +27,7 @@ import { AboutLayerStack, AboutScatter } from "@/components/landing/AboutSection
 import { StayHookToast } from "@/components/landing/StayHookToast";
 import { LiveQueueHero } from "@/components/landing/LiveQueueHero";
 import { SpeedAccuracyDuo } from "@/components/landing/SpeedAccuracyDuo";
-import { WaitlistSection } from "@/components/landing/WaitlistSection";
+import { WaitlistBar, WaitlistSection } from "@/components/landing/WaitlistSection";
 import { InfoChatNarrative } from "@/components/landing/InfoSections";
 
 const Landing = () => {
@@ -138,10 +138,13 @@ const Landing = () => {
         </div>
       </nav>
 
-      {/* Hero — footage behind a narrow centred column, CTAs inside the first fold */}
+      {/* Hero — footage behind a narrow centred column, CTAs inside the first fold.
+          Height is 78vh rather than a full screen so the waitlist bar below it
+          clears the fold on a typical laptop instead of sitting just under it.
+          The two are sized as a pair: raising this pushes the bar out of view. */}
       <section
         ref={reticle.ref}
-        className="relative min-h-[92vh] flex flex-col justify-center px-6 pt-32 pb-20 overflow-hidden"
+        className="relative min-h-[78vh] flex flex-col justify-center px-6 pt-28 pb-14 overflow-hidden"
       >
         <HeroVideoBackdrop src="/hero.mp4" scrim={0.7} fadeBottom={false} />
 
@@ -270,6 +273,12 @@ const Landing = () => {
           </Reveal>
         </div>
       </section>
+
+      {/* Waitlist bar directly under the hero. Most visitors never reach the
+          closing section, so the ask has to appear before the page asks them to
+          scroll through the product. Email-only here; the closing section
+          collects role and organisation from anyone who reads that far. */}
+      <WaitlistBar />
 
       {/* The live queue, now below the fold */}
       <section className="py-24 px-6 bg-kx-canvas border-t border-kx-border">

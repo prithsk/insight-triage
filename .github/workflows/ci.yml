@@ -19,8 +19,12 @@ jobs:
 
       - run: npm ci
 
+      # `npx tsc --noEmit` checked ZERO files here: the root tsconfig.json is a
+      # solution file ("files": [], only "references"), and tsc ignores project
+      # references unless invoked with --build. This step passed unconditionally
+      # from the day it was added. Use the npm script, which runs tsc --build.
       - name: Typecheck
-        run: npx tsc --noEmit
+        run: npm run typecheck
 
       - name: Tests
         run: npm test

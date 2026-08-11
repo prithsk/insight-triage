@@ -14,39 +14,50 @@ import { Reveal } from "@/components/ui/reveal";
  * Class II CADt device (21 CFR 892.2080). It must not promise availability,
  * clearance, or clinical benefit. "Currently in validation" is the accurate
  * framing and should survive any rewrite.
+ *
+ * TWO PLACEMENTS, ONE SUBMIT PATH. `WaitlistBar` sits high on the page so a
+ * visitor who never scrolls to the bottom still gets the ask; `WaitlistSection`
+ * closes the page. Both call the same `useWaitlistSignup` hook, so the duplicate
+ * handling and the error copy cannot drift apart. `source` distinguishes them in
+ * the table, which is the only way to learn which placement actually converts.
  */
 
 const ROLES = ["Radiologist", "Imaging / IT lead", "Investor", "Other"];
 
 type Status = "idle" | "sending" | "done" | "error";
 
-export function WaitlistSection() {
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [organisation, setOrganisation] = useState("");
-  const [role, setRole] = useState("");
+interface SignupFields {
+  email: string;
+  name?: string;
+  organisation?: string;
+  role?: string;
+  source: string;
+}
+
+function useWaitlistSignup() {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
+  async function submit(fields: SignupFields) {
     if (status === "sending") return;
 
     setStatus("sending");
     setError("");
 
     const { error: insertError } = await supabase.from("waitlist_signups").insert({
-      email: email.trim(),
-      name: name.trim() || null,
-      organisation: organisation.trim() || null,
-      role: role || null,
-      source: "landing",
+      email: fields.email.trim(),
+      name: fields.name?.trim() || null,
+      organisation: fields.organisation?.trim() || null,
+      role: fields.role || null,
+      source: fields.source,
     });
 
     if (insertError) {
       // 23505 is the unique index on lower(email). Someone signing up twice has
       // done nothing wrong, so treat it as success rather than surfacing a
       // database error — and it avoids the form doubling as a membership oracle.
+      // It also means the two placements can't contradict each other when the
+      // same person uses both.
       if (insertError.code === "23505") {
         setStatus("done");
         return;
@@ -57,6 +68,90 @@ export function WaitlistSection() {
     }
 
     setStatus("done");
+  }
+
+  return { status, error, submit };
+}
+
+/**
+ * Compact single-field bar for high placement on the page. Email only —
+ * every extra field costs conversions, and the closing section can collect
+ * the rest from anyone who reads that far.
+ */
+export function WaitlistBar() {
+  const [email, setEmail] = useState("");
+  const { status, error, submit } = useWaitlistSignup();
+
+  return (
+    // Sized to clear the fold beneath a 78vh hero. Keep it compact — this bar
+    // interrupts the hero, so it earns its place by being quick to read.
+    <section className="px-6 py-8 md:py-9 bg-kx-ink border-t border-white/10">
+      <div className="max-w-[1080px] mx-auto flex flex-col md:flex-row md:items-center gap-5 md:gap-10">
+        <div className="flex-1">
+          <p className="font-display text-[22px] md:text-[26px] leading-snug text-white mb-1.5">
+            Kroix is in validation.
+          </p>
+          <p className="text-[14.5px] text-white/55 leading-relaxed max-w-lg">
+            Join the list and we'll share what the measurements show — including if
+            they show nothing.
+          </p>
+        </div>
+
+        {status === "done" ? (
+          <p className="text-[15px] text-emerald-400 font-medium md:w-[380px] md:flex-shrink-0">
+            You're on the list. We'll be in touch.
+          </p>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              submit({ email, source: "landing-top" });
+            }}
+            className="md:w-[380px] md:flex-shrink-0"
+          >
+            <div className="flex gap-2.5">
+              <label className="sr-only" htmlFor="waitlist-bar-email">
+                Email
+              </label>
+              <input
+                id="waitlist-bar-email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="flex-1 min-w-0 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-[15px] text-white placeholder:text-white/35 focus:outline-none focus:border-kx-accent2 transition-colors"
+              />
+              <button
+                type="submit"
+                disabled={status === "sending"}
+                className="rounded-xl bg-white text-kx-ink px-5 py-3 text-[15px] font-medium hover:bg-white/90 transition-colors disabled:opacity-60 flex-shrink-0"
+              >
+                {status === "sending" ? "…" : "Join"}
+              </button>
+            </div>
+            {error && (
+              <p role="alert" className="text-[13px] text-kx-critical mt-2.5">
+                {error}
+              </p>
+            )}
+          </form>
+        )}
+      </div>
+    </section>
+  );
+}
+
+export function WaitlistSection() {
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [organisation, setOrganisation] = useState("");
+  const [role, setRole] = useState("");
+  const { status, error, submit } = useWaitlistSignup();
+
+  function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    submit({ email, name, organisation, role, source: "landing" });
   }
 
   return (

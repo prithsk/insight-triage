@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type ViewMode = "with-kroix" | "without-kroix";
 type ChartTab = "mttr" | "throughput" | "overrides" | "feedback";
 
 const CHART_TEAL   = "#2F6F5E";
@@ -29,28 +28,28 @@ const TOOLTIP_STYLE = {
 };
 
 export default function Analytics() {
-  const [viewMode,   setViewMode]   = useState<ViewMode>("with-kroix");
   const [activeTab,  setActiveTab]  = useState<ChartTab>("mttr");
 
   const { data, isLoading, error } = useAnalytics();
 
-  const isWithKroix = viewMode === "with-kroix";
-
   // ── Summary stats ─────────────────────────────────────────────────────────
+  // Measured series only. The "without Kroix" arm this page used to chart was
+  // built from mock generators on every render, even when real data existed —
+  // an invented comparison a logged-in partner could read and export. Producing
+  // a real one requires the SLA replay over a department's historical worklist,
+  // not a client-side generator. See src/hooks/useAnalytics.ts.
   const stats = useMemo(() => {
     if (!data) return null;
-    const mttr       = isWithKroix ? data.combinedMTTR.map(d => d.withKroix)       : data.combinedMTTR.map(d => d.withoutKroix);
-    const throughput = isWithKroix ? data.combinedThroughput.map(d => d.withKroix) : data.combinedThroughput.map(d => d.withoutKroix);
-    const override   = isWithKroix ? data.combinedOverride.map(d => d.withKroix)   : data.combinedOverride.map(d => d.withoutKroix);
+    const { mttr, throughput, overrideRate } = data;
     const avg = (arr: number[]) => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
     return {
       avgMTTR:       avg(mttr).toFixed(1),
       avgThroughput: Math.round(avg(throughput)),
-      avgOverride:   Math.round(avg(override)),
+      avgOverride:   Math.round(avg(overrideRate)),
       mttrTrend:     mttr.length > 1 ? mttr[mttr.length-1] - mttr[0] : 0,
       tpTrend:       throughput.length > 1 ? throughput[throughput.length-1] - throughput[0] : 0,
     };
-  }, [data, isWithKroix]);
+  }, [data]);
 
   // ── Feedback donut data ───────────────────────────────────────────────────
   const feedbackPie = useMemo(() => {
@@ -67,12 +66,18 @@ export default function Analytics() {
   const handleExportCSV = () => {
     if (!data) return;
     const ts = new Date().toISOString().split("T")[0];
-    const mode = isWithKroix ? "With_Kroix" : "Without_Kroix";
-    let csv = `Kroix Analytics Export - ${mode}\nGenerated: ${new Date().toLocaleString()}\n\n`;
+    // The export carries its own provenance line. A CSV outlives the page it came
+    // from — it gets forwarded, pasted into decks, and read months later by people
+    // who never saw this UI, so it has to say what it is on its own.
+    let csv = `Kroix Analytics Export\nGenerated: ${new Date().toLocaleString()}\n`;
+    csv += `Source: measured in-app activity only. No comparison arm — Kroix has not been\n`;
+    csv += `evaluated against a without-Kroix baseline. Do not present these as a comparison.\n\n`;
     csv += `MTTR DATA\nDate,Value (min)\n`;
-    data.combinedMTTR.forEach(r => { csv += `${r.date},${isWithKroix ? r.withKroix : r.withoutKroix}\n`; });
+    data.series.mttr.forEach(r => { csv += `${r.date},${r.value}\n`; });
     csv += `\nTHROUGHPUT DATA\nDate,Value (scans/hr)\n`;
-    data.combinedThroughput.forEach(r => { csv += `${r.date},${isWithKroix ? r.withKroix : r.withoutKroix}\n`; });
+    data.series.throughput.forEach(r => { csv += `${r.date},${r.value}\n`; });
+    csv += `\nOVERRIDE RATE\nDate,Value (%)\n`;
+    data.series.override.forEach(r => { csv += `${r.date},${r.value}\n`; });
     csv += `\nFEEDBACK SUMMARY\nMetric,Value\n`;
     if (data.summary) {
       const s = data.summary;
@@ -81,7 +86,7 @@ export default function Analytics() {
     }
     const link = document.createElement("a");
     link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
-    link.download = `kroix_analytics_${mode}_${ts}.csv`;
+    link.download = `kroix_analytics_${ts}.csv`;
     link.click();
   };
 
@@ -105,8 +110,8 @@ export default function Analytics() {
                   Operational <span className="text-kx-accent3">Analytics</span>
                 </h1>
                 <p className="text-[17px] text-kx-muted mt-3 max-w-xl">
-                  Track workflow improvements and pilot metrics. Compare{" "}
-                  <em>AI-assisted</em> performance against baseline.
+                  Review activity recorded in this workspace — how long studies wait,
+                  how many get read, and how often Kroix's ordering is overridden.
                 </p>
               </div>
               <button
@@ -119,39 +124,33 @@ export default function Analytics() {
               </button>
             </div>
 
-            {/* Preview banner when no real data yet */}
+            {/* Empty-state banner. This used to read "Preview data shown" while the
+                charts rendered mock generator output — a visitor could not tell
+                invented data from measured data, and the word "preview" made the
+                fabrication sound like a feature. The charts are now empty until
+                real studies exist, and this says so. */}
             {data && !data.hasRealData && (
               <div className="mt-6 flex items-start gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-[10px]">
                 <Info className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
                 <p className="text-[13px] text-amber-800">
-                  <strong>Preview data shown.</strong> Upload and review studies to see your real analytics. Charts will update automatically.
+                  <strong>No data yet.</strong> These charts stay empty until studies have been
+                  uploaded and reviewed — nothing here is simulated.
                 </p>
               </div>
             )}
 
-            {/* View mode toggle */}
-            <div className="flex items-center gap-4 mt-6">
-              <span className="text-[13px] text-kx-muted uppercase tracking-wide">Compare</span>
-              <div className="flex gap-1">
-                {[
-                  { id: "with-kroix",    label: "With Kroix"    },
-                  { id: "without-kroix", label: "Without Kroix" },
-                ].map(m => (
-                  <button
-                    key={m.id}
-                    onClick={() => setViewMode(m.id as ViewMode)}
-                    className={cn(
-                      "px-4 py-2 rounded-[10px] text-[14px] font-medium transition-colors",
-                      viewMode === m.id
-                        ? m.id === "with-kroix" ? "bg-kx-accent3 text-white" : "bg-kx-muted text-white"
-                        : "bg-kx-surface text-kx-muted hover:bg-kx-accent3/15 hover:text-kx-accent3"
-                    )}
-                  >
-                    {m.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* A "Compare: With Kroix / Without Kroix" toggle stood here. Both
+                arms came from the same mock generators, so the control switched
+                between a measured series and an invented one and presented the
+                pair as a comparison. Removed with the synthetic baseline itself.
+
+                A real comparison needs the SLA replay over a department's
+                historical worklist — see src/validation/slaReplay.ts. Until that
+                has run on real data, this page reports activity, not effect. */}
+            <p className="text-[13px] text-kx-muted mt-6 max-w-2xl leading-relaxed">
+              Measured in-app activity. Kroix has not been evaluated against a
+              without-Kroix baseline, so nothing here shows an effect of using it.
+            </p>
           </div>
         </section>
 
@@ -302,29 +301,25 @@ export default function Analytics() {
                       {activeTab === "feedback"   && "Daily Feedback Breakdown"}
                       <span className="text-[14px] text-kx-muted font-sans ml-2">— Last 7 Days</span>
                     </h3>
-                    {activeTab !== "feedback" && (
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#2F6F5E]" /><span className="text-[12px] text-kx-muted">With Kroix</span></div>
-                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#9CA3AF]" /><span className="text-[12px] text-kx-muted">Without Kroix</span></div>
-                      </div>
-                    )}
+                    {/* The two-series legend (With Kroix / Without Kroix) went with
+                        the synthetic baseline. One series, so it needs no legend —
+                        and a legend naming an arm that isn't plotted is the same
+                        claim the charts just stopped making. */}
                   </div>
 
                   <div className="h-[380px]">
                     {/* MTTR */}
                     {activeTab === "mttr" && (
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={data.combinedMTTR}>
+                        <AreaChart data={data.series.mttr}>
                           <defs>
                             <linearGradient id="gWith"    x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={CHART_TEAL} stopOpacity={0.18}/><stop offset="95%" stopColor={CHART_TEAL} stopOpacity={0}/></linearGradient>
-                            <linearGradient id="gWithout" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={CHART_GREY} stopOpacity={0.12}/><stop offset="95%" stopColor={CHART_GREY} stopOpacity={0}/></linearGradient>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
                           <XAxis dataKey="date" stroke={CHART_GREY} tick={{ fill:"#6B7280", fontSize:12 }} />
                           <YAxis stroke={CHART_GREY} tick={{ fill:"#6B7280", fontSize:12 }} unit="m" />
-                          <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number, n: string) => [`${v.toFixed(1)}m`, n === "withKroix" ? "With Kroix" : "Without Kroix"]} />
-                          <Area type="monotone" dataKey="withoutKroix" stroke={CHART_GREY}  fill="url(#gWithout)" strokeWidth={2} strokeDasharray="4 4" />
-                          <Area type="monotone" dataKey="withKroix"    stroke={CHART_TEAL}  fill="url(#gWith)"    strokeWidth={2} />
+                          <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`${v.toFixed(1)}m`, "Median time to review"]} />
+                          <Area type="monotone" dataKey="value" stroke={CHART_TEAL} fill="url(#gWith)" strokeWidth={2} />
                         </AreaChart>
                       </ResponsiveContainer>
                     )}
@@ -332,17 +327,15 @@ export default function Analytics() {
                     {/* Throughput */}
                     {activeTab === "throughput" && (
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={data.combinedThroughput}>
+                        <AreaChart data={data.series.throughput}>
                           <defs>
                             <linearGradient id="gTpWith"    x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={CHART_TEAL} stopOpacity={0.18}/><stop offset="95%" stopColor={CHART_TEAL} stopOpacity={0}/></linearGradient>
-                            <linearGradient id="gTpWithout" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={CHART_GREY} stopOpacity={0.12}/><stop offset="95%" stopColor={CHART_GREY} stopOpacity={0}/></linearGradient>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
                           <XAxis dataKey="date" stroke={CHART_GREY} tick={{ fill:"#6B7280", fontSize:12 }} />
                           <YAxis stroke={CHART_GREY} tick={{ fill:"#6B7280", fontSize:12 }} />
-                          <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number, n: string) => [`${v} scans/hr`, n === "withKroix" ? "With Kroix" : "Without Kroix"]} />
-                          <Area type="monotone" dataKey="withoutKroix" stroke={CHART_GREY} fill="url(#gTpWithout)" strokeWidth={2} strokeDasharray="4 4" />
-                          <Area type="monotone" dataKey="withKroix"    stroke={CHART_TEAL} fill="url(#gTpWith)"    strokeWidth={2} />
+                          <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`${v} scans/hr`, "Studies reviewed"]} />
+                          <Area type="monotone" dataKey="value" stroke={CHART_TEAL} fill="url(#gTpWith)" strokeWidth={2} />
                         </AreaChart>
                       </ResponsiveContainer>
                     )}
@@ -350,13 +343,12 @@ export default function Analytics() {
                     {/* Override rate */}
                     {activeTab === "overrides" && (
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={data.combinedOverride}>
+                        <BarChart data={data.series.override}>
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
                           <XAxis dataKey="date" stroke={CHART_GREY} tick={{ fill:"#6B7280", fontSize:12 }} />
                           <YAxis stroke={CHART_GREY} tick={{ fill:"#6B7280", fontSize:12 }} unit="%" />
-                          <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number, n: string) => [`${v}%`, n === "withKroix" ? "With Kroix" : "Without Kroix"]} />
-                          <Bar dataKey="withoutKroix" fill="#D1D5DB" radius={[5,5,0,0]} />
-                          <Bar dataKey="withKroix"    fill={CHART_TEAL} radius={[5,5,0,0]} />
+                          <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`${v}%`, "Radiologist overrode Kroix"]} />
+                          <Bar dataKey="value" fill={CHART_TEAL} radius={[5,5,0,0]} />
                         </BarChart>
                       </ResponsiveContainer>
                     )}
