@@ -25,14 +25,21 @@ export default function About() {
       description: "Every minute counts in respiratory emergencies. AI-powered prioritization ensures critical cases are seen first.",
     },
     {
+      // Said "trained on millions of chest X-rays to detect subtle patterns
+      // invisible to the human eye." The training set is ~5,800 images from one
+      // public pediatric dataset, and no comparison against human readers has
+      // been run. Both halves of that sentence were invented.
       icon: Brain,
-      title: "Intelligent analysis",
-      description: "Deep learning models trained on millions of chest X-rays to detect subtle patterns invisible to the human eye.",
+      title: "Three models, one score",
+      description: "DenseNet121, GoogLeNet and ResNet18 each score the study; a tanh-weighted fusion combines them, and every model's contribution stays visible.",
     },
     {
+      // Said "Life-saving impact ... means better patient outcomes." Kroix
+      // measures read timing. Whether earlier reads change care is exactly the
+      // attribution problem the SLA replay exists to avoid claiming.
       icon: HeartPulse,
-      title: "Life-saving impact",
-      description: "Faster detection of pneumonia, COPD exacerbations, and other respiratory conditions means better patient outcomes.",
+      title: "The medium band",
+      description: "Critical findings already get flagged and routine studies are fine. The studies that wait longest are the ones in between, and nothing currently sorts them.",
     },
     {
       icon: Shield,
@@ -160,14 +167,21 @@ export default function About() {
           </div>
 
           <p className="text-[17px] text-kx-muted leading-relaxed mb-8">
-            We envision a future where no critical finding goes unnoticed. Where AI augments
-            human expertise to deliver faster, more accurate diagnoses. Where every patient
-            receives timely care.
+            We think the studies that wait longest are the ones nobody flagged and nobody
+            deprioritised — the middle of the list. Whether reordering that middle actually
+            helps is a measurable question, and measuring it honestly is the work.
           </p>
 
-          <div className="inline-flex items-center gap-2 text-kx-critical font-mono text-[14px]">
-            <TrendingUp className="w-4 h-4" />
-            <span>30% faster time to diagnosis in pilot studies</span>
+          {/* Was "30% faster time to diagnosis in pilot studies" — a number
+              attached to a study that does not exist. There is no pilot and no
+              time-to-diagnosis measurement. This states the open question the
+              SLA replay is built to answer instead of inventing its answer. */}
+          <div className="inline-flex items-start gap-2 text-kx-muted font-mono text-[13px] max-w-lg leading-relaxed">
+            <TrendingUp className="w-4 h-4 mt-0.5 shrink-0" />
+            <span>
+              Currently in validation — replaying our ranking against historical worklists
+              to see whether it would have brought studies inside read-time targets.
+            </span>
           </div>
         </Reveal>
       </section>

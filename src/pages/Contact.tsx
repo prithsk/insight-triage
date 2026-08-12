@@ -298,8 +298,8 @@ export default function Contact() {
           <Reveal delayMs={150} className="mt-12 text-center p-8 rounded-2xl border border-kx-border bg-kx-surface/40">
             <h3 className="font-grotesk text-lg text-kx-ink mb-2">Common questions</h3>
             <p className="text-kx-muted text-sm max-w-md mx-auto">
-              Looking for quick answers about HIPAA compliance, integration requirements, or
-              pilot programs? Check out our documentation or reach out directly.
+              Looking for quick answers about regulatory status, integration requirements, or
+              what validation looks like? Check out our documentation or reach out directly.
             </p>
           </Reveal>
         </div>

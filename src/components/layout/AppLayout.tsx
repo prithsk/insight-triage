@@ -34,8 +34,10 @@ export function AppLayout({ children }: AppLayoutProps) {
           <span className="text-lg font-semibold text-foreground tracking-tight">
             Kroix
           </span>
+          {/* Was "PILOT". There is no pilot — the badge implied a deployment
+              that does not exist, on every authenticated page. */}
           <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded">
-            PILOT
+            PRE-CLEARANCE
           </span>
         </div>
         

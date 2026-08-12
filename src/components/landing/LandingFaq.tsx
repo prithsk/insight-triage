@@ -19,8 +19,14 @@ const FAQS = [
     a: "Studies arrive as DICOM, get scored, and the priority order is reflected directly in the worklist, no changes to your existing viewer or reporting software.",
   },
   {
+    // Said "We're in active pilot testing with de-identified data." There is no
+    // pilot. Same fabrication as the CaseStudy testimonial and the README line.
     q: "Is patient data HIPAA-compliant?",
-    a: "We're in active pilot testing with de-identified data. Production deployment with real PHI requires BAA-covered infrastructure, which is part of our clinical rollout plan.",
+    a: "Kroix is not deployed and handles no patient data today. Production use with real PHI would require BAA-covered infrastructure across hosting, database, and the ML service — that is not in place, and it is a prerequisite rather than a plan.",
+  },
+  {
+    q: "Is Kroix FDA-cleared?",
+    a: "No. Software that scores images and reorders a worklist is computer-assisted triage under 21 CFR 892.2080 — Class II, 510(k) required. Being non-diagnostic is what places it in that category, not what exempts it. Kroix is pre-clearance and is not for clinical use.",
   },
 ];
 

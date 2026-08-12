@@ -51,8 +51,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <span className="text-2xl font-display font-semibold text-kx-ink tracking-tight">
                 Kroix
               </span>
+              {/* Was "PILOT". There is no pilot. */}
               <span className="text-[11px] font-medium text-kx-muted bg-kx-surface border border-kx-border px-2 py-0.5 rounded-md">
-                PILOT
+                PRE-CLEARANCE
               </span>
             </Link>
 
