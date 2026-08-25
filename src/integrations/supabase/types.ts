@@ -14,42 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      // Hand-added ahead of `supabase gen types`, since the migration
-      // (20260730120000_waitlist.sql) has not been applied yet. Regenerate this
-      // file after applying it and this block should come back identical.
-      waitlist_signups: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-          name: string | null
-          note: string | null
-          organisation: string | null
-          role: string | null
-          source: string | null
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id?: string
-          name?: string | null
-          note?: string | null
-          organisation?: string | null
-          role?: string | null
-          source?: string | null
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-          name?: string | null
-          note?: string | null
-          organisation?: string | null
-          role?: string | null
-          source?: string | null
-        }
-        Relationships: []
-      }
       documents: {
         Row: {
           approved: boolean | null
