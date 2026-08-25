@@ -53,9 +53,6 @@ export default function InfoVariants() {
           <a href="/about-variants" className="font-mono text-[12px] text-white/50 hover:text-white transition-colors">
             ← about variants
           </a>
-          <a href="/metric-variants" className="font-mono text-[12px] text-white/50 hover:text-white transition-colors">
-            metric variants →
-          </a>
         </div>
       </div>
 

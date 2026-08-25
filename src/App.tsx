@@ -20,8 +20,12 @@ import Assistant from "./pages/Assistant";
 import HeroVariants from "./pages/HeroVariants";
 import AboutVariants from "./pages/AboutVariants";
 import InfoVariants from "./pages/InfoVariants";
-import MetricVariants from "./pages/MetricVariants";
 import TraceVariants from "./pages/TraceVariants";
+import WorklistVariants from "./pages/WorklistVariants";
+import ReaderVariants from "./pages/ReaderVariants";
+import AnalyticsVariantsPage from "./pages/AnalyticsVariants";
+import HeroLab from "./pages/HeroLab";
+import MotionLab from "./pages/MotionLab";
 import Validation from "./pages/Validation";
 
 const queryClient = new QueryClient();
@@ -43,8 +47,12 @@ const App = () => (
                 <Route path="/hero-variants" element={<HeroVariants />} />
                 <Route path="/about-variants" element={<AboutVariants />} />
                 <Route path="/info-variants" element={<InfoVariants />} />
-                <Route path="/metric-variants" element={<MetricVariants />} />
                 <Route path="/trace-variants" element={<TraceVariants />} />
+                <Route path="/worklist-variants" element={<WorklistVariants />} />
+                <Route path="/reader-variants" element={<ReaderVariants />} />
+                <Route path="/analytics-variants" element={<AnalyticsVariantsPage />} />
+                <Route path="/hero-lab" element={<HeroLab />} />
+                <Route path="/motion-lab" element={<MotionLab />} />
               </>
             )}
             <Route path="/about" element={<About />} />

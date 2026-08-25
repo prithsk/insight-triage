@@ -49,7 +49,6 @@ export default function TraceVariants() {
             ["/hero-variants", "hero"],
             ["/about-variants", "about"],
             ["/info-variants", "info"],
-            ["/metric-variants", "metric"],
           ].map(([href, label]) => (
             <a
               key={href}
