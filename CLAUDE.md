@@ -153,3 +153,7 @@ Run `/preflight` before any push.
 - `docs/DECISIONS.md` — why things are the way they are, and what would reverse them.
   Add an entry when making a durable call; skip turn-level choices.
 - `SECURITY.md` — private disclosure path.
+
+## Compaction
+
+@.claude/COMPACT.md
