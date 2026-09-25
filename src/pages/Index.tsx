@@ -180,14 +180,14 @@ export default function Index() {
       <div className="min-h-[calc(100vh-72px)]">
 
         {/* ── Page Header ──────────────────────────────────────────────────── */}
-        <section className="px-8 py-10 border-b border-kx-border bg-white/40 backdrop-blur-sm">
+        <section className="px-8 py-7 border-b border-kx-border bg-white">
           <div className="max-w-[1600px] mx-auto">
             <div className="flex items-start justify-between">
               <div>
-                <h1 className="font-display text-[40px] lg:text-[48px] leading-[1.1] text-kx-ink tracking-[-0.01em]">
-                  Triage <span className="text-kx-accent3">Command Center</span>
+                <h1 className="font-display text-[24px] leading-[1.2] text-kx-ink tracking-[-0.015em]">
+                  Worklist
                 </h1>
-                <p className="text-[17px] text-kx-muted mt-3 max-w-xl">
+                <p className="text-[13.5px] text-kx-muted mt-1.5 max-w-2xl leading-relaxed">
                   Worklist for respiratory imaging, ordered by{" "}
                   <em>proximity to read-time target</em>. Targets are Kroix defaults,
                   not your department&rsquo;s SLA, and elapsed time is measured from upload.
@@ -208,15 +208,15 @@ export default function Index() {
               <div className="h-6 w-px bg-kx-border" />
               <div className="flex items-center gap-6">
                 <span className="flex items-center gap-2 text-[14px] text-kx-muted">
-                  <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-kx-critical" />
                   {criticalCount} Critical
                 </span>
                 <span className="flex items-center gap-2 text-[14px] text-kx-muted">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-kx-warn" />
                   {reviewCount} Review
                 </span>
                 <span className="flex items-center gap-2 text-[14px] text-kx-muted">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-kx-accent3" />
                   {clearCount} Clear
                 </span>
                 {pendingCount > 0 && (
@@ -243,7 +243,7 @@ export default function Index() {
         </section>
 
         {/* ── Status Tabs ──────────────────────────────────────────────────── */}
-        <section className="px-8 pt-5 pb-0 bg-white/30 backdrop-blur-sm">
+        <section className="px-8 pt-4 pb-0 bg-white">
           <div className="max-w-[1600px] mx-auto">
             <div className="flex items-center gap-1 border-b border-kx-border">
               {STATUS_TABS.map(tab => {
@@ -281,7 +281,7 @@ export default function Index() {
         </section>
 
         {/* ── Filters Bar ──────────────────────────────────────────────────── */}
-        <section className="px-8 py-4 bg-white/60 backdrop-blur-sm border-b border-kx-border">
+        <section className="px-8 py-3 bg-kx-surface/50 border-b border-kx-border">
           <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               {/* Bucket filter */}
@@ -419,7 +419,7 @@ export default function Index() {
                   selectedItem && "max-h-[calc(100vh-280px)] overflow-y-auto scrollbar-clinical pr-2"
                 )}>
                   {filteredAndSortedItems.length > 0 ? (
-                    <div className="flex flex-col gap-3">
+                    <div className="rounded-lg border border-kx-border bg-white overflow-hidden">
                       {filteredAndSortedItems.map(item => (
                         <WorklistCard
                           key={item.study.id}

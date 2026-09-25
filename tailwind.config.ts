@@ -38,6 +38,24 @@ export default {
           accent3:  "#0F9D6E",
           tint2:    "#EEF1FF",
           tint3:    "#EAF7F1",
+
+          // Added for the dense worklist. Two additions, both about contrast:
+          //
+          // `critical` (#E8503A) measures 3.7:1 against #FFFFFF. That clears the
+          // 3:1 floor for a non-text UI element (WCAG 2.2 SC 1.4.11), so it is
+          // still the right fill for a progress bar or a severity rule — but it
+          // is below the 4.5:1 body-text floor (SC 1.4.3), and the worklist uses
+          // it as text ("18m over", "3 Over target"). `critical-ink` is the same
+          // hue at text weight: 6.0:1 on white.
+          //
+          // `warn` is the approaching-target amber. There was no amber token at
+          // all, which is why WorklistCard/StudyPreview reached for raw
+          // `amber-50` / `amber-700` Tailwind against the kx-only rule in
+          // CLAUDE.md. 5.0:1 on white.
+          //
+          // Existing values above are untouched.
+          "critical-ink": "#B03A28",
+          warn:           "#B45309",
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
