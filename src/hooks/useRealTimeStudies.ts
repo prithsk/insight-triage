@@ -117,21 +117,21 @@ export function useRealTimeStudies() {
     };
   });
 
-  // Sort by risk: CRITICAL first, then REVIEW, then CLEAR, then pending
-  const sortedItems = [...worklistItems].sort((a, b) => {
-    const bucketOrder = { CRITICAL: 0, REVIEW: 1, CLEAR: 2 };
-    const aBucket = a.triage?.risk_bucket;
-    const bBucket = b.triage?.risk_bucket;
-    
-    if (!aBucket && !bBucket) return 0;
-    if (!aBucket) return 1;
-    if (!bBucket) return -1;
-    
-    return bucketOrder[aBucket] - bucketOrder[bBucket];
-  });
-
+  // NO SORT HERE — deliberately.
+  //
+  // This hook used to sort by risk bucket with no tiebreak, and `Index.tsx`
+  // then sorted again. Two sorts over one list means the visible order is
+  // whatever the second one does not decide, resolved by JS sort stability —
+  // which is how the newest-first order from `useStudies`' `created_at DESC`
+  // survived inside each bucket and turned the worklist into LIFO.
+  //
+  // Ordering belongs to the page, because the page owns the user's sort
+  // controls and the clock that time-to-target depends on. See
+  // `@/lib/worklistOrder`. `worklistItems` is emitted UNSORTED; the only other
+  // consumers are the page's status-tab filters and counts, which do not care
+  // about order.
   return {
-    worklistItems: sortedItems,
+    worklistItems,
     queueState,
     isLoading,
     error

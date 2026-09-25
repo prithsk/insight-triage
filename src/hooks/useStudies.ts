@@ -60,7 +60,18 @@ export function useStudies() {
           triage_results (*),
           lab_results (*)
         `)
-        .order('created_at', { ascending: false });
+        // Display order is NOT decided here — see `@/lib/worklistOrder`, which
+        // is the single ordering authority. This fetch order only has to be
+        // deterministic. It is ascending rather than descending on purpose: if
+        // the page's sort is ever bypassed, the fallback a radiologist sees is
+        // FIFO (oldest first), not LIFO. `created_at DESC` here was one of the
+        // three layers that combined into a backwards worklist.
+        .order('created_at', { ascending: true })
+        // Consumers read `triage_results[0]` as "the latest result". Nested
+        // rows come back in unspecified order unless asked, so that index was
+        // only accidentally correct. It now drives the sort, so make it true.
+        .order('created_at', { referencedTable: 'triage_results', ascending: false })
+        .order('timestamp', { referencedTable: 'lab_results', ascending: false });
 
       if (error) throw error;
       return data as StudyWithTriage[];
@@ -82,6 +93,10 @@ export function useStudy(studyId: string | undefined) {
           lab_results (*)
         `)
         .eq('id', studyId)
+        // Same reason as in useStudies: Reviewer and Assistant both read
+        // `triage_results[0]` as the latest result.
+        .order('created_at', { referencedTable: 'triage_results', ascending: false })
+        .order('timestamp', { referencedTable: 'lab_results', ascending: false })
         .maybeSingle();
 
       if (error) throw error;

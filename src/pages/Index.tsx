@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { WorklistCard } from "@/components/dashboard/WorklistCard";
 import { StudyPreview } from "@/components/dashboard/StudyPreview";
@@ -13,6 +13,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useDeleteStudy, useArchiveStudies } from "@/hooks/useStudies";
+import {
+  sortWorklist, targetStateOf, WORKLIST_TICK_MS,
+  type SortField, type WorklistOrder,
+} from "@/lib/worklistOrder";
 import { toast } from "sonner";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -25,17 +29,48 @@ import {
   SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 
-type SortField     = "priority" | "score" | "time" | "studyId";
-type SortDirection = "asc" | "desc";
 type StatusFilter  = "ACTIVE" | "REVIEWED" | "ARCHIVED";
 
 const bucketFilters: (RiskBucket | "ALL")[] = ["ALL", "CRITICAL", "REVIEW", "CLEAR"];
 const sortOptions: { value: SortField; label: string }[] = [
-  { value: "priority", label: "Priority" },
-  { value: "score",    label: "Score"    },
-  { value: "time",     label: "Time"     },
-  { value: "studyId",  label: "Study ID" },
+  { value: "target",   label: "Time to target" },
+  { value: "priority", label: "Priority"       },
+  { value: "score",    label: "Score"          },
+  { value: "time",     label: "Wait time"      },
+  { value: "studyId",  label: "Study ID"       },
 ];
+
+/**
+ * What the direction toggle actually does, spelled out per field.
+ *
+ * A bare up/down arrow is what let a backwards worklist ship unnoticed: the
+ * icon said "descending" and the list said "least urgent first" and nothing
+ * connected the two. The control now states its own effect.
+ */
+const ORDER_LABELS: Record<SortField, Record<WorklistOrder, string>> = {
+  target:   { "urgent-first": "Closest to target first", "relaxed-first": "Most slack first"   },
+  priority: { "urgent-first": "Critical first",          "relaxed-first": "Clear first"        },
+  score:    { "urgent-first": "Highest score first",     "relaxed-first": "Lowest score first" },
+  time:     { "urgent-first": "Longest waiting first",   "relaxed-first": "Newest first"       },
+  studyId:  { "urgent-first": "A → Z",                   "relaxed-first": "Z → A"              },
+};
+
+/**
+ * One clock for the whole page, so the ordering and every row's countdown are
+ * computed from the same instant and cannot disagree on screen.
+ *
+ * Interval rationale lives with the constant in `@/lib/worklistOrder`
+ * (WORKLIST_TICK_MS): 30s is below the row display's own resolution, and it
+ * bounds how often rows can reorder under a radiologist's cursor.
+ */
+function useNow(intervalMs: number): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), intervalMs);
+    return () => clearInterval(id);
+  }, [intervalMs]);
+  return now;
+}
 
 const STATUS_TABS: { id: StatusFilter; label: string; icon: typeof Clock }[] = [
   { id: "ACTIVE",   label: "Active",   icon: Clock        },
@@ -52,8 +87,12 @@ export default function Index() {
   const [selectedIds,    setSelectedIds]    = useState<Set<string>>(new Set());
   const [isDeleting,     setIsDeleting]     = useState(false);
   const [isArchiving,    setIsArchiving]    = useState(false);
-  const [sortField,      setSortField]      = useState<SortField>("priority");
-  const [sortDirection,  setSortDirection]  = useState<SortDirection>("desc");
+  // Default: proximity to the read-time target, most urgent first. That is the
+  // product's thesis — not arrival, and not score alone.
+  const [sortField,      setSortField]      = useState<SortField>("target");
+  const [order,          setOrder]          = useState<WorklistOrder>("urgent-first");
+
+  const now = useNow(WORKLIST_TICK_MS);
 
   const deleteStudy  = useDeleteStudy();
   const archiveStudies = useArchiveStudies();
@@ -67,6 +106,11 @@ export default function Index() {
   const reviewCount   = activeItems.filter(i => i.triage?.risk_bucket === "REVIEW").length;
   const clearCount    = activeItems.filter(i => i.triage?.risk_bucket === "CLEAR").length;
   const pendingCount  = activeItems.filter(i => !i.triage).length;
+  // Recomputed on each tick of the page clock, same as the ordering.
+  const overTargetCount = useMemo(
+    () => activeItems.filter(i => targetStateOf(i, now)?.over).length,
+    [activeItems, now]
+  );
 
   // ── Filter + sort ─────────────────────────────────────────────────────────
   const filteredAndSortedItems = useMemo(() => {
@@ -84,25 +128,11 @@ export default function Index() {
       return matchesSearch && matchesBucket;
     });
 
-    const bucketOrder = { CRITICAL: 0, REVIEW: 1, CLEAR: 2 };
-    return [...filtered].sort((a, b) => {
-      let cmp = 0;
-      switch (sortField) {
-        case "priority": {
-          const ab = a.triage?.risk_bucket, bb = b.triage?.risk_bucket;
-          if (!ab && !bb) cmp = 0;
-          else if (!ab) cmp = 1;
-          else if (!bb) cmp = -1;
-          else cmp = bucketOrder[ab] - bucketOrder[bb];
-          break;
-        }
-        case "score":   cmp = (a.triage?.risk_score ?? -1) - (b.triage?.risk_score ?? -1); break;
-        case "time":    cmp = new Date(a.study.study_time).getTime() - new Date(b.study.study_time).getTime(); break;
-        case "studyId": cmp = a.study.id.localeCompare(b.study.id); break;
-      }
-      return sortDirection === "asc" ? cmp : -cmp;
-    });
-  }, [worklistItems, statusFilter, search, bucketFilter, sortField, sortDirection, activeItems, reviewedItems, archivedItems]);
+    // The one ordering authority. `useRealTimeStudies` no longer sorts, so
+    // nothing here depends on JS sort stability or on the order Postgres
+    // happened to return.
+    return sortWorklist(filtered, { field: sortField, order, now });
+  }, [worklistItems, statusFilter, search, bucketFilter, sortField, order, now, activeItems, reviewedItems, archivedItems]);
 
   // ── Bulk actions ──────────────────────────────────────────────────────────
   const handleBulkDelete = async () => {
@@ -158,8 +188,9 @@ export default function Index() {
                   Triage <span className="text-kx-accent3">Command Center</span>
                 </h1>
                 <p className="text-[17px] text-kx-muted mt-3 max-w-xl">
-                  Priority-sorted worklist for respiratory imaging. AI-powered triage puts{" "}
-                  <em>critical cases</em> first.
+                  Worklist for respiratory imaging, ordered by{" "}
+                  <em>proximity to read-time target</em>. Targets are Kroix defaults,
+                  not your department&rsquo;s SLA, and elapsed time is measured from upload.
                 </p>
               </div>
               <UploadButton />
@@ -189,9 +220,21 @@ export default function Index() {
                   {clearCount} Clear
                 </span>
                 {pendingCount > 0 && (
-                  <span className="flex items-center gap-2 text-[14px] text-kx-muted">
+                  <span
+                    className="flex items-center gap-2 text-[14px] text-kx-muted"
+                    title="Awaiting triage. These have no acuity band yet, so they have no read-time target and sort below every scored study."
+                  >
                     <span className="w-2.5 h-2.5 rounded-full bg-kx-muted" />
                     {pendingCount} Pending
+                  </span>
+                )}
+                {overTargetCount > 0 && (
+                  <span
+                    className="flex items-center gap-2 text-[14px] font-medium text-kx-critical"
+                    title="Past the Kroix default read-time target for their band — not your department's SLA. Elapsed is measured from upload time."
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full bg-kx-critical" />
+                    {overTargetCount} Over target
                   </span>
                 )}
               </div>
@@ -267,7 +310,7 @@ export default function Index() {
               {/* Sort */}
               <div className="flex items-center gap-1">
                 <Select value={sortField} onValueChange={v => setSortField(v as SortField)}>
-                  <SelectTrigger className="w-[120px] h-9 text-[13px] border-kx-border rounded-lg bg-white text-kx-muted">
+                  <SelectTrigger className="w-[160px] h-9 text-[13px] border-kx-border rounded-lg bg-white text-kx-muted">
                     <ArrowUpDown className="w-3 h-3 mr-1" />
                     <SelectValue />
                   </SelectTrigger>
@@ -277,11 +320,16 @@ export default function Index() {
                     ))}
                   </SelectContent>
                 </Select>
+                {/* The toggle names its own effect. An unlabelled arrow is how a
+                    backwards worklist shipped without anyone noticing. */}
                 <button
-                  onClick={() => setSortDirection(p => p === "asc" ? "desc" : "asc")}
-                  className="h-9 w-9 flex items-center justify-center rounded-lg border border-kx-border bg-white text-kx-muted hover:bg-kx-accent3/10 hover:text-kx-accent3 transition-colors"
+                  onClick={() => setOrder(p => p === "urgent-first" ? "relaxed-first" : "urgent-first")}
+                  title={`Sorted: ${ORDER_LABELS[sortField][order]}. Click to reverse.`}
+                  aria-label={`Sort order: ${ORDER_LABELS[sortField][order]}. Click to reverse.`}
+                  className="h-9 flex items-center gap-1.5 px-2.5 rounded-lg border border-kx-border bg-white text-[13px] text-kx-muted hover:bg-kx-accent3/10 hover:text-kx-accent3 transition-colors whitespace-nowrap"
                 >
-                  {sortDirection === "asc" ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
+                  {order === "urgent-first" ? <ArrowDown className="w-4 h-4" /> : <ArrowUp className="w-4 h-4" />}
+                  {ORDER_LABELS[sortField][order]}
                 </button>
               </div>
             </div>
@@ -376,6 +424,7 @@ export default function Index() {
                         <WorklistCard
                           key={item.study.id}
                           item={item}
+                          now={now}
                           isSelected={selectedItem?.study.id === item.study.id}
                           isChecked={selectedIds.has(item.study.id)}
                           isMinimized={!!selectedItem}
