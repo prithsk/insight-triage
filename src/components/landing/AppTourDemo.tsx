@@ -31,7 +31,7 @@ const STEPS: Step[] = [
   { scene: "reviewer", ms: 2600, caption: "Reviewer opens with the Grad-CAM overlay already rendered" },
   { scene: "reviewer", ms: 2000, caption: "Per-model scores show why the ensemble flagged it", cursor: { x: 78, y: 82 } },
   { scene: "reviewer", ms: 900, caption: "The radiologist confirms — Kroix never decides", cursor: { x: 78, y: 82 }, click: true },
-  { scene: "analytics", ms: 3000, caption: "Every read feeds turnaround and agreement analytics" },
+  { scene: "analytics", ms: 3000, caption: "Every read feeds the workspace's own turnaround figures" },
 ];
 
 const STUDIES = [
@@ -61,13 +61,32 @@ const MODELS = [
   { name: "resnet18", score: 0.82 },
 ];
 
-const TURNAROUND = [
-  { label: "Mon", fifo: 62, kroix: 24 },
-  { label: "Tue", fifo: 58, kroix: 19 },
-  { label: "Wed", fifo: 71, kroix: 26 },
-  { label: "Thu", fifo: 49, kroix: 17 },
-  { label: "Fri", fifo: 66, kroix: 22 },
-  { label: "Sat", fifo: 40, kroix: 14 },
+/**
+ * Read latency for the tour's analytics pane. ONE series, deliberately.
+ *
+ * This was a two-bar FIFO-vs-Kroix comparison — `{ fifo: 62, kroix: 24 }` and so
+ * on — rendered under "Minutes to first read · critical studies" with a legend
+ * naming both arms. That is a head-to-head Kroix has never run, which is the
+ * same assertion as the `Math.random()` throughput chart removed in 24b7af1 and
+ * the synthetic `withoutKroix` arm removed from `useAnalytics` in 9869b07. Only
+ * the source of the numbers differed: literals rather than a generator.
+ *
+ * A comparison arm is not illustrative UI. Illustrative UI shows what a screen
+ * looks like; a second bar labelled FIFO asserts a measured effect. Kroix has no
+ * baseline, and producing one requires the SLA replay over a department's
+ * historical worklist with throughput held fixed.
+ *
+ * So: one series, labelled illustrative in the panel chrome. Do not add a second
+ * arm here. When the replay returns a real number it belongs on the analytics
+ * page beside its method, not in a product tour.
+ */
+const READ_LATENCY = [
+  { label: "Mon", mins: 62 },
+  { label: "Tue", mins: 58 },
+  { label: "Wed", mins: 71 },
+  { label: "Thu", mins: 49 },
+  { label: "Fri", mins: 66 },
+  { label: "Sat", mins: 40 },
 ];
 
 const bucket = (s: number) => (s >= 0.65 ? "CRITICAL" : s >= 0.35 ? "REVIEW" : "CLEAR");
@@ -141,9 +160,12 @@ export function AppTourDemo({ dark = false }: { dark?: boolean }) {
             </span>
           ))}
         </div>
+        {/* Was a pulsing green dot labelled "live". This component's own header
+            says it is a scripted reconstruction, not a recording — a live badge
+            over a scripted mock is the shape removed from LiveQueueHero in
+            e812303. Say what it is instead. */}
         <span className="ml-auto flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className={`font-mono text-[10px] uppercase tracking-wider ${sub}`}>live</span>
+          <span className={`font-mono text-[10px] uppercase tracking-wider ${sub}`}>walkthrough</span>
         </span>
       </div>
 
@@ -283,7 +305,7 @@ export function AppTourDemo({ dark = false }: { dark?: boolean }) {
           <div className="p-3 sm:p-4">
             <div className="grid grid-cols-3 gap-2.5 mb-4">
               {[
-                { v: "24m", l: "Median time-to-read" },
+                { v: "3", l: "Models per study" },
                 // Not an accuracy or agreement figure: nothing in this repo measures
                 // inter-model agreement. This is the per-study inference time the
                 // latency card in SpeedAccuracyDuo breaks down span by span.
@@ -302,17 +324,13 @@ export function AppTourDemo({ dark = false }: { dark?: boolean }) {
                 <p className={`font-mono text-[9px] uppercase tracking-[0.15em] ${sub}`}>
                   Minutes to first read · critical studies
                 </p>
-                <div className="flex items-center gap-3">
-                  <Legend color={dark ? "bg-white/25" : "bg-kx-muted/35"} label="FIFO" cls={sub} />
-                  <Legend color="bg-kx-accent3" label="Kroix" cls={sub} />
-                </div>
+                <span className={`font-mono text-[9px] ${sub}`}>illustrative</span>
               </div>
               <div className="flex items-end gap-3 h-[112px]">
-                {TURNAROUND.map((d, k) => (
+                {READ_LATENCY.map((d, k) => (
                   <div key={d.label} className="flex-1 flex flex-col items-center gap-1.5">
-                    <div className="w-full flex items-end justify-center gap-1 h-full">
-                      <Bar pct={d.fifo} on={scene === "analytics"} delay={k * 70} cls={dark ? "bg-white/20" : "bg-kx-muted/30"} />
-                      <Bar pct={d.kroix} on={scene === "analytics"} delay={k * 70 + 120} cls="bg-kx-accent3" />
+                    <div className="w-full flex items-end justify-center h-full">
+                      <Bar pct={d.mins} on={scene === "analytics"} delay={k * 70} cls="bg-kx-accent3" />
                     </div>
                     <span className={`font-mono text-[9px] ${sub}`}>{d.label}</span>
                   </div>
@@ -382,11 +400,3 @@ function Bar({ pct, on, delay, cls }: { pct: number; on: boolean; delay: number;
   );
 }
 
-function Legend({ color, label, cls }: { color: string; label: string; cls: string }) {
-  return (
-    <span className="flex items-center gap-1.5">
-      <span className={`w-2 h-2 rounded-sm ${color}`} />
-      <span className={`font-mono text-[9px] ${cls}`}>{label}</span>
-    </span>
-  );
-}
