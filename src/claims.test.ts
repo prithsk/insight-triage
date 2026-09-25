@@ -5,7 +5,7 @@ import path from "path";
 /**
  * Claim discipline, enforced.
  *
- * Six fabricated claims shipped to the public site over this project's life:
+ * Seven fabricated claims shipped to the public site over this project's life:
  *
  *   1. a `Math.random()` "scans reviewed per hour, with vs. without Kroix"
  *      chart under a `LIVE · 7-DAY` badge
@@ -14,6 +14,9 @@ import path from "path";
  *   4. "Currently in active pilot testing" in README.md
  *   5. a synthetic "without Kroix" comparison arm in useAnalytics, exported to CSV
  *   6. `Math.random()` scores under the heading "Live worklist" with a pulsing dot
+ *   7. a headline accuracy of 98.9% and fusion weights of 0.42 / 0.33 / 0.25,
+ *      neither of which appears in `services/ml-api/ensemble_weights.json` — the
+ *      artifact the shipped model came with (0.977… and three exact thirds)
  *
  * Every one of them typechecked. Every one was found by a human reading the
  * source, and several survived multiple review passes precisely because
@@ -23,7 +26,11 @@ import path from "path";
  * It is deliberately a static scan of source text rather than a behavioural
  * test: the failure mode is a claim being WRITTEN, so the source is the right
  * place to catch it. It cannot catch a novel phrasing — nothing can — but it
- * makes reintroducing any of the six shapes above a failing build.
+ * makes reintroducing any of the seven shapes above a failing build.
+ *
+ * The last block reads `services/ml-api/ensemble_weights.json` at test time
+ * rather than hardcoding what it currently says, so retraining the model moves
+ * the assertion instead of breaking it.
  */
 
 const SRC = path.resolve(__dirname);
@@ -198,5 +205,163 @@ describe("claims: identifiers are not guessable", () => {
     const src = code(path.join(SRC, "hooks/useUploadDicom.ts"));
     expect(src, "patient_hash must not come from Math.random()").not.toMatch(/Math\.random/);
     expect(src, "patient_hash must use crypto.randomUUID()").toMatch(/crypto\.randomUUID/);
+  });
+});
+
+/* ══════════════════════════════════════════════════════════════════════════
+   The seventh shape: a number that exists, but not in any artifact.
+
+   98.9% shipped as headline model accuracy on the public landing page, and as
+   an "Ensemble agreement" tile in the product tour. The artifact the model
+   actually shipped with — services/ml-api/ensemble_weights.json — records a
+   5-fold CV mean accuracy of 0.977…, and nothing anywhere in this repo produces
+   98.9%. Alongside it, the site published per-model fusion weights of
+   0.42 / 0.33 / 0.25; the same artifact records three exact thirds.
+
+   The six rules above could not catch either one. They look for language that
+   is never earned ("clinical-grade", "pilot") or for synthetic data wearing a
+   live badge. This one was a plausible number in an honest-looking sentence,
+   with its dataset, cohort and method correctly stated right beside it. The
+   only thing wrong with it was that it was not true.
+
+   So these rules do not pattern-match on wording. They read the artifact at
+   test time and compare it against what the source publishes. If the model is
+   retrained and the artifact changes, these tests track it; if the site drifts
+   from the artifact, they fail. Nothing below hardcodes 97.7 or 1/3.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+interface EnsembleArtifact {
+  normalised_weights: number[];
+  cv_results?: { mean_accuracy?: number };
+  mean_accuracy?: number;
+}
+
+const ARTIFACT_PATH = path.join(REPO, "services/ml-api/ensemble_weights.json");
+
+function artifact(): EnsembleArtifact {
+  return JSON.parse(fs.readFileSync(ARTIFACT_PATH, "utf8")) as EnsembleArtifact;
+}
+
+/** The only model-accuracy percentage this repo is entitled to publish. */
+function publishableAccuracyPct(a: EnsembleArtifact): number {
+  const mean = a.cv_results?.mean_accuracy ?? a.mean_accuracy;
+  if (typeof mean !== "number") throw new Error(`no mean_accuracy in ${ARTIFACT_PATH}`);
+  return Number((mean * 100).toFixed(1));
+}
+
+/**
+ * Words that turn a nearby number into a model-performance claim.
+ *
+ * Deliberately narrow. The UI is full of percentages — bar widths, override
+ * rates, critical share, opacity — and a rule that flagged all of them would be
+ * turned off within a week. A number is only a claim about the model if it sits
+ * next to language about how well the model classifies.
+ */
+const ACCURACY_CONTEXT =
+  /accurac|cross[-\s]?validat|\bfive[-\s]?fold\b|\b\d[-\s]?fold\b|\bCV\b|ensemble agreement|model agreement|\bAUROC\b|\bAUC\b|sensitivit|specificit/i;
+
+/** Percent literals ("97.7%") and bare decimals in percent range ("pct={97.7}"). */
+const PERCENTISH = /(\d{2,3}(?:\.\d+)?)\s*%|\b(\d{2,3}\.\d+)\b/g;
+
+describe("claims: published numbers match the artifact the model shipped with", () => {
+  it("no shipped file publishes a model-accuracy percentage the artifact does not support", () => {
+    const expected = publishableAccuracyPct(artifact());
+    const offenders: string[] = [];
+
+    for (const f of shipped()) {
+      const src = code(f);
+      for (const m of src.matchAll(PERCENTISH)) {
+        const value = Number(m[1] ?? m[2]);
+        // Below 50% is not a plausible accuracy claim for a binary classifier
+        // anyone would ship; above 100 is not a percentage at all.
+        if (!Number.isFinite(value) || value < 50 || value > 100) continue;
+
+        const around = src.slice(Math.max(0, m.index! - 110), m.index! + 110);
+        if (!ACCURACY_CONTEXT.test(around)) continue;
+
+        if (Math.abs(value - expected) > 0.05) {
+          offenders.push(
+            `${rel(f)}: publishes ${value} as model accuracy; ` +
+              `ensemble_weights.json says ${expected}\n    …${around.replace(/\s+/g, " ").trim()}…`
+          );
+        }
+      }
+    }
+
+    expect(
+      offenders,
+      `A performance number with no artifact behind it is a fabrication even when ` +
+        `it is only 1.2 points off:\n${offenders.join("\n")}`
+    ).toEqual([]);
+  });
+
+  it("the accuracy ring on the landing page is read from the artifact's value", () => {
+    // The positive half of the rule above. Deleting the number entirely would
+    // satisfy a rule that only bans wrong values, so pin the one that ships.
+    const src = code(path.join(SRC, "components/landing/SpeedAccuracyDuo.tsx"));
+    const m = /const CV_ACCURACY_PCT = (\d+(?:\.\d+)?)/.exec(src);
+    expect(m, "SpeedAccuracyDuo must declare CV_ACCURACY_PCT for the accuracy ring").not.toBeNull();
+    expect(Number(m![1]), "the ring must show the artifact's 5-fold CV mean accuracy").toBe(
+      publishableAccuracyPct(artifact())
+    );
+  });
+
+  it("no shipped file claims per-model fusion weights the artifact does not record", () => {
+    const expected = artifact().normalised_weights;
+    expect(expected.length, "artifact must record per-model weights").toBeGreaterThan(0);
+
+    // "weight: 0.42", "w: 0.42", "0.42 weight". Only decimals below 1, so
+    // fontWeight: 500 and strokeWidth are out of scope by construction.
+    const claims = [
+      /\bweights?\s*[:=]\s*(0?\.\d+)/gi,
+      /\bw\s*:\s*(0?\.\d+)/g,
+      /(0?\.\d+)\s*weight\b/gi,
+    ];
+
+    const offenders: string[] = [];
+    for (const f of shipped()) {
+      const src = code(f);
+      for (const re of claims) {
+        for (const m of src.matchAll(re)) {
+          const value = Number(m[1]);
+          // Agreeing to two decimals is enough: 0.33 is an honest rendering of
+          // a third, 0.42 is not an honest rendering of anything here.
+          if (expected.some((w) => Math.abs(value - w) <= 0.005)) continue;
+          const around = src.slice(Math.max(0, m.index! - 70), m.index! + 70);
+          offenders.push(
+            `${rel(f)}: claims fusion weight ${value}; ensemble_weights.json says ` +
+              `[${expected.map((w) => w.toFixed(4)).join(", ")}]\n    …${around.replace(/\s+/g, " ").trim()}…`
+          );
+        }
+      }
+    }
+
+    expect(
+      offenders,
+      `train.py's tanh weighting saturates on all three models, so the weights ` +
+        `normalise to equal thirds. Distinct per-model weights are invented:\n${offenders.join("\n")}`
+    ).toEqual([]);
+  });
+
+  it("the traceable-score panel's votes still sum to the fused score it prints", () => {
+    // TraceSections renders each model's contribution (p x weight) beside a
+    // fused total. Changing the weights without recomputing the votes leaves a
+    // panel whose arithmetic a reader can check and find wrong — which is the
+    // same defect as publishing a number with no artifact behind it.
+    const src = code(path.join(SRC, "components/landing/TraceSections.tsx"));
+    const weights = artifact().normalised_weights;
+
+    const votes = [...src.matchAll(/\bp:\s*(\d*\.\d+)/g)].map((m) => Number(m[1]));
+    const fused = /const FUSED = (\d*\.\d+)/.exec(src);
+
+    expect(votes.length, "TraceSections must declare one vote per ensemble model").toBe(weights.length);
+    expect(fused, "TraceSections must declare FUSED").not.toBeNull();
+
+    const sum = votes.reduce((acc, p, i) => acc + p * weights[i], 0);
+    expect(
+      sum.toFixed(2),
+      `Illustrative votes [${votes.join(", ")}] fuse to ${sum.toFixed(4)}, but the ` +
+        `panel prints ${fused![1]}. Recompute the votes, not the label.`
+    ).toBe(Number(fused![1]).toFixed(2));
   });
 });

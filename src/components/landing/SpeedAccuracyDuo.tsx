@@ -23,8 +23,21 @@ import { Reveal } from "@/components/ui/reveal";
  *   - The cohort is PEDIATRIC (ages 1-5), single centre. The product targets adult
  *     radiology worklists.
  *   - The task is BINARY pneumonia vs normal, not critical-finding detection.
- *   - `train.py` pools train/ + val/ + test/ before the 5-fold split, so 98.9% is
- *     cross-validation on the pooled set — not held-out clinical performance.
+ *   - `train.py` pools train/ + val/ + test/ before the 5-fold split, so the number
+ *     is cross-validation on the pooled set — not held-out clinical performance.
+ *
+ * THE NUMBER ITSELF WAS ALSO WRONG. This card shipped 98.9%. No artifact in this
+ * repo contains 98.9% — it appears nowhere in `ensemble_weights.json`, nowhere in
+ * `train.py`'s output, nowhere. The shipped model's 5-fold CV mean accuracy is
+ * 0.9771180957321854, i.e. 97.7%. A rounded-up figure with no source is the same
+ * class of defect as a fabricated chart; it just looks more like a typo.
+ *
+ * "tanh-weighted fusion" is what `train.py` computes, so the phrase stays — but it
+ * does not produce distinct per-model weights. Each weight is
+ * tanh(precision)+tanh(recall)+tanh(f1)+tanh(auc); all four metrics land in
+ * [0.97, 1.0], where tanh is saturated at ~0.7616, so every model scores ~3.046 and
+ * normalisation collapses to 1/3 each. `ensemble_weights.json` records exactly that:
+ * normalised_weights = [0.333…, 0.333…, 0.333…]. The fusion is a plain average.
  *
  * Kroix is an uncleared Class II CADt device (21 CFR 892.2080). "Clinical-grade"
  * and "validated" are promotional claims. Keep this card scoped to what was
@@ -42,7 +55,15 @@ const STAGES = [
 
 const TOTAL_MS = STAGES.reduce((sum, s) => sum + s.ms, 0);
 
-/** What the 98.9% does and does not cover. This list is the honest version of the claim. */
+/**
+ * 5-fold CV mean accuracy, read off the artifact the model shipped with:
+ * services/ml-api/ensemble_weights.json → cv_results.mean_accuracy = 0.9771180957321854.
+ * src/claims.test.ts re-derives this from that file at test time, so the number on
+ * the page cannot drift from the number the model was trained to.
+ */
+const CV_ACCURACY_PCT = 97.7;
+
+/** What the CV accuracy figure does and does not cover. The honest version of the claim. */
 const SCOPE = [
   ["Task", "Binary — pneumonia vs. normal"],
   ["Data", "Public dataset (Kermany et al., 2018)"],
@@ -144,13 +165,15 @@ export function SpeedAccuracyDuo() {
 
             <div className="flex items-center gap-7 mb-8">
               <div className="relative flex items-center justify-center flex-shrink-0">
-                <Ring pct={98.9} color="#3B5BFF" />
-                <span className="absolute font-mono text-[24px] text-kx-ink">98.9%</span>
+                <Ring pct={CV_ACCURACY_PCT} color="#3B5BFF" />
+                <span className="absolute font-mono text-[24px] text-kx-ink">{CV_ACCURACY_PCT}%</span>
               </div>
               <div>
                 <p className="text-[15px] text-kx-ink leading-snug mb-1.5">5-fold cross-validation accuracy</p>
                 <p className="text-[13px] text-kx-muted leading-relaxed">
-                  Ensemble of DenseNet121, GoogLeNet &amp; ResNet18 with tanh-weighted fusion.
+                  Ensemble of DenseNet121, GoogLeNet &amp; ResNet18. The tanh weighting in{" "}
+                  <span className="font-mono text-[12px]">train.py</span> saturates on all three
+                  models, so the published weights are equal — the fusion is a plain average.
                 </p>
               </div>
             </div>

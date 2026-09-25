@@ -38,8 +38,8 @@ export interface Row {
 /**
  * Scores are BIMODAL, and that is the point.
  *
- * The ensemble is a binary abnormal-vs-normal classifier reporting 98.9% on
- * 5-fold CV. A classifier that discriminates that well does not emit a smear of
+ * The ensemble is a binary abnormal-vs-normal classifier reporting 97.7% on
+ * 5-fold CV (services/ml-api/ensemble_weights.json → cv_results.mean_accuracy). A classifier that discriminates that well does not emit a smear of
  * values through the middle — its outputs pile up at both ends, because it is
  * rarely unsure. An earlier version of this sample had 0.64 / 0.58 / 0.52 sitting
  * three points apart, which depicts a model that cannot separate its two classes.

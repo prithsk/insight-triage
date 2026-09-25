@@ -11,13 +11,33 @@ import { useState } from "react";
  * that follows it.
  */
 
+/**
+ * Fusion weight, from the artifact the model shipped with:
+ * services/ml-api/ensemble_weights.json → normalised_weights = [0.333…, 0.333…, 0.333…].
+ *
+ * These are UNIFORM, and it is worth saying why, because this section used to render
+ * 0.42 / 0.33 / 0.25 as if the ensemble had learned that one model mattered more.
+ * It has not. `train.py` weights each model by
+ * tanh(precision) + tanh(recall) + tanh(f1) + tanh(auc). All four metrics for all
+ * three models sit in [0.97, 1.0], and tanh is saturated there (~0.7616), so every
+ * model's raw weight is ~3.046 and normalisation divides them into exact thirds.
+ * "tanh-weighted fusion" is a true description of the code and a false description
+ * of the result: numerically it is a plain mean. Do not present it as a
+ * differentiator, and do not invent per-model weights to make it look like one.
+ */
+const WEIGHT = 1 / 3;
+
+/** Rendered rather than `WEIGHT.toFixed(2)`: three "0.33"s do not visibly sum to 1. */
+const WEIGHT_LABEL = "1/3";
+
 const MODELS = [
   // Per-model votes for the illustrative study. The UI shows each model's
   // contribution (p × weight), so these must actually sum to FUSED:
-  // 0.42(0.99) + 0.33(0.98) + 0.25(0.96) = 0.9792 → 0.98
-  { name: "DenseNet121", p: 0.99, weight: 0.42, color: "#E8503A" },
-  { name: "GoogLeNet", p: 0.98, weight: 0.33, color: "#3B5BFF" },
-  { name: "ResNet18", p: 0.96, weight: 0.25, color: "#0F9D6E" },
+  // (0.99 + 0.98 + 0.97) / 3 = 2.94 / 3 = 0.98
+  // Displayed to 3dp: 0.330 + 0.327 + 0.323 = 0.980.
+  { name: "DenseNet121", p: 0.99, weight: WEIGHT, color: "#E8503A" },
+  { name: "GoogLeNet", p: 0.98, weight: WEIGHT, color: "#3B5BFF" },
+  { name: "ResNet18", p: 0.97, weight: WEIGHT, color: "#0F9D6E" },
 ];
 
 const FUSED = 0.98;
@@ -99,7 +119,7 @@ export function TraceBento() {
         <div className="grid md:grid-cols-2 gap-7">
           <BentoCard
             lead="Three models vote, one number ships."
-            body="Each network scores the study independently. The fused number is a weighted blend you can pull apart at any time."
+            body="Each network scores the study independently. The fused number is an equal-weight blend of the three, and you can pull it apart at any time."
             tag="Ensemble breakdown"
             tint="from-[#FDF3F1]"
             delay={0}
@@ -327,13 +347,13 @@ export function TraceInspector() {
                     <div key={m.name}>
                       <VoteBar m={m} />
                       <p className="font-mono text-[10.5px] text-kx-muted mt-1 ml-[98px]">
-                        weight {m.weight.toFixed(2)} · contributes{" "}
+                        weight {WEIGHT_LABEL} · contributes{" "}
                         {(m.p * m.weight).toFixed(3)}
                       </p>
                     </div>
                   ))}
                   <div className="pt-4 border-t border-kx-border flex items-baseline justify-between">
-                    <span className="text-[13px] text-kx-muted">tanh-weighted fusion</span>
+                    <span className="text-[13px] text-kx-muted">tanh-weighted fusion · equal weights</span>
                     <span className="font-mono text-[26px] text-kx-critical">{FUSED.toFixed(2)}</span>
                   </div>
                 </div>
@@ -431,7 +451,7 @@ export function TraceAnnotatedReceipt() {
                     />
                   </div>
                   <span className="font-mono text-[12px] text-kx-muted w-24 text-right">
-                    ×{m.weight.toFixed(2)}
+                    ×{WEIGHT_LABEL}
                   </span>
                   <span className="font-mono text-[12.5px] text-kx-ink w-10 text-right">
                     {m.p.toFixed(2)}
@@ -484,7 +504,7 @@ export function TraceContributionGraph() {
           </h2>
           <p className="text-[16.5px] text-kx-muted leading-relaxed mb-8">
             Hover a model to trace its path into the fused number. No black box — three
-            independent votes, published weights, and the arithmetic in between.
+            independent votes, the published weights (equal thirds), and the arithmetic in between.
           </p>
 
           <div className="space-y-1">
@@ -499,7 +519,7 @@ export function TraceContributionGraph() {
               >
                 <span className="w-2 h-2 rounded-full" style={{ background: m.color }} />
                 <span className="font-mono text-[13px] text-kx-ink flex-1">{m.name}</span>
-                <span className="text-[12.5px] text-kx-muted">weight {m.weight.toFixed(2)}</span>
+                <span className="text-[12.5px] text-kx-muted">weight {WEIGHT_LABEL}</span>
                 <span className="font-mono text-[13px] text-kx-ink w-10 text-right">
                   {m.p.toFixed(2)}
                 </span>

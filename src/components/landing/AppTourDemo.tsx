@@ -42,10 +42,23 @@ const STUDIES = [
 ];
 const TARGET = { id: "C48D02", loc: "ICU-1 · resp. distress", score: 0.86 };
 
+/**
+ * Illustrative per-model votes for the tour's target study.
+ *
+ * The panel below prints these three and a "fused" number, so they have to be an
+ * arithmetic identity or the tour teaches a lie. Fusion is an equal-weight average
+ * (services/ml-api/ensemble_weights.json → normalised_weights = [1/3, 1/3, 1/3]),
+ * so these must average to TARGET.score:
+ *
+ *     (0.90 + 0.86 + 0.82) / 3 = 2.58 / 3 = 0.86
+ *
+ * The previous values (0.88 / 0.85 / 0.79) averaged 0.84 and were printed under a
+ * fused 0.86 — the numbers never added up, under the old weights either.
+ */
 const MODELS = [
-  { name: "densenet121", score: 0.88 },
-  { name: "googlenet", score: 0.85 },
-  { name: "resnet18", score: 0.79 },
+  { name: "densenet121", score: 0.90 },
+  { name: "googlenet", score: 0.86 },
+  { name: "resnet18", score: 0.82 },
 ];
 
 const TURNAROUND = [
@@ -271,7 +284,10 @@ export function AppTourDemo({ dark = false }: { dark?: boolean }) {
             <div className="grid grid-cols-3 gap-2.5 mb-4">
               {[
                 { v: "24m", l: "Median time-to-read" },
-                { v: "98.9%", l: "Ensemble agreement" },
+                // Not an accuracy or agreement figure: nothing in this repo measures
+                // inter-model agreement. This is the per-study inference time the
+                // latency card in SpeedAccuracyDuo breaks down span by span.
+                { v: "0.96s", l: "Ensemble inference, typical" },
                 { v: "100%", l: "Reads radiologist-signed" },
               ].map((s) => (
                 <div key={s.l} className={`rounded-lg border ${panel} px-3 py-2.5`}>

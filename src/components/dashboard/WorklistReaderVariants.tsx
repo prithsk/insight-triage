@@ -25,13 +25,21 @@ import { ROWS, BUCKET, shortId, elapsed, breaching, type Row } from "./WorklistV
  */
 
 /**
- * Fixed fusion weights from services/ml-api/ensemble_weights.json.
- * These are the real ones; do not invent new values here.
+ * Fusion weights from services/ml-api/ensemble_weights.json → normalised_weights.
+ *
+ * They are UNIFORM. This block previously carried 0.42 / 0.33 / 0.25 under a comment
+ * asserting "these are the real ones" — the comment was the only part that was true
+ * about where they should come from. train.py weights each model by
+ * tanh(precision)+tanh(recall)+tanh(f1)+tanh(auc); tanh is saturated for every metric
+ * these models produce, so all three weights normalise to exactly 1/3 and the fusion
+ * is a plain average. Do not invent per-model weights to make it look otherwise.
  */
+const W = 1 / 3;
+const W_LABEL = "1/3";
 const WEIGHTS = [
-  { name: "densenet121", w: 0.42, hex: "#E8503A" },
-  { name: "googlenet",   w: 0.33, hex: "#3B5BFF" },
-  { name: "resnet18",    w: 0.25, hex: "#0F9D6E" },
+  { name: "densenet121", w: W, hex: "#E8503A" },
+  { name: "googlenet",   w: W, hex: "#3B5BFF" },
+  { name: "resnet18",    w: W, hex: "#0F9D6E" },
 ];
 
 /**
@@ -44,12 +52,14 @@ const WEIGHTS = [
  *
  *     Σ(p_i × w_i) ≈ fused
  *
- * Offsets are weight-balanced (0.42·+0.010 + 0.33·+0.002 + 0.25·−0.019 ≈ 0), so
- * the identity survives regardless of which study is selected.
+ * With equal weights the weighted sum is the plain mean, so the offsets simply have
+ * to sum to zero: +0.010 + 0.002 − 0.012 = 0. (They were +0.010 / +0.002 / −0.019,
+ * balanced against the 0.42 / 0.33 / 0.25 weights that were never real.) The identity
+ * survives regardless of which study is selected.
  */
 function votesFor(score: number | null) {
   if (score === null) return null;
-  const offsets = [0.010, 0.002, -0.019];
+  const offsets = [0.010, 0.002, -0.012];
   return WEIGHTS.map((m, i) => ({
     ...m,
     p: Math.min(0.999, Math.max(0.001, score + offsets[i])),
@@ -250,7 +260,7 @@ export function ReaderOverlayInspector() {
                 <div key={m.name}>
                   <div className="flex items-baseline justify-between mb-1">
                     <span className="font-mono text-[11px] text-white/60">{m.name}</span>
-                    <span className="font-mono text-[11px] text-white/40 tabular-nums">{m.p.toFixed(2)} × {m.w}</span>
+                    <span className="font-mono text-[11px] text-white/40 tabular-nums">{m.p.toFixed(2)} × {W_LABEL}</span>
                   </div>
                   <div className="h-1 rounded-full bg-white/10 overflow-hidden">
                     <div className="h-full rounded-full" style={{ width: `${m.p * 100}%`, background: m.hex }} />
@@ -482,7 +492,7 @@ export function ReaderEvidenceColumn() {
   const supports: [string, string][] = votes
     ? abnormal
       ? [
-          [votes[0].name, `${votes[0].p.toFixed(2)} — highest weighted contributor`],
+          [votes[0].name, `${votes[0].p.toFixed(2)} — highest of the three votes`],
           [votes[1].name, `${votes[1].p.toFixed(2)} — concordant with primary model`],
           ["Grad-CAM", "activation localised, not diffuse"],
         ]

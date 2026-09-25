@@ -11,7 +11,7 @@ const ROWS: TraceRow[] = [
   { label: "densenet121.forward", detail: "224×224 · pretrained", ms: 380, colorClass: "bg-kx-critical" },
   { label: "googlenet.forward", detail: "224×224 · aux_logits off", ms: 260, colorClass: "bg-kx-accent2" },
   { label: "resnet18.forward", detail: "224×224 · pretrained", ms: 190, colorClass: "bg-kx-accent3" },
-  { label: "tanh_weighted_fusion", detail: "ensemble.weights.json", ms: 40, colorClass: "bg-amber-400" },
+  { label: "tanh_weighted_fusion", detail: "ensemble_weights.json", ms: 40, colorClass: "bg-amber-400" },
   { label: "gradcam.overlay", detail: "14×14 grid", ms: 90, colorClass: "bg-white/40" },
 ];
 

@@ -31,7 +31,8 @@ import { useEffect, useRef, useState } from "react";
  *     a feed. It is labelled a demo loop and must stay labelled a demo loop.
  *   - A study's `score` is immutable once it enters the queue.
  *   - Scores are bimodal on purpose: the ensemble is a binary abnormal-vs-normal
- *     classifier reporting 98.9% on 5-fold CV, and a classifier that separates
+ *     classifier reporting 97.7% on 5-fold CV (services/ml-api/ensemble_weights.json
+ *     → cv_results.mean_accuracy), and a classifier that separates
  *     that well is rarely unsure. Values clustered around 0.5 would depict a
  *     model that cannot tell its two classes apart.
  */

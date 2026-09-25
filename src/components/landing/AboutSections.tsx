@@ -109,7 +109,7 @@ const LAYERS: Layer[] = [
   {
     name: "Model Ensemble",
     tag: "3 CNNs, fused",
-    body: "DenseNet121, GoogLeNet and ResNet18 each read the study independently. Their outputs are fused with learned weights, so no single model's blind spot decides a case.",
+    body: "DenseNet121, GoogLeNet and ResNet18 each read the study independently. Their outputs are fused with equal published weights, so no single model's blind spot decides a case.",
     tint: "linear-gradient(135deg, rgba(59,91,255,0.16), rgba(255,255,255,0.94))",
     border: "rgba(59,91,255,0.40)",
     glow: "0 26px 60px -22px rgba(59,91,255,0.45)",
@@ -485,7 +485,7 @@ export function AboutManifesto() {
 const INDEX = [
   { k: "What it is", v: "Urgency-ordered triage for chest radiography." },
   { k: "What it does", v: "Scores every study on arrival and reorders the worklist by clinical urgency." },
-  { k: "How it decides", v: "Three CNNs read in parallel; their outputs are fused with learned weights." },
+  { k: "How it decides", v: "Three CNNs read in parallel; their outputs are averaged with equal published weights." },
   { k: "How you check it", v: "Grad-CAM overlays and per-model scores accompany every result." },
   { k: "Who signs", v: "The radiologist. Always. Kroix is non-diagnostic by design." },
   { k: "Where it runs", v: "Alongside your existing worklist — no PACS replacement required." },

@@ -642,9 +642,12 @@ export function HeroSplitBrief() {
             </p>
             <ul className="space-y-0">
               {[
-                ["densenet121", "0.42 weight · published, not learned per-site"],
-                ["googlenet", "0.33 weight"],
-                ["resnet18", "0.25 weight"],
+                // Equal thirds, from services/ml-api/ensemble_weights.json → normalised_weights.
+                // The tanh weighting in train.py saturates on all three models, so it
+                // resolves to a plain average rather than distinct per-model weights.
+                ["densenet121", "1/3 weight · published, not learned per-site"],
+                ["googlenet", "1/3 weight"],
+                ["resnet18", "1/3 weight"],
               ].map(([a, b]) => (
                 <li key={a} className="py-3 border-t border-kx-border first:border-t-0 flex items-baseline gap-3">
                   <span className="font-mono text-[12px] text-kx-ink w-[92px] flex-shrink-0">{a}</span>

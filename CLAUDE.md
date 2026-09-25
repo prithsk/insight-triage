@@ -85,6 +85,43 @@ removed 2026-08-10. `AnalyticsData` no longer has a `withoutKroix` field at all,
 the comparison cannot be reintroduced by accident; a real one requires the SLA
 replay over historical data.
 
+A **seventh** shipped on the landing page until 2026-09-25, and it is the first that
+was not a phrase or a mock generator but a *number*:
+
+- Headline model accuracy of **98.9%** — the accuracy ring in
+  `SpeedAccuracyDuo.tsx`, and again as an "Ensemble agreement" tile in
+  `AppTourDemo.tsx`. The artifact the model actually shipped with,
+  `services/ml-api/ensemble_weights.json`, records
+  `cv_results.mean_accuracy = 0.9771180957321854` — **97.7%**. 98.9% appears in no
+  artifact anywhere in this repo. "Ensemble agreement" was wrong twice over: it is a
+  different quantity from cross-validation accuracy, and nothing here measures
+  inter-model agreement at all.
+- Per-model fusion weights of **0.42 / 0.33 / 0.25**, published in
+  `TraceSections.tsx`, `LabHeroes.tsx`, `ThreadedPages.tsx` and
+  `WorklistReaderVariants.tsx` — the last of them under a comment reading "these are
+  the real ones; do not invent new values here". The artifact records
+  `normalised_weights = [1/3, 1/3, 1/3]`.
+- **"tanh-weighted fusion" is numerically a plain mean.** `train.py` weights each
+  model by `tanh(precision)+tanh(recall)+tanh(f1)+tanh(auc)`; all four metrics for
+  all three models sit in [0.97, 1.0], where tanh is saturated at ~0.7616, so every
+  raw weight is ~3.046 and normalisation yields exact thirds. The phrase describes
+  the code correctly and the result misleadingly. Keep it where it names what the
+  code does; never present it as producing distinct per-model weights, and never as
+  a differentiator.
+
+This one differs in kind from the first six, and the difference is the lesson: a
+plausible number in an honest-looking sentence, with its task, dataset, cohort and
+method correctly stated right beside it. Every rule in the list above was satisfied.
+The only thing wrong with it was that it was not true. So two more rules, which are
+about provenance rather than language:
+
+- A number describing the model is copied from an artifact, or it does not ship.
+  Name the artifact and the field in a comment beside it.
+- Illustrative arithmetic on screen must actually hold. If the weights change,
+  recompute the per-model values so the displayed contributions still sum to the
+  displayed total. A panel whose numbers do not add up is the same defect wearing
+  a different coat.
+
 **How these keep surviving:** `npx tsc --noEmit` checked zero files (see Frontend),
 so "typecheck passes" was meaningless, and none of them were covered by a test.
 Every instance was found by reading, not by tooling.
@@ -108,7 +145,7 @@ Every instance was found by reading, not by tooling.
 
 ## Verification
 
-`npm test` — 148 tests, Vitest. CI runs typecheck, tests, build, and a set of shell
+`npm test` — 159 tests, Vitest. CI runs typecheck, tests, build, and a set of shell
 assertions on the build output (`.github/workflows/ci.yml`).
 
 **What is covered:** the ranking statistics behind the validation sprint; the SLA
@@ -116,8 +153,14 @@ replay engine (including that it can return a *negative* result — a metric tha
 cannot fail is a sales prop, not a measurement); cumulative RLS policy invariants
 read from `supabase/migrations/`; edge-function ordering (authorise before touching
 the service role); the waitlist invariant that `anon` may INSERT and nothing else,
-at both the policy and table-grant level. Both P0s from the 2026-07-28 review and
-both waitlist mutations were mutation-tested: reintroducing any of them fails the
+at both the policy and table-grant level; and the published-number rules, which
+read `services/ml-api/ensemble_weights.json` **at test time** and fail any shipped
+file whose model-accuracy percentage or per-model fusion weight disagrees with it,
+plus an arithmetic check that the illustrative per-model votes in `TraceSections`
+still fuse to the score that panel prints. Reading the artifact rather than a
+constant means retraining the model moves the assertion instead of breaking it.
+Both P0s from the 2026-07-28 review, both waitlist mutations, and all four of the
+published-number rules were mutation-tested: reintroducing any of them fails the
 suite.
 
 **What is not covered:** no component tests, no E2E, no live-database tests. The RLS

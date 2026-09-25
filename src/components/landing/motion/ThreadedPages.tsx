@@ -56,7 +56,7 @@ const SECTIONS = [
     n: "03",
     label: "The receipt",
     head: "Every score can be argued with.",
-    body: "Three models, published weights, each contribution visible. A radiologist disagrees with densenet121 at 0.96 — not with 'the AI'. Disagreement is recorded against the model that earned it.",
+    body: "Three models, published weights, each contribution visible. A radiologist disagrees with densenet121 at 0.96 — not with 'the AI'. The three weights are equal; what differs is the vote. Disagreement is recorded against the model that earned it.",
   },
   {
     n: "04",
@@ -75,10 +75,17 @@ const QUEUE = [
   { id: "…986", f: "No acute process",            w: 214, t: 1440 },
 ];
 
+/**
+ * Equal thirds, from services/ml-api/ensemble_weights.json → normalised_weights.
+ * train.py's tanh weighting saturates on all three models, so it resolves to a
+ * plain average. The bars below are therefore identical, which is the honest
+ * picture; they used to be 0.42 / 0.33 / 0.25, which was not.
+ */
+const W_LABEL = "1/3";
 const MODELS = [
-  { name: "densenet121", w: 0.42 },
-  { name: "googlenet", w: 0.33 },
-  { name: "resnet18", w: 0.25 },
+  { name: "densenet121", w: 1 / 3 },
+  { name: "googlenet", w: 1 / 3 },
+  { name: "resnet18", w: 1 / 3 },
 ];
 
 /* ── shared primitives ───────────────────────────────────────────────────── */
@@ -577,7 +584,7 @@ export function ThreadTrace() {
                       <div className="flex-1 h-px" style={{ background: "rgba(232,234,237,0.14)" }}>
                         <div className="h-px" style={{ width: `${m.w * 100 * 2.2}%`, background: "#E8A33D" }} />
                       </div>
-                      <span className="font-mono text-[11px] tabular-nums" style={{ color: "rgba(232,234,237,0.45)" }}>{m.w}</span>
+                      <span className="font-mono text-[11px] tabular-nums" style={{ color: "rgba(232,234,237,0.45)" }}>{W_LABEL}</span>
                     </div>
                   ))}
                   <p className="font-mono text-[10px] pt-2" style={{ color: "rgba(232,234,237,0.28)" }}>
