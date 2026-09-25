@@ -20,6 +20,16 @@ import path from "path";
  * invariants that, if violated again, reopen those holes. That is deliberately
  * cheap so it runs on every commit.
  *
+ * A third case, not a hole but the same shape: all seven policies on
+ * `storage.objects` carried no TO clause, so they applied to `anon` as well as
+ * `authenticated`. They denied `anon` anyway, because every predicate ends in
+ * `public.is_approved_user()` / `is_admin_user()` and those read `profiles` for
+ * `auth.uid()`, which is NULL with no JWT. The rules here never noticed because
+ * `storage.objects` was absent from PHI_TABLES — so the bucket holding the DICOM
+ * images was the one PHI surface the TO-clause rule did not cover.
+ * 20260925120000 scoped all seven to `authenticated`; the list below now
+ * includes the table, and the first test asserts the list actually resolves.
+ *
  * A live-database test asserting an unapproved user actually reads nothing is
  * strictly better and is the next thing to add. This is the version that exists
  * today rather than the version that requires a running Supabase.
@@ -78,6 +88,21 @@ function livePolicies(): { name: string; table: string; body: string }[] {
   });
 }
 
+/**
+ * Every table a policy failure would expose patient data through.
+ *
+ * `storage.objects` belongs here and was missing until 2026-09-25, which is why
+ * the TO-clause rule below never covered the image bucket even though all seven
+ * of its policies omitted one. It is the schema-qualified outlier in a list of
+ * `public.*` tables, and it is also the most sensitive entry: it holds the DICOM
+ * chest X-rays themselves.
+ *
+ * Note what this list does *not* buy for `storage.objects`. The "RLS enabled
+ * wherever policies exist" test below filters to `public.*`, because
+ * `storage.objects` is owned by Supabase and no migration here may ALTER it.
+ * So RLS being on for that table is assumed, not asserted — it is the one
+ * precondition in this file that nothing checks.
+ */
 const PHI_TABLES = [
   "public.studies",
   "public.triage_results",
@@ -86,9 +111,31 @@ const PHI_TABLES = [
   "public.documents",
   "public.embeddings",
   "public.medical_literature",
+  "storage.objects",
 ];
 
 describe("RLS: no permissive policy grants blanket access", () => {
+  it("resolves policies on every PHI table, so the rules below cannot pass vacuously", () => {
+    // `livePolicies()` reads the table out of `ON <table>` with [\w.]+ and keys
+    // everything lowercased, so `storage.objects` resolves the same way
+    // `public.studies` does. This asserts that rather than assuming it: a rule
+    // that filters on a name nothing matches is a green test covering nothing,
+    // which is how storage.objects went uncovered in the first place.
+    const byTable = new Map<string, number>();
+    for (const p of livePolicies()) byTable.set(p.table, (byTable.get(p.table) ?? 0) + 1);
+
+    const uncovered = PHI_TABLES.filter((t) => !byTable.has(t));
+    expect(
+      uncovered,
+      `No live policy resolved for these PHI tables. Either they lost RLS ` +
+        `entirely or livePolicies() stopped matching their name:\n${uncovered.join("\n")}`
+    ).toEqual([]);
+
+    // The seven storage policies (3 dicom-files + 4 documents) are the ones this
+    // list was extended to reach.
+    expect(byTable.get("storage.objects")).toBe(7);
+  });
+
   it("no live policy on a PHI table uses USING (true)", () => {
     const offenders = livePolicies()
       .filter((p) => PHI_TABLES.includes(p.table))

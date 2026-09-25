@@ -50,6 +50,23 @@ PHI-handling with RLS behind an approval gate. When touching `supabase/migration
   check. Privilege columns on a self-updatable table need a trigger, not a predicate.
 - Reason about the **cumulative** policy state across all migrations, never the diff
   alone.
+- `storage.objects` is a PHI table. It holds the DICOM images themselves and is
+  covered by `supabase/rls.test.ts` like any other — it was added to `PHI_TABLES`
+  on 2026-09-25, having been absent since the suite was written, which is why the
+  TO-clause rule silently skipped the image bucket. It is the schema-qualified
+  outlier: rules that filter on `public.` will not see it. Check that when adding
+  one.
+- A policy is not safe because its predicate happens to deny. All seven
+  `storage.objects` policies omitted `TO` and were still closed to `anon`, because
+  `is_approved_user()` reads `profiles` for `auth.uid()`, which is NULL with no
+  JWT. That is one line of defense, and this repo's P0 was two reasonable changes
+  combining. `20260925120000_scope_storage_object_policies.sql` adds the second.
+  Say "not currently exploitable" out loud rather than shipping a fix that reads
+  as an incident.
+- RLS being enabled on `storage.objects` is assumed, not asserted. Supabase owns
+  that table and no migration here may `ALTER` it, so the "RLS enabled wherever
+  policies exist" test scopes itself to `public.`. It is the one precondition in
+  the suite nothing checks.
 
 Never commit `.env`. Never put a secret in a `VITE_`-prefixed variable — Vite inlines
 those into the public bundle.
