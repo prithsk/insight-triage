@@ -26,7 +26,10 @@ from pydantic import BaseModel, Field
 import torch
 
 from model import load_ensemble, EnsembleDetector
-from inference import predict_from_base64, CRITICAL_THRESHOLD, REVIEW_THRESHOLD
+from inference import (
+    predict_from_base64, CRITICAL_THRESHOLD, FALLBACK_REVIEW_THRESHOLD,
+    review_threshold_of,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
@@ -120,7 +123,19 @@ def model_info():
         "model_version":      MODEL_VERSION,
         "models":             ["densenet121", "googlenet", "resnet18"],
         "critical_threshold": CRITICAL_THRESHOLD,
-        "review_threshold":   REVIEW_THRESHOLD,
+        # The threshold this service APPLIES, read from the loaded ensemble —
+        # not the module default. This endpoint used to publish the module
+        # constant (0.35) while /predict bucketed against the ensemble's
+        # `optimal_threshold` (0.50 in the shipped artifact), so anything that
+        # trusted /model-info was told the wrong band.
+        "review_threshold":   (
+            review_threshold_of(_ensemble) if _ensemble is not None
+            else FALLBACK_REVIEW_THRESHOLD
+        ),
+        "review_threshold_source": (
+            "ensemble_weights.json::optimal_threshold" if _ensemble is not None
+            else "module default (no ensemble loaded)"
+        ),
         "input_size":         224,
         "tta_passes":         3,
     }

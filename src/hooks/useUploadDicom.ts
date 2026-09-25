@@ -3,14 +3,52 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { fileUploadSchema, logSecurityEvent, checkRateLimit } from "@/lib/security";
 
+/**
+ * A successful upload. `triageResult` is REQUIRED, not optional: this type is
+ * only ever produced when a score was returned by the model AND persisted to
+ * `triage_results`. Scoring failure throws instead.
+ *
+ * It used to be optional, and `onSuccess` read a missing bucket as CLEAR — so a
+ * study that was never scored announced itself as "🟢 CLEAR" in a toast.
+ */
 interface UploadResult {
   studyId: string;
   filePath: string;
-  triageResult?: {
+  triageResult: {
     risk_score: number;
     risk_bucket: string;
     confidence: number;
   };
+}
+
+const RISK_BUCKETS = ['CRITICAL', 'REVIEW', 'CLEAR'] as const;
+
+/**
+ * Does this response actually carry a score?
+ *
+ * infer-cxr signals failure with a non-2xx status AND `scored: false`. This
+ * checks the payload itself as well, because the property that matters is not
+ * "the function answered" but "a model produced a number". A 200 with a missing
+ * or non-numeric `risk_score` is a failed inference, and the only honest
+ * outcome of a failed inference is an unscored study — never a substituted one.
+ */
+function isScoredResult(r: unknown): r is {
+  risk_score: number;
+  risk_bucket: (typeof RISK_BUCKETS)[number];
+  confidence: number;
+  roi_heatmap?: string | null;
+  model_version?: string | null;
+  inference_time_ms?: number | null;
+  lab_values?: Record<string, number> | null;
+  findings?: string[] | null;
+} {
+  if (!r || typeof r !== 'object') return false;
+  const o = r as Record<string, unknown>;
+  if (o.scored === false) return false;
+  if (typeof o.risk_score !== 'number' || !Number.isFinite(o.risk_score)) return false;
+  if (o.risk_score < 0 || o.risk_score > 1) return false;
+  if (typeof o.confidence !== 'number' || !Number.isFinite(o.confidence)) return false;
+  return RISK_BUCKETS.includes(o.risk_bucket as (typeof RISK_BUCKETS)[number]);
 }
 
 // Allowed file types and extensions
@@ -138,20 +176,50 @@ export function useUploadDicom() {
         }
       );
       
+      // ── Scoring failed: the study stays UNSCORED ─────────────────────────
+      //
+      // No `triage_results` row is written. There is no substitute score,
+      // because there is nothing honest to substitute — infer-cxr's random
+      // fallback was removed for exactly this reason (see that function and
+      // CLAUDE.md). The study and its image survive: a radiologist can still
+      // open the image, and the worklist already renders this state —
+      // `worklistOrder` pins unscored studies last in both sort directions and
+      // the row reads "awaiting triage · <elapsed>".
+      //
+      // `status` goes back to PENDING, the enum's existing "not triaged yet"
+      // value. `study_status` has no FAILED member and adding one is a
+      // migration; until then PENDING is accurate (nothing has scored this
+      // study) even though it does not distinguish "not attempted" from
+      // "attempted and failed". The thrown error is what tells the user which.
+      const markUnscored = async () => {
+        await supabase.from('studies').update({ status: 'PENDING' }).eq('id', study.id);
+      };
+
       if (!response.ok) {
-        // Update study status to error
-        await supabase
-          .from('studies')
-          .update({ status: 'PENDING' })
-          .eq('id', study.id);
-        
-        const error = await response.json();
-        throw new Error(error.error || 'Inference failed');
+        await markUnscored();
+        const error = await response.json().catch(() => ({}));
+        throw new Error(
+          error.code === 'image_unavailable'
+            ? 'Uploaded, but the image could not be read for scoring. The study is in the worklist awaiting triage.'
+            : error.error || 'Inference failed. The study is in the worklist awaiting triage.'
+        );
       }
-      
+
       const inferenceResult = await response.json();
-      
-      // 4. Store triage result
+
+      if (!isScoredResult(inferenceResult)) {
+        await markUnscored();
+        throw new Error(
+          'Uploaded, but inference returned no usable score. The study is in the worklist awaiting triage.'
+        );
+      }
+
+      // 4. Store triage result.
+      //
+      // A failed insert is also an unscored study: the number exists in this
+      // tab's memory and nowhere else, so the worklist, the reviewer and every
+      // other reader would see no score. Previously this logged and carried on
+      // to report success with a score that was never persisted.
       const { error: triageError } = await supabase
         .from('triage_results')
         .insert({
@@ -159,56 +227,66 @@ export function useUploadDicom() {
           risk_score: inferenceResult.risk_score,
           risk_bucket: inferenceResult.risk_bucket,
           confidence: inferenceResult.confidence,
-          roi_heatmap_path: inferenceResult.roi_heatmap,
+          roi_heatmap_path: inferenceResult.roi_heatmap ?? null,
           model_version: inferenceResult.model_version,
           inference_time_ms: inferenceResult.inference_time_ms
         });
-      
+
       if (triageError) {
         console.error('Failed to store triage result:', triageError);
+        await markUnscored();
+        throw new Error(
+          `Uploaded and scored, but the result could not be saved: ${triageError.message}. ` +
+          `The study is in the worklist awaiting triage.`
+        );
       }
-      
-      // 5. Store AI-generated lab fusion biomarkers (clinically correlated with image analysis)
-      // Lab values are now returned directly from the AI inference based on image severity
-      const labValues = inferenceResult.lab_values || {
-        // Fallback values if AI doesn't return lab values
-        co2: 40,
-        ph: 7.40,
-        o2: 97,
-        wbc: 7.5,
-        crp: 1.5,
-        procalcitonin: 0.05
-      };
-      
-      const { error: labError } = await supabase
-        .from('lab_results')
-        .insert({
-          study_id: study.id,
-          co2: labValues.co2,
-          ph: labValues.ph,
-          o2: labValues.o2,
-          wbc: labValues.wbc,
-          crp: labValues.crp,
-          procalcitonin: labValues.procalcitonin,
-          source: 'ai_vision_analysis',
-          timestamp: new Date().toISOString()
-        });
-      
-      if (labError) {
-        console.error('Failed to store lab results:', labError);
+
+      // 5. Store the simulated lab panel.
+      //
+      // NOT measurements, and not derived from the image: infer-cxr computes
+      // these as a closed-form function of the risk score (see
+      // `simulateLabValuesFromScore`). They are written as
+      // `simulated_from_risk_score` — the previous `ai_vision_analysis` said
+      // a vision model produced them, and none ever did.
+      //
+      // Skipped entirely when the function returns none. The hardcoded
+      // "normal" panel that used to stand in (CO2 40, pH 7.40, O2 97, …) was a
+      // fabricated set of blood-gas values stored as if drawn from a patient.
+      const labValues = inferenceResult.lab_values;
+      if (labValues) {
+        const { error: labError } = await supabase
+          .from('lab_results')
+          .insert({
+            study_id: study.id,
+            co2: labValues.co2,
+            ph: labValues.ph,
+            o2: labValues.o2,
+            wbc: labValues.wbc,
+            crp: labValues.crp,
+            procalcitonin: labValues.procalcitonin,
+            source: 'simulated_from_risk_score',
+            timestamp: new Date().toISOString()
+          });
+
+        if (labError) {
+          // Non-fatal: the labs are simulated and nothing clinical depends on
+          // them. The triage result — the part that orders the worklist — is
+          // already committed above.
+          console.error('Failed to store simulated lab panel:', labError);
+        }
       }
-      
+
       // Log findings if available
       if (inferenceResult.findings && inferenceResult.findings.length > 0) {
         console.log('AI Findings:', inferenceResult.findings);
       }
-      
+
       // 6. Update study status to QUEUED
       await supabase
         .from('studies')
         .update({ status: 'QUEUED' })
         .eq('id', study.id);
-      
+
       return {
         studyId: study.id,
         filePath,
@@ -222,18 +300,25 @@ export function useUploadDicom() {
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['studies'] });
       
-      const bucketLabel = result.triageResult?.risk_bucket === 'CRITICAL' 
-        ? '🔴 CRITICAL' 
-        : result.triageResult?.risk_bucket === 'REVIEW'
+      // `triageResult` is required on this type and its bucket was validated
+      // against the enum before the row was written, so this is a total mapping
+      // rather than a default. It previously fell through to CLEAR for anything
+      // it did not recognise, including nothing at all.
+      const bucketLabel = result.triageResult.risk_bucket === 'CRITICAL'
+        ? '🔴 CRITICAL'
+        : result.triageResult.risk_bucket === 'REVIEW'
         ? '🟡 REVIEW'
         : '🟢 CLEAR';
-      
+
       toast.success(`Study uploaded and triaged: ${bucketLabel}`, {
-        description: `Risk score: ${((result.triageResult?.risk_score || 0) * 100).toFixed(0)}%`
+        description: `Risk score: ${(result.triageResult.risk_score * 100).toFixed(0)}%`
       });
     },
     onError: (error) => {
-      toast.error(`Upload failed: ${error.message}`);
+      // The message already says which stage failed. Prefixing everything with
+      // "Upload failed" contradicted the scoring failures, where the upload
+      // succeeded and only the score is missing.
+      toast.error(error.message);
     }
   });
 }
@@ -262,18 +347,21 @@ export function useUploadMultipleDicom() {
       queryClient.invalidateQueries({ queryKey: ['studies'] });
       
       if (results.length > 0) {
-        const criticalCount = results.filter(r => r.triageResult?.risk_bucket === 'CRITICAL').length;
-        const reviewCount = results.filter(r => r.triageResult?.risk_bucket === 'REVIEW').length;
-        
-        let summary = `${results.length} study(ies) uploaded`;
+        const criticalCount = results.filter(r => r.triageResult.risk_bucket === 'CRITICAL').length;
+        const reviewCount = results.filter(r => r.triageResult.risk_bucket === 'REVIEW').length;
+
+        let summary = `${results.length} study(ies) uploaded and scored`;
         if (criticalCount > 0) summary += ` • ${criticalCount} CRITICAL`;
         if (reviewCount > 0) summary += ` • ${reviewCount} REVIEW`;
-        
+
         toast.success(summary);
       }
-      
+
       if (errors.length > 0) {
-        toast.error(`${errors.length} upload(s) failed`, {
+        // Not all of these are upload failures. A file whose inference failed
+        // was uploaded and is in the worklist, unscored; the per-file message
+        // says which happened.
+        toast.error(`${errors.length} file(s) did not complete`, {
           description: errors[0]
         });
       }

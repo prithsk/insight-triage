@@ -38,18 +38,15 @@ function checkRateLimit(key: string): boolean {
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
+type RiskBucket = 'CRITICAL' | 'REVIEW' | 'CLEAR';
+
 interface MLResult {
   risk_score:    number;
-  risk_bucket:   'CRITICAL' | 'REVIEW' | 'CLEAR';
+  risk_bucket:   RiskBucket;
   confidence:    number;
   roi_heatmap:   string;   // base64 JSON: {"type":"gradcam","grid":[[...]],"shape":[14,14]}
   model_version: string;
   inference_ms:  number;
-}
-
-interface GeminiFindings {
-  findings:   string[];
-  lab_values: LabValues;
 }
 
 interface LabValues {
@@ -57,38 +54,105 @@ interface LabValues {
   wbc: number; crp: number; procalcitonin: number;
 }
 
-// ── Lab value simulation (clinically correlated with severity) ────────────────
-function generateLabValues(riskScore: number): LabValues {
-  const s = riskScore;
-  const jitter = (r: number) => (Math.random() - 0.5) * r;
+// ── Decision thresholds: ONE definition, sourced from the model's artifact ────
+//
+// These bands were previously written in three places that did not agree:
+//
+//   1. the Gemini system prompt below documented CLEAR <0.30 / REVIEW 0.30-0.64;
+//   2. the bucketing in this file used 0.35 as the REVIEW floor;
+//   3. services/ml-api/inference.py declared REVIEW_THRESHOLD = 0.35 and then
+//      overrode it at the point of use with the ensemble's own
+//      `optimal_threshold`, which the shipped artifact records as 0.50.
+//
+// So the prompt documented a contract the code did not implement, and neither
+// matched the model that actually runs. The authoritative number is the one the
+// ensemble was fitted with:
+//
+//   services/ml-api/ensemble_weights.json -> "optimal_threshold"
+//
+// `src/claims.test.ts` reads that artifact at test time and fails if the
+// constant below drifts from it, and fails if inference.py's CRITICAL_THRESHOLD
+// stops matching this file's. Retraining the model moves those assertions
+// instead of breaking them — the same discipline the published-number rules use.
+const REVIEW_THRESHOLD   = 0.50;   // ensemble_weights.json :: optimal_threshold
+const CRITICAL_THRESHOLD = 0.65;   // product policy for the CRITICAL band, not a fitted quantity
+const REVIEW_SPAN        = CRITICAL_THRESHOLD - REVIEW_THRESHOLD;
 
-  const co2 = s >= 0.65 ? 48 + (s - 0.65) * 34 + jitter(4)
-             : s >= 0.30 ? 44 + ((s - 0.30) / 0.35) * 6 + jitter(3)
-             : 36 + (s / 0.30) * 8 + jitter(3);
+function bucketFor(score: number): RiskBucket {
+  if (score >= CRITICAL_THRESHOLD) return 'CRITICAL';
+  if (score >= REVIEW_THRESHOLD)   return 'REVIEW';
+  return 'CLEAR';
+}
 
-  const ph  = s >= 0.65 ? 7.32 - (s - 0.65) * 0.34
-             : s >= 0.30 ? 7.38 - ((s - 0.30) / 0.35) * 0.06
-             : 7.45 - (s / 0.30) * 0.07;
+/**
+ * NOT a measured or calibrated quantity.
+ *
+ * A deterministic, monotone transform of how far the score sits from the
+ * nearest decision boundary (and from the ends of the range). It carries no
+ * information the score does not already carry, it is not a probability, and it
+ * is not the model's certainty about anything. `services/ml-api/inference.py`
+ * computes the identical function for the ensemble path against the same
+ * thresholds, so "confidence" means one thing across both paths rather than two.
+ *
+ * It reaches a radiologist labelled "Confidence: NN%". That label claims more
+ * than this number supports; see CLAUDE.md.
+ */
+function boundaryConfidence(score: number): number {
+  const dist = Math.min(
+    Math.abs(score - CRITICAL_THRESHOLD),
+    Math.abs(score - REVIEW_THRESHOLD),
+    score,
+    1 - score,
+  );
+  return +Math.min(0.99, 0.70 + dist * 0.80).toFixed(4);
+}
 
-  const o2  = s >= 0.65 ? 88 - (s - 0.65) * 28 - Math.random() * 4
-             : s >= 0.30 ? 94 - ((s - 0.30) / 0.35) * 6 - Math.random() * 2
-             : 99 - (s / 0.30) * 4;
+// ── Lab values: SIMULATED, and a pure function of the risk score ──────────────
+//
+// These are not measurements and not model output. CO2, pH, O2, WBC, CRP and
+// procalcitonin are blood tests; none of them can be derived from a chest
+// radiograph, and nothing in this function reads the image. Every value is a
+// closed-form curve through `riskScore`. Gemini was never asked for any of them
+// either — see the prompt below, which requests a score and findings text only.
+//
+// The `Math.random()` jitter that used to sit on each curve was removed on
+// 2026-09-25: it gave these numbers the texture of independent observations
+// carrying their own noise, which is exactly what they are not. Deterministic
+// makes the dependence visible — two studies with the same score get identical
+// "labs", because there is only one number here.
+//
+// Stored with source = 'simulated_from_risk_score' so the provenance travels
+// with the row. A real lab feed replaces this function; it does not extend it.
+function simulateLabValuesFromScore(riskScore: number): LabValues {
+  const s = Math.max(0, Math.min(1, riskScore));
 
-  const wbc = s >= 0.65 ? 16 + (s - 0.65) * 34 + Math.random() * 4
-             : s >= 0.30 ? 11 + ((s - 0.30) / 0.35) * 7 + Math.random() * 2
-             : 5 + (s / 0.30) * 6 + Math.random() * 2;
+  const co2 = s >= CRITICAL_THRESHOLD ? 48 + (s - CRITICAL_THRESHOLD) * 34
+             : s >= REVIEW_THRESHOLD   ? 44 + ((s - REVIEW_THRESHOLD) / REVIEW_SPAN) * 6
+             : 36 + (s / REVIEW_THRESHOLD) * 8;
 
-  const crp = s >= 0.65 ? 50 + (s - 0.65) * 428 + Math.random() * 30
-             : s >= 0.30 ? 10 + ((s - 0.30) / 0.35) * 50 + Math.random() * 10
-             : 0.5 + (s / 0.30) * 8 + Math.random() * 2;
+  const ph  = s >= CRITICAL_THRESHOLD ? 7.32 - (s - CRITICAL_THRESHOLD) * 0.34
+             : s >= REVIEW_THRESHOLD   ? 7.38 - ((s - REVIEW_THRESHOLD) / REVIEW_SPAN) * 0.06
+             : 7.45 - (s / REVIEW_THRESHOLD) * 0.07;
 
-  const pct = s >= 0.65 ? 2 + (s - 0.65) * 37 + Math.random() * 3
-             : s >= 0.30 ? 0.25 + ((s - 0.30) / 0.35) * 2.75 + Math.random() * 0.5
-             : 0.02 + (s / 0.30) * 0.18 + Math.random() * 0.05;
+  const o2  = s >= CRITICAL_THRESHOLD ? 88 - (s - CRITICAL_THRESHOLD) * 28
+             : s >= REVIEW_THRESHOLD   ? 94 - ((s - REVIEW_THRESHOLD) / REVIEW_SPAN) * 6
+             : 99 - (s / REVIEW_THRESHOLD) * 4;
+
+  const wbc = s >= CRITICAL_THRESHOLD ? 16 + (s - CRITICAL_THRESHOLD) * 34
+             : s >= REVIEW_THRESHOLD   ? 11 + ((s - REVIEW_THRESHOLD) / REVIEW_SPAN) * 7
+             : 5 + (s / REVIEW_THRESHOLD) * 6;
+
+  const crp = s >= CRITICAL_THRESHOLD ? 50 + (s - CRITICAL_THRESHOLD) * 428
+             : s >= REVIEW_THRESHOLD   ? 10 + ((s - REVIEW_THRESHOLD) / REVIEW_SPAN) * 50
+             : 0.5 + (s / REVIEW_THRESHOLD) * 8;
+
+  const pct = s >= CRITICAL_THRESHOLD ? 2 + (s - CRITICAL_THRESHOLD) * 37
+             : s >= REVIEW_THRESHOLD   ? 0.25 + ((s - REVIEW_THRESHOLD) / REVIEW_SPAN) * 2.75
+             : 0.02 + (s / REVIEW_THRESHOLD) * 0.18;
 
   return {
     co2:          +Math.max(30,   Math.min(65,  co2)).toFixed(1),
-    ph:           +Math.max(7.15, Math.min(7.48, ph + jitter(0.02))).toFixed(2),
+    ph:           +Math.max(7.15, Math.min(7.48, ph)).toFixed(2),
     o2:           Math.round(Math.max(75, Math.min(100, o2))),
     wbc:          +Math.max(3,    Math.min(30,  wbc)).toFixed(1),
     crp:          +Math.max(0.1,  Math.min(250, crp)).toFixed(1),
@@ -96,30 +160,7 @@ function generateLabValues(riskScore: number): LabValues {
   };
 }
 
-// Legacy circle-based heatmap for Gemini-only path (no gradcam available)
-function buildLegacyHeatmap(findings: string[]): string {
-  const regions: { x: number; y: number; intensity: number; label: string }[] = [];
-  for (const f of findings) {
-    const fl = f.toLowerCase();
-    if (fl.includes('right') || fl.includes('rll') || fl.includes('rul'))
-      regions.push({ x: 0.3, y: 0.4, intensity: 0.8, label: 'right_lung' });
-    if (fl.includes('left') || fl.includes('lll') || fl.includes('lul'))
-      regions.push({ x: 0.7, y: 0.4, intensity: 0.8, label: 'left_lung' });
-    if (fl.includes('bilateral') || fl.includes('diffuse')) {
-      regions.push({ x: 0.3, y: 0.4, intensity: 0.7, label: 'right_lung' });
-      regions.push({ x: 0.7, y: 0.4, intensity: 0.7, label: 'left_lung' });
-    }
-    if (fl.includes('lower'))
-      regions.push({ x: 0.5, y: 0.6, intensity: 0.75, label: 'lower_lobes' });
-    if (fl.includes('consolidation') || fl.includes('infiltrate'))
-      regions.push({ x: 0.4 + Math.random() * 0.2, y: 0.35 + Math.random() * 0.2, intensity: 0.9, label: 'consolidation' });
-  }
-  if (regions.length === 0)
-    regions.push({ x: 0.5, y: 0.4, intensity: 0.3, label: 'clear' });
-  return btoa(JSON.stringify(regions));
-}
-
-// ── Primary: EfficientNet-B4 ML service ──────────────────────────────────────
+// ── Path A: the three-model ensemble (DenseNet121 / GoogLeNet / ResNet18) ─────
 async function callMLService(imageBase64: string, mlApiUrl: string, mlApiKey: string): Promise<MLResult> {
   const res = await fetch(`${mlApiUrl}/predict`, {
     method: 'POST',
@@ -134,14 +175,29 @@ async function callMLService(imageBase64: string, mlApiUrl: string, mlApiKey: st
   return res.json() as Promise<MLResult>;
 }
 
-// ── Fallback: Gemini vision for findings text ─────────────────────────────────
-async function callGemini(imageBase64: string, apiKey: string): Promise<GeminiFindings & Pick<MLResult, 'risk_score' | 'risk_bucket' | 'confidence'>> {
+// ── Path B: Gemini vision ─────────────────────────────────────────────────────
+//
+// Returns a score and free-text findings ONLY.
+//
+// It returns no lab values: it was never asked for any, and could not derive a
+// blood test from an image if it were. It also returns no localisation. The
+// circle-based `buildLegacyHeatmap` that used to stand in for one was removed on
+// 2026-09-25 — it invented anatomical regions by keyword-matching the findings
+// text, jittered their coordinates with `Math.random()`, and the Reviewer drew
+// them over a real patient's radiograph. CI already forbids exactly that shape
+// in `src/pages/Reviewer.tsx`; it had simply moved server-side. The Reviewer
+// says "No localization for this study" when nothing is returned, which is the
+// true statement.
+async function callGemini(
+  imageBase64: string,
+  apiKey: string,
+): Promise<{ risk_score: number; findings: string[] }> {
   const systemPrompt = `You are an expert radiologist AI. Analyze this chest X-ray for pneumonia.
 
-SCORING:
-- 0.00-0.29: CLEAR  — normal or near-normal
-- 0.30-0.64: REVIEW — unilateral/mild abnormality
-- 0.65-1.00: CRITICAL — significant consolidation / bilateral disease
+SCORING — these are the bands this service actually applies:
+- score < ${REVIEW_THRESHOLD}: CLEAR — normal or near-normal
+- score >= ${REVIEW_THRESHOLD} and < ${CRITICAL_THRESHOLD}: REVIEW — unilateral/mild abnormality
+- score >= ${CRITICAL_THRESHOLD}: CRITICAL — significant consolidation / bilateral disease
 
 OUTPUT FORMAT (JSON only, no markdown):
 {
@@ -173,29 +229,16 @@ OUTPUT FORMAT (JSON only, no markdown):
   const match = content.match(/\{[\s\S]*\}/);
   if (!match) throw new Error('No JSON in Gemini response');
   const parsed = JSON.parse(match[0]);
-  const riskScore = Math.max(0, Math.min(1, parseFloat(parsed.risk_score) || 0.35));
-  const risk_bucket: MLResult['risk_bucket'] = riskScore >= 0.65 ? 'CRITICAL' : riskScore >= 0.35 ? 'REVIEW' : 'CLEAR';
-  const findings: string[] = parsed.findings ?? [];
-  return {
-    risk_score: +riskScore.toFixed(4),
-    risk_bucket,
-    confidence: +(Math.min(0.99, 0.75 + (findings.length > 0 ? 0.15 : 0))).toFixed(4),
-    findings,
-    lab_values: generateLabValues(riskScore),
-  };
-}
 
-// ── Stat fallback (no image / no API key) ────────────────────────────────────
-function syntheticFallback(): { risk_score: number; risk_bucket: MLResult['risk_bucket']; confidence: number; findings: string[]; lab_values: LabValues } {
-  const r = Math.random();
-  const risk_score = r < 0.60 ? Math.random() * 0.30 : r < 0.85 ? 0.30 + Math.random() * 0.35 : 0.65 + Math.random() * 0.35;
-  const risk_bucket: MLResult['risk_bucket'] = risk_score >= 0.65 ? 'CRITICAL' : risk_score >= 0.35 ? 'REVIEW' : 'CLEAR';
+  // A response with no parseable score is a failed inference, not a mid-band
+  // one. This previously defaulted to 0.35, manufacturing a REVIEW score out of
+  // a parse failure.
+  const raw = parseFloat(parsed.risk_score);
+  if (!Number.isFinite(raw)) throw new Error('Gemini returned no usable risk_score');
+
   return {
-    risk_score: +risk_score.toFixed(4),
-    risk_bucket,
-    confidence: +(0.70 + Math.random() * 0.20).toFixed(4),
-    findings:   ['Simulated analysis — no image provided'],
-    lab_values: generateLabValues(risk_score),
+    risk_score: +Math.max(0, Math.min(1, raw)).toFixed(4),
+    findings:   Array.isArray(parsed.findings) ? parsed.findings : [],
   };
 }
 
@@ -252,77 +295,114 @@ serve(async (req) => {
       imageBase64 = await fetchImageFromStorage(study_id, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     }
 
-    const t0 = Date.now();
+    // A missing image is a missing input, not a scoring condition. It used to
+    // fall straight through to the random fallback.
+    if (!imageBase64) {
+      console.error(`infer-cxr: no readable image for study ${study_id}`);
+      return new Response(JSON.stringify({
+        scored:   false,
+        code:     'image_unavailable',
+        error:    'No readable image for this study, so it was not scored.',
+        study_id,
+      }), { status: 422, headers: allHeaders });
+    }
 
-    // ── Path A: EfficientNet-B4 ML service ───────────────────────────────────
-    if (imageBase64 && ML_API_URL) {
+    const t0 = Date.now();
+    const failures: string[] = [];
+
+    // ── Path A: the three-model ensemble ─────────────────────────────────────
+    if (ML_API_URL) {
       try {
         const mlResult = await callMLService(imageBase64, ML_API_URL, ML_API_KEY);
 
-        // Optionally enrich with Gemini findings text (non-blocking, best-effort)
+        // Optionally enrich with Gemini findings text (non-blocking, best-effort).
+        // Text only: the score, bucket, confidence and heatmap all stay the
+        // ensemble's. Taking Gemini's lab curve here, as the previous version
+        // did, described a score the panel was not showing.
         let findings: string[] = [];
-        let lab_values = generateLabValues(mlResult.risk_score);
         if (LOVABLE_API_KEY) {
           try {
-            const gemini = await callGemini(imageBase64, LOVABLE_API_KEY);
-            findings   = gemini.findings;
-            lab_values = gemini.lab_values;
-          } catch {
-            // Gemini enrichment failed; continue without findings text
+            findings = (await callGemini(imageBase64, LOVABLE_API_KEY)).findings;
+          } catch (e) {
+            console.error('Gemini findings enrichment failed; continuing without findings text:', e);
           }
         }
 
         return new Response(JSON.stringify({
+          scored:            true,
           study_id,
-          risk_score:       mlResult.risk_score,
-          risk_bucket:      mlResult.risk_bucket,
-          confidence:       mlResult.confidence,
+          risk_score:        mlResult.risk_score,
+          risk_bucket:       mlResult.risk_bucket,
+          confidence:        mlResult.confidence,
           findings,
-          lab_values,
-          roi_heatmap:      mlResult.roi_heatmap,          // gradcam base64 JSON
-          model_version:    mlResult.model_version,
+          lab_values:        simulateLabValuesFromScore(mlResult.risk_score),
+          roi_heatmap:       mlResult.roi_heatmap,          // gradcam base64 JSON
+          model_version:     mlResult.model_version,
           inference_time_ms: Date.now() - t0,
-          timestamp:        new Date().toISOString(),
+          timestamp:         new Date().toISOString(),
         }), { headers: allHeaders });
       } catch (e) {
+        failures.push(`ml-api: ${e instanceof Error ? e.message : String(e)}`);
         console.error('ML service failed, falling back to Gemini:', e);
       }
+    } else {
+      failures.push('ml-api: ML_API_URL is not configured');
     }
 
     // ── Path B: Gemini vision-only (ML service unavailable) ──────────────────
-    if (imageBase64 && LOVABLE_API_KEY) {
+    if (LOVABLE_API_KEY) {
       try {
         const gemini = await callGemini(imageBase64, LOVABLE_API_KEY);
         return new Response(JSON.stringify({
+          scored:            true,
           study_id,
           risk_score:        gemini.risk_score,
-          risk_bucket:       gemini.risk_bucket,
-          confidence:        gemini.confidence,
+          risk_bucket:       bucketFor(gemini.risk_score),
+          confidence:        boundaryConfidence(gemini.risk_score),
           findings:          gemini.findings,
-          lab_values:        gemini.lab_values,
-          roi_heatmap:       buildLegacyHeatmap(gemini.findings),
+          lab_values:        simulateLabValuesFromScore(gemini.risk_score),
+          roi_heatmap:       null,   // Gemini returns no localisation. Say so.
           model_version:     'gemini-2.5-flash-vision',
           inference_time_ms: Date.now() - t0,
           timestamp:         new Date().toISOString(),
         }), { headers: allHeaders });
       } catch (e) {
-        console.error('Gemini failed, using synthetic fallback:', e);
+        failures.push(`gemini: ${e instanceof Error ? e.message : String(e)}`);
+        console.error('Gemini failed:', e);
       }
+    } else {
+      failures.push('gemini: LOVABLE_API_KEY is not configured');
     }
 
-    // ── Path C: Synthetic fallback ────────────────────────────────────────────
-    const fb = syntheticFallback();
+    // ── No score. There is no Path C. ─────────────────────────────────────────
+    //
+    // There used to be. `syntheticFallback()` drew a risk score from
+    // `Math.random()`, derived a bucket from it, attached a random confidence
+    // and a simulated lab panel, and returned all of it with HTTP 200. The
+    // client wrote that row to `triage_results` and the worklist ordered by it.
+    // The only disclosure was `model_version: 'synthetic-fallback'` in a side
+    // panel — not on the worklist row, which is where the ordering a
+    // radiologist acts on actually happens. A real patient's radiograph could
+    // be placed at the top of a reading queue, or at the bottom of one, on a
+    // coin flip.
+    //
+    // Removed 2026-09-25 and deliberately NOT replaced. A failed inference has
+    // exactly one honest outcome: the study is UNSCORED. It still exists and its
+    // image is still readable; only the score is withheld. The worklist already
+    // has a place for that state — `src/lib/worklistOrder.ts` pins unscored
+    // studies last in both sort directions and `WorklistCard` shows
+    // "awaiting triage · <elapsed>". Any substitute guess, however hedged,
+    // re-enters a number into a clinical ordering that no model produced.
+    console.error(`infer-cxr: no scoring path succeeded for study ${study_id}:`, failures.join('; '));
     return new Response(JSON.stringify({
+      scored:   false,
+      code:     'inference_unavailable',
+      error:    'Inference unavailable — this study was not scored.',
       study_id,
-      ...fb,
-      roi_heatmap:       buildLegacyHeatmap(fb.findings),
-      model_version:     'synthetic-fallback',
-      inference_time_ms: Date.now() - t0,
-      timestamp:         new Date().toISOString(),
-    }), { headers: allHeaders });
+    }), { status: 503, headers: allHeaders });
 
   } catch (err) {
     console.error('Unhandled error:', err);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers: allHeaders });
+    return new Response(JSON.stringify({ error: 'Internal server error', scored: false }), { status: 500, headers: allHeaders });
   }
 });

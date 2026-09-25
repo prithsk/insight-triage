@@ -122,6 +122,63 @@ about provenance rather than language:
   displayed total. A panel whose numbers do not add up is the same defect wearing
   a different coat.
 
+A **ninth** was removed on 2026-09-25, and it is the first that was not on the
+marketing site at all. It was inside the clinical app, on the server:
+
+- `supabase/functions/infer-cxr/index.ts` had a three-path chain. Path A was the
+  ensemble; Path B was Gemini vision; **Path C — `syntheticFallback()` — was
+  `Math.random()`**. It drew a `risk_score`, derived a `risk_bucket` from it,
+  attached a random `confidence`, and answered **HTTP 200**. `useUploadDicom`
+  could not distinguish it from a real score, wrote it to `triage_results`, and
+  the worklist ordered a reading queue by it. A real patient's chest X-ray could
+  be placed first, or last, on a coin flip. The only disclosure was
+  `model_version: 'synthetic-fallback'` in a side panel — not on the worklist
+  row, which is where the ordering acts.
+
+The first eight were claims *about* the product. This one *was* the product, and
+that is the new category worth naming: a fabricated value can live in the
+clinical path, not only in promotion for it. The rules above are all about what
+ships to a visitor and none of them reach it. So two more:
+
+- **A failed inference produces an UNSCORED study, never a substitute number.**
+  No fallback, no hedged guess, no "degraded mode" score. `infer-cxr` answers
+  422 (`image_unavailable`) or 503 (`inference_unavailable`) with
+  `scored: false`; the client writes no `triage_results` row and leaves
+  `studies.status = 'PENDING'`; `worklistOrder` pins the study last in both sort
+  directions and the row reads "awaiting triage".
+- **A guard that scans `src/` only does not cover the clinical path.** Every
+  claim rule scanned `src/`, which is precisely why none of them saw a random
+  number generator sitting in an edge function. `src/claims.test.ts` now scans
+  `supabase/functions/**` too; reintroducing Path C fails three of its tests
+  (mutation-tested 2026-09-25).
+
+Three smaller fabrications went with it, all reached from the same request:
+
+- `buildLegacyHeatmap()` invented anatomical ROI circles by keyword-matching
+  Gemini's findings text and jittered their coordinates with `Math.random()`;
+  the Reviewer drew them over a real patient's radiograph. CI forbids exactly
+  that shape in `src/pages/Reviewer.tsx` — it had simply moved server-side.
+- a Gemini response with no parseable score defaulted to `0.35`, manufacturing a
+  REVIEW score out of a parse failure.
+- `useUploadDicom` wrote a hardcoded "normal" blood gas (CO2 40, pH 7.40, O2 97,
+  WBC 7.5, CRP 1.5, PCT 0.05) into `lab_results` whenever the function returned
+  none, stored as `source: 'ai_vision_analysis'`.
+
+**Still open — lab values.** `lab_results` is a closed-form function of the risk
+score computed in `infer-cxr`. No model and no blood draw is involved: Gemini is
+not asked for these and could not derive a blood test from a radiograph. README
+says the simulation "is labeled in the UI wherever it appears"; it is not.
+`Reviewer.tsx` and `StudyPreview.tsx` carry "Simulated — not a real lab draw";
+`PreviewPanel.tsx` and the worklist `Labs` column carry no label. The
+`Math.random()` jitter is gone and rows are now written as
+`source: 'simulated_from_risk_score'`, which at least surfaces in PreviewPanel's
+"Source:" line. The feature itself is unresolved.
+
+**Still open — `confidence` is not a measurement.** Both scoring paths compute it
+as a monotone function of distance to the nearest decision boundary. It carries
+no information the score does not already carry, nothing calibrated it against
+outcomes, and the reviewer renders it as "Confidence: NN%".
+
 **How these keep surviving:** `npx tsc --noEmit` checked zero files (see Frontend),
 so "typecheck passes" was meaningless, and none of them were covered by a test.
 Every instance was found by reading, not by tooling.
@@ -145,7 +202,7 @@ Every instance was found by reading, not by tooling.
 
 ## Verification
 
-`npm test` — 159 tests, Vitest. CI runs typecheck, tests, build, and a set of shell
+`npm test` — 202 tests, Vitest. CI runs typecheck, tests, build, and a set of shell
 assertions on the build output (`.github/workflows/ci.yml`).
 
 **What is covered:** the ranking statistics behind the validation sprint; the SLA
@@ -159,9 +216,14 @@ file whose model-accuracy percentage or per-model fusion weight disagrees with i
 plus an arithmetic check that the illustrative per-model votes in `TraceSections`
 still fuse to the score that panel prints. Reading the artifact rather than a
 constant means retraining the model moves the assertion instead of breaking it.
-Both P0s from the 2026-07-28 review, both waitlist mutations, and all four of the
-published-number rules were mutation-tested: reintroducing any of them fails the
-suite.
+Since 2026-09-25 the claim rules also scan `supabase/functions/**`, not just
+`src/`: no edge function may derive a clinical value from a random number, none
+may call `Math.random()` at all, `infer-cxr` must carry no synthetic third path,
+and the triage bands must agree across the edge function, `inference.py` and
+`ensemble_weights.json` — read at test time, so retraining moves the assertion.
+Both P0s from the 2026-07-28 review, both waitlist mutations, all four of the
+published-number rules, and both the Path C and the threshold rules were
+mutation-tested: reintroducing any of them fails the suite.
 
 **What is not covered:** no component tests, no E2E, no live-database tests. The RLS
 and edge-function suites are static analysis of SQL and source text, not behaviour.

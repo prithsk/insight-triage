@@ -24,8 +24,25 @@ from model import (
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 HEATMAP_GRID       = 14
+
+# Product policy for the CRITICAL band, not a fitted quantity. It is mirrored by
+# CRITICAL_THRESHOLD in supabase/functions/infer-cxr/index.ts, which buckets the
+# Gemini fallback path; src/claims.test.ts fails if the two drift apart, because
+# two paths writing the same `risk_bucket` column with different boundaries is
+# not a fallback, it is two different products.
 CRITICAL_THRESHOLD = 0.65
-REVIEW_THRESHOLD   = 0.35
+
+# LAST-RESORT default only. The REVIEW floor that actually runs is the
+# ensemble's own `optimal_threshold`, loaded from
+# services/ml-api/ensemble_weights.json (currently 0.50) by model.load_ensemble.
+#
+# This constant used to be named REVIEW_THRESHOLD and read as the documented
+# band edge while being overridden at every point of use, so the README, the
+# edge function's prompt and this module all advertised a REVIEW band of
+# 0.35-0.65 that the service never applied. Renamed so that reading it cannot
+# mislead: it is the value used only when an ensemble carries no threshold of
+# its own, and it matches model.EnsembleDetector's own default.
+FALLBACK_REVIEW_THRESHOLD = 0.35
 
 # Guard against decompression-bomb images (e.g. a crafted PNG that expands to
 # billions of pixels) before any decode work happens.
@@ -92,6 +109,19 @@ class GradCAM:
         self._bwd.remove()
 
 
+def review_threshold_of(ensemble: EnsembleDetector) -> float:
+    """
+    The REVIEW floor this ensemble actually applies.
+
+    One accessor, called once per request, so bucketing and `confidence` cannot
+    end up measured against different boundaries — which is exactly what
+    happened: the bucket used the ensemble's `optimal_threshold` while
+    `confidence` used the module constant, so a score sitting precisely on the
+    real decision boundary could be reported as highly confident.
+    """
+    return float(getattr(ensemble, "optimal_threshold", FALLBACK_REVIEW_THRESHOLD))
+
+
 def _cam_to_grid(cam: np.ndarray, grid: int = HEATMAP_GRID) -> list:
     pil = Image.fromarray((cam * 255).astype(np.uint8))
     pil = pil.resize((grid, grid), Image.BILINEAR)
@@ -140,15 +170,37 @@ def predict(
     risk_score  = float(sum(p * w for p, w in zip(per_model_mean, weights)) / total_w)
 
     # ── Grad-CAM: one map per model, then average ─────────────────────────────
+    #
+    # THE MODELS STAY IN eval(). This loop used to call `base_model.train()`
+    # with the comment "enable grad tracking", which is not what train() does —
+    # it does not touch autograd at all. What builds the graph is being outside
+    # `torch.no_grad()` (the TTA block above has exited) plus an input that
+    # requires grad, which is the `canonical.requires_grad_(True)` below.
+    #
+    # What train() did do, on all three backbones, was:
+    #
+    #   * switch every BatchNorm layer to batch statistics computed from a batch
+    #     of ONE image — a different function from the one that produced
+    #     `risk_score` moments earlier, so the heatmap explained a score the
+    #     service never reported; and
+    #   * update each BatchNorm's running_mean / running_var in place (that is
+    #     what training mode does on a forward pass). Those buffers persist for
+    #     the lifetime of the process, so every Grad-CAM pass permanently
+    #     nudged the model toward one patient's image and the scores drifted
+    #     across subsequent requests; and
+    #   * re-enable Dropout(p=0.3) in the classifier heads, making the
+    #     backward pass — and therefore the map — non-deterministic run to run.
+    #
+    # Gradients w.r.t. the target layer's activations are all Grad-CAM needs,
+    # and eval() does not prevent them.
     canonical = PREPROCESS(pil).unsqueeze(0).to(device)
+    canonical.requires_grad_(True)
     cams      = []
     for base_model in ensemble.models:
-        base_model.train()                  # enable grad tracking
+        base_model.eval()
         cam_engine = GradCAM(base_model)
-        canonical.requires_grad_(True)
         cams.append(cam_engine(canonical))
         cam_engine.remove()
-        base_model.eval()
 
     # Resize all maps to the same shape before averaging
     target_h, target_w = cams[0].shape
@@ -168,7 +220,7 @@ def predict(
     heatmap = _cam_to_grid(avg_cam)
 
     # ── Risk bucket ───────────────────────────────────────────────────────────
-    review_thresh = getattr(ensemble, 'optimal_threshold', REVIEW_THRESHOLD)
+    review_thresh = review_threshold_of(ensemble)
     if risk_score >= CRITICAL_THRESHOLD:
         risk_bucket = "CRITICAL"
     elif risk_score >= review_thresh:
@@ -176,9 +228,26 @@ def predict(
     else:
         risk_bucket = "CLEAR"
 
+    # `confidence` IS NOT A MEASURED OR CALIBRATED QUANTITY.
+    #
+    # It is a deterministic, monotone transform of how far the score sits from
+    # the nearest decision boundary and from the ends of the range. It carries
+    # no information `risk_score` does not already carry, it is not a
+    # probability, and it is not the model's certainty about this image. Nothing
+    # here was fitted against held-out outcomes, so it cannot be.
+    #
+    # The distance is taken against `review_thresh` — the boundary the bucket
+    # above actually used. It previously used the module constant while the
+    # bucketing used the ensemble's own threshold, so with the shipped artifact
+    # (0.50 vs 0.35) a score of exactly 0.50 — sitting precisely on the real
+    # decision boundary, the least decidable point there is — was reported at
+    # 0.82 confidence.
+    #
+    # It reaches a radiologist labelled "Confidence: NN%". That label claims
+    # more than this number supports; see CLAUDE.md.
     dist = min(
         abs(risk_score - CRITICAL_THRESHOLD),
-        abs(risk_score - REVIEW_THRESHOLD),
+        abs(risk_score - review_thresh),
         risk_score,
         1.0 - risk_score,
     )

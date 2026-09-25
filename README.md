@@ -16,9 +16,9 @@ Upload (DICOM / JPG / PNG)
   → infer-cxr edge function
       → Path A: Kroix ML API (3-model ensemble)   ← primary
       → Path B: Gemini vision fallback              (if ML API unavailable)
-      → Path C: synthetic fallback                  (no image / no API keys)
-  → triage_results + lab_results stored
-  → study status → QUEUED
+      → neither succeeded: 422 / 503, scored:false, and NO triage row
+  → triage_results + lab_results stored (only when a model produced a score)
+  → study status → QUEUED, or back to PENDING and "awaiting triage" if unscored
   → worklist re-sorts in real time (CRITICAL → REVIEW → CLEAR)
 ```
 
@@ -27,9 +27,16 @@ their outputs with a tanh-weighted average, and returns a risk score, a CRITICAL
 bucket, a confidence value, and a Grad-CAM heatmap. Trained via 5-fold cross-validation on the
 Kermany chest X-ray pneumonia dataset (see `services/ml-api/train_colab.ipynb`).
 
+There is no third path. A study that no model scored stays **unscored**: the image is stored and
+readable, no `triage_results` row is written, and the worklist pins it last in both sort directions
+with an "awaiting triage" chip. See `CLAUDE.md` → Public claims for why.
+
 Lab values (CO2, pH, O2, WBC, CRP, procalcitonin) shown alongside triage results are **simulated**
-— back-calculated from the AI risk score for demo purposes, not real lab draws. This is
-labeled in the UI wherever it appears.
+— a closed-form function of the risk score, computed in `infer-cxr` and stored with
+`source = 'simulated_from_risk_score'`. No model and no blood draw is involved; none of these can be
+derived from a radiograph. They are labeled "Simulated — not a real lab draw" in the Reviewer and in
+StudyPreview, but **not** in PreviewPanel or the worklist `Labs` column — this README previously
+claimed they were labeled everywhere, and they are not.
 
 ## Project structure
 
@@ -97,8 +104,8 @@ Railway:
    ```
 4. Verify with `GET /health` — should return `{"ready": true}` once weights load.
 
-Without `ML_API_URL` set, `infer-cxr` automatically falls back to Gemini vision, then to synthetic
-data — the app keeps working end-to-end at every fallback tier.
+Without `ML_API_URL` set, `infer-cxr` falls back to Gemini vision. If that is unavailable too the
+request returns 503 with `scored: false` and the study stays unscored — there is no synthetic tier.
 
 ## Design system
 
