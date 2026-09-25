@@ -219,7 +219,7 @@ Every instance was found by reading, not by tooling.
 
 ## Verification
 
-`npm test` — 202 tests, Vitest. CI runs typecheck, tests, build, and a set of shell
+`npm test` — 203 tests, Vitest. CI runs typecheck, tests, build, and a set of shell
 assertions on the build output (`.github/workflows/ci.yml`).
 
 **What is covered:** the ranking statistics behind the validation sprint; the SLA

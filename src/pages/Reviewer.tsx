@@ -335,7 +335,7 @@ export default function Reviewer() {
                         onLoad={syncImgDims}
                       />
 
-                      {/* Grad-CAM heatmap overlay (EfficientNet-B4 path) */}
+                      {/* Grad-CAM heatmap overlay (ensemble path) */}
                       {showROI && isGradCam && item.triage && item.triage.risk_bucket !== "CLEAR" && (
                         <HeatmapOverlay
                           roiHeatmap={roiHeatmapRaw}
@@ -493,7 +493,7 @@ export default function Reviewer() {
               {hasLocalization ? (
                 <p className="text-[12px] text-kx-muted mt-3">
                   {isGradCam
-                    ? "Grad-CAM spatial activation map from EfficientNet-B4. "
+                    ? "Grad-CAM spatial activation map, averaged over the three ensemble models. "
                     : "Inferred region-of-interest overlay. "}
                   {LANGUAGE.NON_DIAGNOSTIC}.
                 </p>

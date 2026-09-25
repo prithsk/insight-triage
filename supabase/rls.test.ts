@@ -112,6 +112,12 @@ const PHI_TABLES = [
   "public.embeddings",
   "public.medical_literature",
   "storage.objects",
+  // Added 2026-09-25 alongside 20260925130000_scope_profile_policies.sql. Not a
+  // PHI table itself, but every PHI policy in the schema delegates to
+  // is_approved_user()/is_admin_user(), which read it — so a policy failure here
+  // exposes patient data through all seven of the others at once. It also held
+  // four unscoped policies until that migration.
+  "public.profiles",
 ];
 
 describe("RLS: no permissive policy grants blanket access", () => {
@@ -174,20 +180,21 @@ describe("RLS: no permissive policy grants blanket access", () => {
 });
 
 describe("RLS: privilege columns cannot be self-granted", () => {
-  it("every SELF-update policy on profiles carries a WITH CHECK", () => {
+  it("every update policy on profiles carries a WITH CHECK", () => {
     // USING without WITH CHECK reuses USING as the row check, so only the key
     // column is protected and every other column is writable. That is how the
     // escalation happened.
     //
-    // Scoped to self-update policies (those keyed on auth.uid()). The admin
-    // policy is USING (is_admin_user()) — a property of the caller, not the row —
-    // and admins are *supposed* to change approved/role in order to approve
-    // people. What stops an admin policy being abused is the trigger, asserted
-    // separately below.
+    // This used to exempt the admin policy, on the reasoning that USING
+    // (is_admin_user()) tests the caller rather than the row and that the
+    // trigger is the real enforcement. Both remain true — but an UPDATE policy
+    // with no WITH CHECK is the exact shape of this repo's P0, and leaving one
+    // in place meant the rule could not catch a recurrence on the very table it
+    // was written for. 20260925130000 gave the admin policy its WITH CHECK, so
+    // the exemption is gone and this now covers EVERY update policy on profiles.
     const offenders = livePolicies()
       .filter((p) => p.table === "public.profiles")
       .filter((p) => /FOR\s+UPDATE/i.test(p.body))
-      .filter((p) => /auth\.uid\(\)/i.test(p.body))
       .filter((p) => !/WITH\s+CHECK/i.test(p.body))
       .map((p) => `"${p.name}"`);
 
