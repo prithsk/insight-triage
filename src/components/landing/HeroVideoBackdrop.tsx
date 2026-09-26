@@ -19,6 +19,64 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
+/**
+ * Decides whether — and when — the hero footage is worth fetching.
+ *
+ * `public/hero.mp4` is 22 MB. With `autoPlay` set, the browser starts pulling it
+ * the moment the element mounts, contending with the entry chunk and the
+ * stylesheet for the same connection: roughly 18 s of the download on a 10 Mbps
+ * link, during which the page that is already painted feels like it is still
+ * loading. Nothing here needs the video to be present for the hero to look
+ * finished — the generated ambient field below is the designed fallback, not a
+ * placeholder — so the footage is treated as an enhancement that arrives late.
+ *
+ * Returns false until the page has finished its own load, and stays false for
+ * viewers who have asked for less data or are on a connection that cannot
+ * absorb it. Re-encoding the asset is still the real fix; this stops it being
+ * on the critical path.
+ */
+function useDeferredHeroVideo(): boolean {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    // `connection` is not in the standard DOM lib and is absent on Safari.
+    const connection = (
+      navigator as Navigator & {
+        connection?: { saveData?: boolean; effectiveType?: string };
+      }
+    ).connection;
+
+    if (connection?.saveData) return;
+    if (connection?.effectiveType && /(^|-)(slow-)?2g$|^3g$/.test(connection.effectiveType)) return;
+
+    let cancelled = false;
+    const start = () => {
+      if (!cancelled) setReady(true);
+    };
+
+    // After the load event, so the video queues behind the JS, CSS and fonts
+    // rather than beside them. requestIdleCallback where available; Safari has
+    // no such thing, hence the timeout.
+    const schedule = () => {
+      const ric = (window as Window & {
+        requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      }).requestIdleCallback;
+      if (ric) ric(start, { timeout: 3000 });
+      else window.setTimeout(start, 600);
+    };
+
+    if (document.readyState === "complete") schedule();
+    else window.addEventListener("load", schedule, { once: true });
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("load", schedule);
+    };
+  }, []);
+
+  return ready;
+}
+
 interface HeroVideoBackdropProps {
   /** Drop an .mp4 in /public and pass e.g. "/hero.mp4". Falls back gracefully. */
   src?: string;
@@ -48,6 +106,7 @@ export function HeroVideoBackdrop({
   const [playing, setPlaying] = useState(false);
   const ref = useRef<HTMLVideoElement>(null);
   const reducedMotion = usePrefersReducedMotion();
+  const videoReady = useDeferredHeroVideo();
 
   return (
     <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`} aria-hidden="true">
@@ -82,7 +141,10 @@ export function HeroVideoBackdrop({
       {/* Reduced-motion users fall through to the static ambient field above.
           A looping autoplay video is continuous motion with no pause control
           (WCAG 2.2.2), and CSS alone cannot stop a <video>. */}
-      {src && !reducedMotion && (
+      {/* `preload` is moot once `autoPlay` is set — the `videoReady` gate is what
+          actually defers the fetch. It stays "none" so a browser that ignores
+          autoplay does not pull 22 MB for footage it will never play. */}
+      {src && !reducedMotion && videoReady && (
         <video
           ref={ref}
           src={src}
@@ -91,7 +153,7 @@ export function HeroVideoBackdrop({
           muted
           loop
           playsInline
-          preload="metadata"
+          preload="none"
           onPlaying={() => setPlaying(true)}
           onError={() => setPlaying(false)}
           className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
