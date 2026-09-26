@@ -286,6 +286,19 @@ serve(async (req) => {
     const ML_API_URL            = Deno.env.get('ML_API_URL') ?? '';
     const ML_API_KEY            = Deno.env.get('ML_API_KEY') ?? '';
     const LOVABLE_API_KEY       = Deno.env.get('LOVABLE_API_KEY') ?? '';
+    // Path B is OPT-IN. Set VISION_FALLBACK_ENABLED=true to allow it.
+    //
+    // Gemini is a general-purpose vision model. It is not the ensemble, it was
+    // not trained on chest radiographs, and it has no validation behind it —
+    // yet it writes into the same `triage_results.risk_score` column the
+    // ensemble writes, and the worklist orders by that column either way. A
+    // silent substitution means a queue can be ordered by a model nobody chose,
+    // and the only disclosure is `model_version` in a side panel.
+    //
+    // Default off, so the failure mode is an honest unscored study rather than
+    // a different model's guess. Turn it on deliberately when a scored-but-
+    // caveated result is worth more than none — a demo with Railway down, say.
+    const VISION_FALLBACK_ENABLED = (Deno.env.get('VISION_FALLBACK_ENABLED') ?? '').toLowerCase() === 'true';
     const SUPABASE_URL          = Deno.env.get('SUPABASE_URL') ?? '';
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
@@ -319,8 +332,13 @@ serve(async (req) => {
         // Text only: the score, bucket, confidence and heatmap all stay the
         // ensemble's. Taking Gemini's lab curve here, as the previous version
         // did, described a score the panel was not showing.
+        // Same flag as Path B: one switch for "is a general-purpose vision
+        // model allowed to touch this study at all". The score, bucket,
+        // confidence and heatmap are the ensemble's either way — this is only
+        // the findings sentence — but it appears beside the ensemble's number,
+        // so it is the ensemble's result a reader attributes it to.
         let findings: string[] = [];
-        if (LOVABLE_API_KEY) {
+        if (VISION_FALLBACK_ENABLED && LOVABLE_API_KEY) {
           try {
             findings = (await callGemini(imageBase64, LOVABLE_API_KEY)).findings;
           } catch (e) {
@@ -349,8 +367,10 @@ serve(async (req) => {
       failures.push('ml-api: ML_API_URL is not configured');
     }
 
-    // ── Path B: Gemini vision-only (ML service unavailable) ──────────────────
-    if (LOVABLE_API_KEY) {
+    // ── Path B: Gemini vision-only (ML service unavailable), opt-in ──────────
+    if (!VISION_FALLBACK_ENABLED) {
+      failures.push('gemini: disabled (VISION_FALLBACK_ENABLED is not true)');
+    } else if (LOVABLE_API_KEY) {
       try {
         const gemini = await callGemini(imageBase64, LOVABLE_API_KEY);
         return new Response(JSON.stringify({

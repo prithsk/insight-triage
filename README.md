@@ -15,7 +15,7 @@ Upload (DICOM / JPG / PNG)
   → studies row created (status: PROCESSING)
   → infer-cxr edge function
       → Path A: Kroix ML API (3-model ensemble)   ← primary
-      → Path B: Gemini vision fallback              (if ML API unavailable)
+      → Path B: Gemini vision fallback              (OPT-IN: VISION_FALLBACK_ENABLED=true)
       → neither succeeded: 422 / 503, scored:false, and NO triage row
   → triage_results + lab_results stored (only when a model produced a score)
   → study status → QUEUED, or back to PENDING and "awaiting triage" if unscored
@@ -104,8 +104,12 @@ Railway:
    ```
 4. Verify with `GET /health` — should return `{"ready": true}` once weights load.
 
-Without `ML_API_URL` set, `infer-cxr` falls back to Gemini vision. If that is unavailable too the
-request returns 503 with `scored: false` and the study stays unscored — there is no synthetic tier.
+Without `ML_API_URL` set, the ensemble cannot score. The Gemini vision fallback is **opt-in** and
+off by default: set the Supabase secret `VISION_FALLBACK_ENABLED=true` to allow it. Gemini is a
+general-purpose model with no validation on chest radiographs, and it writes into the same
+`risk_score` column the ensemble writes — so a silent substitution would mean a queue ordered by a
+model nobody chose. With the flag off, or with both paths unavailable, the request returns 503 with
+`scored: false` and the study stays unscored. There is no synthetic tier.
 
 ## Design system
 
