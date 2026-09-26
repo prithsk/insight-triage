@@ -434,7 +434,8 @@ export default function Index() {
                           onCheck={checked => {
                             setSelectedIds(prev => {
                               const next = new Set(prev);
-                              checked ? next.add(item.study.id) : next.delete(item.study.id);
+                              if (checked) next.add(item.study.id);
+                              else next.delete(item.study.id);
                               return next;
                             });
                           }}
