@@ -100,3 +100,50 @@ describe("no localisation is claimed without a heatmap behind it", () => {
     }
   });
 });
+
+/**
+ * A claims rule, living here because this file already enumerates the clinical
+ * surfaces.
+ *
+ * `lab_results` is a closed-form function of the risk score computed in
+ * `infer-cxr`. No model and no blood draw is involved, and nothing could derive
+ * a blood test from a radiograph. CLAUDE.md recorded this as open on two
+ * surfaces, `PreviewPanel.tsx` and the worklist `Labs` column — both of which
+ * have since been consolidated away, so the gap closed by deletion rather than
+ * by a fix. That is exactly the kind of thing that silently reopens the next
+ * time someone adds a panel, so the invariant is stated here instead of being
+ * remembered.
+ */
+const LAB_FIELDS = /\.labs[.?]\s*(wbc|crp|procalcitonin|co2|ph|o2)\b/;
+const LAB_COMPONENT = /<LabFlags\b/;
+const SIMULATED_LABEL = /Simulated\s*—\s*not a real lab draw/;
+
+/** Does this file render lab figures, as opposed to merely passing them along? */
+const rendersLabs = (src: string) => LAB_FIELDS.test(src) || LAB_COMPONENT.test(src);
+
+describe("simulated lab values are labelled wherever they are rendered", () => {
+  it.each(CLINICAL_FILES)("%s", (file) => {
+    const src = read(file);
+    if (!rendersLabs(src)) return;
+
+    expect(
+      SIMULATED_LABEL.test(src),
+      `${file} renders lab values but carries no "Simulated — not a real lab draw" ` +
+      `label. These are a closed-form function of the risk score, not a blood ` +
+      `draw — see CLAUDE.md, Public claims.`,
+    ).toBe(true);
+  });
+
+  it("at least two surfaces are actually covered by that rule", () => {
+    // Guards the guard: if the detection regexes stop matching anything, the
+    // it.each above passes vacuously for every file and asserts nothing.
+    const covered = CLINICAL_FILES.filter((f) => rendersLabs(read(f)));
+    expect(
+      covered,
+      "expected StudyPreview and Reviewer to be detected as rendering labs",
+    ).toEqual(expect.arrayContaining([
+      "src/components/dashboard/StudyPreview.tsx",
+      "src/pages/Reviewer.tsx",
+    ]));
+  });
+});
