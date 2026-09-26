@@ -181,15 +181,34 @@ Three smaller fabrications went with it, all reached from the same request:
   WBC 7.5, CRP 1.5, PCT 0.05) into `lab_results` whenever the function returned
   none, stored as `source: 'ai_vision_analysis'`.
 
-**Still open — lab values.** `lab_results` is a closed-form function of the risk
-score computed in `infer-cxr`. No model and no blood draw is involved: Gemini is
-not asked for these and could not derive a blood test from a radiograph. README
-says the simulation "is labeled in the UI wherever it appears"; it is not.
-`Reviewer.tsx` and `StudyPreview.tsx` carry "Simulated — not a real lab draw";
-`PreviewPanel.tsx` and the worklist `Labs` column carry no label. The
-`Math.random()` jitter is gone and rows are now written as
-`source: 'simulated_from_risk_score'`, which at least surfaces in PreviewPanel's
-"Source:" line. The feature itself is unresolved.
+**Labelling closed 2026-09-26; the feature is still open.** `lab_results` is a
+closed-form function of the risk score computed in `infer-cxr`. No model and no
+blood draw is involved: Gemini is not asked for these and could not derive a
+blood test from a radiograph. The two unlabelled surfaces this file used to
+name, `PreviewPanel.tsx` and the worklist `Labs` column, **no longer exist** —
+they were consolidated away, so that gap closed by deletion rather than by a
+fix, which is precisely how it would have silently reopened. The rule is now
+stated instead of remembered: `src/design.test.ts` fails any clinical surface
+that renders lab figures without "Simulated — not a real lab draw", and carries
+a second test asserting the detection actually matches something, so the rule
+cannot pass vacuously. Rows are written as `source: 'simulated_from_risk_score'`.
+**The feature itself is still unresolved** — labelling a simulation is not the
+same as not shipping one.
+
+A **tenth** shape was found on 2026-09-26, in the same family as the ROI
+circles and in the same place a demo would meet it:
+
+- `StudyPreview.tsx` drew an "Area of Interest" chip over the patient's
+  radiograph whenever `risk_bucket !== "CLEAR"`, with **no check that any
+  localisation existed**. The Gemini path returns none at all. It drew no
+  circles, so it read as lighter than `buildLegacyHeatmap()` — but it makes the
+  same assertion, that something was localised, with nothing behind it. CI's
+  rule for that shape watches `Reviewer.tsx` only, and the Reviewer was already
+  correct: it says "No localization for this study". The chip is now gated on
+  `roi_heatmap_path` and `design.test.ts` pins it.
+
+The lesson repeats the one from the ninth: a claim rule scoped to the file
+where the defect was last seen does not cover the defect.
 
 **Still open — `confidence` is not a measurement.** Both scoring paths compute it
 as a monotone function of distance to the nearest decision boundary. It carries
@@ -219,7 +238,7 @@ Every instance was found by reading, not by tooling.
 
 ## Verification
 
-`npm test` — 203 tests, Vitest. CI runs typecheck, tests, build, and a set of shell
+`npm test` — 244 tests, Vitest. CI runs typecheck, tests, build, and a set of shell
 assertions on the build output (`.github/workflows/ci.yml`).
 
 **What is covered:** the ranking statistics behind the validation sprint; the SLA
@@ -238,9 +257,17 @@ Since 2026-09-25 the claim rules also scan `supabase/functions/**`, not just
 may call `Math.random()` at all, `infer-cxr` must carry no synthetic third path,
 and the triage bands must agree across the edge function, `inference.py` and
 `ensemble_weights.json` — read at test time, so retraining moves the assertion.
+Since 2026-09-26, `src/auth.test.ts` pins the approval gate and
+`src/design.test.ts` pins the clinical palette, the localisation chip and the
+simulated-lab label. The palette and lab rules enumerate their files by reading
+`components/dashboard` and `components/reviewer` at test time, so a component
+added tomorrow is covered without anyone remembering to add it, and the lab rule
+carries a guard on itself because an `it.each` over a filtered list passes
+vacuously when the filter matches nothing.
 Both P0s from the 2026-07-28 review, both waitlist mutations, all four of the
-published-number rules, and both the Path C and the threshold rules were
-mutation-tested: reintroducing any of them fails the suite.
+published-number rules, both the Path C and the threshold rules, and all five of
+the 2026-09-26 rules were mutation-tested: reintroducing any of them fails the
+suite.
 
 **What is not covered:** no component tests, no E2E, no live-database tests. The RLS
 and edge-function suites are static analysis of SQL and source text, not behaviour.
@@ -248,6 +275,23 @@ They catch the specific defect classes already seen here; they cannot catch a ne
 class on their own. The next real upgrades are a live-Supabase test asserting an
 unapproved user reads nothing, and a behavioural test POSTing malformed payloads at
 a locally-served function.
+
+**`supabase/functions/` is not type-checked by anything.** `deno` appears nowhere
+in `.github/workflows/ci.yml`, and `npm run typecheck` is `tsc --build` over
+`src/`. The vitest suites read edge-function files as *text*, not as code. So the
+clinical path — the one that scores an image and decides a queue position — has
+weaker static checking than the landing page, and a type error there is found by
+the function failing in production. Adding a `deno check` step is the outstanding
+fix. This is the same shape as the `npx tsc --noEmit` problem in Frontend: a
+check everyone believed was running over code it never touched.
+
+**The approval gate had no test until 2026-09-26, and it was broken.**
+`AuthContext` cleared `loading` before the profile fetch resolved, so every
+approved radiologist saw "Awaiting approval" flash on each load, and a failed
+lookup stranded them there permanently with no error and no retry — `approved`
+starts `false`, and nothing distinguished "denied" from "could not find out".
+Found by reading, like every other defect in this file. `auth.test.ts` now pins
+both shapes.
 
 Say this plainly rather than implying coverage. When claiming something works, name
 what was actually checked. "Typecheck passes" is not "this works" — the font bug,
