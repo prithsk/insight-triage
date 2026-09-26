@@ -35,8 +35,10 @@ Lab values (CO2, pH, O2, WBC, CRP, procalcitonin) shown alongside triage results
 — a closed-form function of the risk score, computed in `infer-cxr` and stored with
 `source = 'simulated_from_risk_score'`. No model and no blood draw is involved; none of these can be
 derived from a radiograph. They are labeled "Simulated — not a real lab draw" in the Reviewer and in
-StudyPreview, but **not** in PreviewPanel or the worklist `Labs` column — this README previously
-claimed they were labeled everywhere, and they are not.
+StudyPreview, which are now the only two surfaces that render them — `PreviewPanel` and the worklist
+`Labs` column, which this README previously named as unlabeled, were consolidated away. Since
+2026-09-26 `src/design.test.ts` fails any clinical surface that renders lab figures without the
+label, so this is enforced rather than asserted. The simulation itself remains a simulation.
 
 ## Project structure
 
