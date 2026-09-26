@@ -132,8 +132,8 @@ export function UploadButton() {
             isDragging && "border-kx-accent3 bg-kx-accent3/5",
             uploadState === 'idle' && !isDragging && "border-kx-border hover:border-kx-accent3",
             uploadState === 'uploading' && "border-kx-accent3 bg-kx-accent3/5 cursor-wait",
-            uploadState === 'success' && "border-emerald-500 bg-emerald-50",
-            uploadState === 'error' && "border-red-500 bg-red-50"
+            uploadState === 'success' && "border-kx-accent3 bg-kx-accent3/10",
+            uploadState === 'error' && "border-kx-critical bg-kx-critical/10"
           )}
         >
           {uploadState === 'uploading' && (
@@ -155,23 +155,23 @@ export function UploadButton() {
           
           {uploadState === 'success' && (
             <>
-              <CheckCircle2 className="w-12 h-12 mx-auto text-emerald-600 mb-4" />
-              <p className="font-medium text-emerald-700">
+              <CheckCircle2 className="w-12 h-12 mx-auto text-kx-accent3 mb-4" />
+              <p className="font-medium text-kx-accent3">
                 {processedCount} file(s) processed
               </p>
               <div className="flex justify-center gap-4 mt-3 text-[13px]">
                 {uploadResults.critical > 0 && (
-                  <span className="text-red-600 font-medium">
+                  <span className="text-kx-critical-ink font-medium">
                     🔴 {uploadResults.critical} Critical
                   </span>
                 )}
                 {uploadResults.review > 0 && (
-                  <span className="text-amber-600 font-medium">
+                  <span className="text-kx-warn font-medium">
                     🟡 {uploadResults.review} Review
                   </span>
                 )}
                 {uploadResults.clear > 0 && (
-                  <span className="text-emerald-600 font-medium">
+                  <span className="text-kx-accent3 font-medium">
                     🟢 {uploadResults.clear} Clear
                   </span>
                 )}
@@ -181,8 +181,8 @@ export function UploadButton() {
           
           {uploadState === 'error' && (
             <>
-              <AlertCircle className="w-12 h-12 mx-auto text-red-600 mb-4" />
-              <p className="font-medium text-red-700">Upload failed</p>
+              <AlertCircle className="w-12 h-12 mx-auto text-kx-critical-ink mb-4" />
+              <p className="font-medium text-kx-critical-ink">Upload failed</p>
               <p className="text-[14px] text-kx-muted mt-1">
                 Please try again or check your connection
               </p>

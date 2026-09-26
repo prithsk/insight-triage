@@ -130,9 +130,9 @@ export default function Analytics() {
                 fabrication sound like a feature. The charts are now empty until
                 real studies exist, and this says so. */}
             {data && !data.hasRealData && (
-              <div className="mt-6 flex items-start gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-[10px]">
-                <Info className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                <p className="text-[13px] text-amber-800">
+              <div className="mt-6 flex items-start gap-3 px-4 py-3 bg-kx-warn/10 border border-kx-warn/25 rounded-[10px]">
+                <Info className="w-4 h-4 text-kx-warn mt-0.5 shrink-0" />
+                <p className="text-[13px] text-kx-warn">
                   <strong>No data yet.</strong> These charts stay empty until studies have been
                   uploaded and reviewed — nothing here is simulated.
                 </p>
@@ -183,7 +183,7 @@ export default function Analytics() {
                     {stats && stats.mttrTrend !== 0 && (
                       <div className={cn(
                         "inline-flex items-center gap-1 text-[13px] font-medium px-2 py-1 rounded-lg mt-2",
-                        stats.mttrTrend < 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
+                        stats.mttrTrend < 0 ? "bg-kx-accent3/10 text-kx-accent3" : "bg-kx-critical/10 text-kx-critical-ink"
                       )}>
                         {stats.mttrTrend < 0 ? <ArrowDownRight className="w-3.5 h-3.5" /> : <ArrowUpRight className="w-3.5 h-3.5" />}
                         {Math.abs(stats.mttrTrend).toFixed(1)}m
@@ -204,7 +204,7 @@ export default function Analytics() {
                     {stats && stats.tpTrend !== 0 && (
                       <div className={cn(
                         "inline-flex items-center gap-1 text-[13px] font-medium px-2 py-1 rounded-lg mt-2",
-                        stats.tpTrend > 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
+                        stats.tpTrend > 0 ? "bg-kx-accent3/10 text-kx-accent3" : "bg-kx-critical/10 text-kx-critical-ink"
                       )}>
                         {stats.tpTrend > 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
                         {Math.abs(stats.tpTrend).toFixed(0)}
@@ -233,14 +233,14 @@ export default function Analytics() {
                     <p className="text-[13px] text-kx-muted">Feedback Quality</p>
                     {data.summary.totalFeedback > 0 ? (
                       <>
-                        <p className="text-[36px] font-display font-medium text-emerald-600 mt-1">
+                        <p className="text-[36px] font-display font-medium text-kx-accent3 mt-1">
                           {data.summary.correctRate}<span className="text-[20px] text-kx-muted ml-1">%</span>
                         </p>
                         <div className="flex flex-col gap-1.5 mt-4 pt-4 border-t border-kx-border">
                           {[
-                            { label: "Correct",     val: data.summary.correctRate,   color: "bg-emerald-500", icon: CheckCircle2, cls: "text-emerald-600" },
-                            { label: "False Alarm", val: data.summary.falseAlarmRate, color: "bg-amber-500",   icon: AlertTriangle, cls: "text-amber-600" },
-                            { label: "Missed",      val: data.summary.missedRate,    color: "bg-red-500",     icon: AlertCircle,  cls: "text-red-600"   },
+                            { label: "Correct",     val: data.summary.correctRate,   color: "bg-kx-accent3", icon: CheckCircle2, cls: "text-kx-accent3" },
+                            { label: "False Alarm", val: data.summary.falseAlarmRate, color: "bg-kx-warn",   icon: AlertTriangle, cls: "text-kx-warn" },
+                            { label: "Missed",      val: data.summary.missedRate,    color: "bg-kx-critical",     icon: AlertCircle,  cls: "text-kx-critical-ink"   },
                           ].map(f => {
                             const Icon = f.icon;
                             return (
@@ -387,7 +387,7 @@ export default function Analytics() {
                     <span className="w-1 h-1 rounded-full bg-kx-muted" />
                     <span>{data.summary.totalFeedback} feedback events</span>
                     <span className="w-1 h-1 rounded-full bg-kx-muted" />
-                    <span className="text-emerald-600 font-medium">Live data</span>
+                    <span className="text-kx-accent3 font-medium">Live data</span>
                   </div>
                 )}
               </div>

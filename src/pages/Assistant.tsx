@@ -70,7 +70,7 @@ function DocRow({ doc }: { doc: { id: string; name: string; doc_type: string; st
           {doc.status && (
             <span className={cn(
               "text-[10px] px-1.5 py-0.5 rounded-full",
-              doc.status === "READY" ? "bg-emerald-500/20 text-emerald-400" : "bg-white/10 text-white/40"
+              doc.status === "READY" ? "bg-kx-accent3/20 text-kx-accent3" : "bg-white/10 text-white/40"
             )}>
               {doc.status}
             </span>
@@ -120,9 +120,9 @@ function DocUploadZone({ onFile }: { onFile: (f: File) => void }) {
 // ── Study context chip ─────────────────────────────────────────────────────
 function StudyContextChip({ context, onClear }: { context: StudyContext; onClear: () => void }) {
   const colorMap: Record<string, string> = {
-    CRITICAL: "bg-red-500/20 text-red-300 border-red-500/30",
-    REVIEW:   "bg-amber-500/20 text-amber-300 border-amber-500/30",
-    CLEAR:    "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+    CRITICAL: "bg-kx-critical/20 text-kx-critical border-kx-critical/30",
+    REVIEW:   "bg-kx-warn/20 text-kx-warn border-kx-warn/30",
+    CLEAR:    "bg-kx-accent3/20 text-kx-accent3 border-kx-accent3/30",
   };
   return (
     <div className={cn(
@@ -319,7 +319,7 @@ export default function Assistant() {
               <>
                 {messages.map(msg => <MessageBubble key={msg.id} msg={msg} />)}
                 {error && (
-                  <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-[13px] text-red-700">
+                  <div className="flex items-center gap-2 px-4 py-3 bg-kx-critical/10 border border-kx-critical/25 rounded-xl text-[13px] text-kx-critical-ink">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     {error}
                   </div>
@@ -360,7 +360,7 @@ export default function Assistant() {
               {isStreaming ? (
                 <button
                   onClick={stopStreaming}
-                  className="w-11 h-11 flex items-center justify-center rounded-[12px] bg-red-100 text-red-600 hover:bg-red-200 transition-colors shrink-0"
+                  className="w-11 h-11 flex items-center justify-center rounded-[12px] bg-kx-critical/15 text-kx-critical-ink hover:bg-kx-critical/25 transition-colors shrink-0"
                   title="Stop"
                 >
                   <Square className="w-4 h-4" />

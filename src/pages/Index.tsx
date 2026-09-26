@@ -164,8 +164,8 @@ export default function Index() {
       <DashboardLayout>
         <div className="min-h-[calc(100vh-72px)] flex items-center justify-center px-8">
           <div className="text-center">
-            <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle className="w-8 h-8 text-red-600" />
+            <div className="w-16 h-16 rounded-2xl bg-kx-critical/10 flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="w-8 h-8 text-kx-critical-ink" />
             </div>
             <h2 className="font-display text-[24px] text-kx-ink mb-2">Failed to load studies</h2>
             <p className="text-[15px] text-kx-muted">{error.message}</p>
@@ -356,7 +356,7 @@ export default function Index() {
                   <AlertDialogTrigger asChild>
                     <button
                       disabled={isArchiving}
-                      className="px-3 py-1.5 rounded-lg text-[13px] font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-lg text-[13px] font-medium bg-kx-warn/10 text-kx-warn hover:bg-kx-warn/20 transition-colors flex items-center gap-1.5"
                     >
                       <Archive className="w-3.5 h-3.5" />
                       Archive
@@ -369,7 +369,7 @@ export default function Index() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel className="rounded-[10px]">Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleBulkArchive} className="bg-amber-600 hover:bg-amber-700 rounded-[10px]">Archive</AlertDialogAction>
+                      <AlertDialogAction onClick={handleBulkArchive} className="bg-kx-warn hover:opacity-90 rounded-[10px]">Archive</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
@@ -379,7 +379,7 @@ export default function Index() {
                   <AlertDialogTrigger asChild>
                     <button
                       disabled={isDeleting}
-                      className="px-3 py-1.5 rounded-lg text-[13px] font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-lg text-[13px] font-medium bg-kx-critical/10 text-kx-critical-ink hover:bg-kx-critical/20 transition-colors flex items-center gap-1.5"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       Delete
@@ -392,7 +392,7 @@ export default function Index() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel className="rounded-[10px]">Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleBulkDelete} className="bg-red-600 hover:bg-red-700 rounded-[10px]">Delete</AlertDialogAction>
+                      <AlertDialogAction onClick={handleBulkDelete} className="bg-kx-critical-ink hover:opacity-90 rounded-[10px]">Delete</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>

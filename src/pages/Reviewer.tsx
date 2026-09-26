@@ -318,7 +318,7 @@ export default function Reviewer() {
                 }}
               >
                 {imageLoading ? (
-                  <div className="flex flex-col items-center justify-center text-zinc-500">
+                  <div className="flex flex-col items-center justify-center text-kx-muted">
                     <Loader2 className="w-12 h-12 animate-spin mb-4" />
                     <span className="text-sm">Loading image...</span>
                   </div>
@@ -392,18 +392,18 @@ export default function Reviewer() {
                         sidebar instead of illustrated with invented regions. */}
                   </div>
                 ) : (
-                  <div className="relative w-full h-full bg-gradient-to-b from-zinc-800 to-zinc-900 rounded-xl overflow-hidden flex items-center justify-center">
+                  <div className="relative w-full h-full bg-gradient-to-b from-kx-ink/90 to-kx-ink rounded-xl overflow-hidden flex items-center justify-center">
                     {imageError ? (
-                      <div className="flex flex-col items-center text-zinc-500">
+                      <div className="flex flex-col items-center text-kx-muted">
                         <ImageOff className="w-16 h-16 mb-4 opacity-50" />
                         <span className="text-sm">Failed to load image</span>
-                        <span className="text-xs text-zinc-600 mt-1">{imageError}</span>
+                        <span className="text-xs text-kx-muted mt-1">{imageError}</span>
                       </div>
                     ) : (
-                      <div className="flex flex-col items-center text-zinc-600">
+                      <div className="flex flex-col items-center text-kx-muted">
                         <Activity className="w-32 h-32 opacity-20" />
                         <span className="text-sm mt-4">No image file uploaded</span>
-                        <span className="text-xs text-zinc-700 mt-1">Upload a DICOM file to view it here</span>
+                        <span className="text-xs text-kx-muted mt-1">Upload a DICOM file to view it here</span>
                       </div>
                     )}
                   </div>
@@ -515,7 +515,7 @@ export default function Reviewer() {
                     Lab Values
                   </span>
                 </div>
-                <span className="text-[11px] font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                <span className="text-[11px] font-medium text-kx-warn bg-kx-warn/10 px-2 py-0.5 rounded-full">
                   Simulated — not a real lab draw
                 </span>
               </div>
@@ -560,7 +560,7 @@ export default function Reviewer() {
               <div className="grid grid-cols-3 gap-2">
                 {([
                   { type: "CORRECT_PRIORITY", key: "1", Icon: Check, label: "Correct", on: "bg-kx-accent3 border-kx-accent3", tint: "text-kx-accent3" },
-                  { type: "FALSE_ALARM", key: "2", Icon: AlertTriangle, label: "Over-called", on: "bg-amber-500 border-amber-500", tint: "text-amber-600" },
+                  { type: "FALSE_ALARM", key: "2", Icon: AlertTriangle, label: "Over-called", on: "bg-kx-warn border-kx-warn", tint: "text-kx-warn" },
                   { type: "MISSED_URGENCY", key: "3", Icon: AlertCircle, label: "Under-called", on: "bg-kx-critical border-kx-critical", tint: "text-kx-critical" },
                 ] as const).map(({ type, key, Icon, label, on, tint }) => {
                   const active = submittedFeedback === type;

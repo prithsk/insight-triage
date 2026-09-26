@@ -81,9 +81,9 @@ export function StudyPreview({ item, onDeleted }: StudyPreviewProps) {
           {item.triage && (
             <div className={cn(
               "px-4 py-2 rounded-xl font-mono text-[14px] font-medium",
-              bucket === "CRITICAL" && "bg-red-50 text-red-700 border border-red-200",
-              bucket === "REVIEW" && "bg-amber-50 text-amber-700 border border-amber-200",
-              bucket === "CLEAR" && "bg-emerald-50 text-emerald-700 border border-emerald-200",
+              bucket === "CRITICAL" && "bg-kx-critical/10 text-kx-critical-ink border border-kx-critical/25",
+              bucket === "REVIEW" && "bg-kx-warn/10 text-kx-warn border border-kx-warn/25",
+              bucket === "CLEAR" && "bg-kx-accent3/10 text-kx-accent3 border border-kx-accent3/25",
             )}>
               {bucket}
             </div>
@@ -101,11 +101,20 @@ export function StudyPreview({ item, onDeleted }: StudyPreviewProps) {
               className="w-full h-full object-contain"
               style={{ filter: 'contrast(1.1) brightness(0.95)' }}
             />
-            {/* ROI Overlay hint */}
-            {item.triage && item.triage.risk_bucket !== "CLEAR" && (
-              <div className="absolute top-4 left-4 flex items-center gap-2 bg-orange-500/20 backdrop-blur-sm rounded-lg px-3 py-1.5">
-                <div className="w-2 h-2 rounded-full bg-orange-500" />
-                <span className="text-[12px] text-orange-500 font-medium">
+            {/* Localisation chip.
+                Gated on a heatmap actually EXISTING, not on the bucket. It used
+                to render for every study whose bucket was not CLEAR, so a study
+                with no localisation at all still got an "Area of Interest" chip
+                laid over the patient's radiograph — a localisation claim with
+                nothing behind it, which is the shape of the `buildLegacyHeatmap`
+                fabrication removed on 2026-09-25 rather than a lighter version
+                of it. Gemini's path returns no localisation whatsoever. The
+                Reviewer already says "No localization for this study"; this
+                panel now agrees with it by staying silent. */}
+            {item.triage?.roi_heatmap_path && (
+              <div className="absolute top-4 left-4 flex items-center gap-2 bg-kx-critical/20 backdrop-blur-sm rounded-lg px-3 py-1.5">
+                <div className="w-2 h-2 rounded-full bg-kx-critical" aria-hidden />
+                <span className="text-[12px] text-kx-canvas font-medium">
                   {LANGUAGE.AREA_OF_INTEREST}
                 </span>
               </div>
@@ -136,9 +145,9 @@ export function StudyPreview({ item, onDeleted }: StudyPreviewProps) {
           <div className="flex items-end gap-4">
             <span className={cn(
               "font-mono text-[48px] font-bold leading-none",
-              bucket === "CRITICAL" && "text-red-600",
-              bucket === "REVIEW" && "text-amber-600",
-              bucket === "CLEAR" && "text-emerald-600",
+              bucket === "CRITICAL" && "text-kx-critical-ink",
+              bucket === "REVIEW" && "text-kx-warn",
+              bucket === "CLEAR" && "text-kx-accent3",
             )}>
               {(item.triage.risk_score * 100).toFixed(0)}
             </span>
@@ -150,9 +159,9 @@ export function StudyPreview({ item, onDeleted }: StudyPreviewProps) {
             <div 
               className={cn(
                 "h-full rounded-full transition-all duration-700",
-                bucket === "CRITICAL" && "bg-red-500",
-                bucket === "REVIEW" && "bg-amber-500",
-                bucket === "CLEAR" && "bg-emerald-500",
+                bucket === "CRITICAL" && "bg-kx-critical",
+                bucket === "REVIEW" && "bg-kx-warn",
+                bucket === "CLEAR" && "bg-kx-accent3",
               )}
               style={{ width: `${item.triage.risk_score * 100}%` }}
             />
@@ -190,7 +199,7 @@ export function StudyPreview({ item, onDeleted }: StudyPreviewProps) {
             <span className="text-[13px] font-medium text-kx-muted uppercase tracking-wide">
               Lab Values
             </span>
-            <span className="text-[11px] font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+            <span className="text-[11px] font-medium text-kx-warn bg-kx-warn/10 px-2 py-0.5 rounded-full">
               Simulated — not a real lab draw
             </span>
           </div>
@@ -229,7 +238,7 @@ export function StudyPreview({ item, onDeleted }: StudyPreviewProps) {
         
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <button className="w-full px-5 py-2.5 rounded-[10px] border border-red-200 text-red-600 hover:bg-red-50 transition-colors text-[14px] flex items-center justify-center gap-2">
+            <button className="w-full px-5 py-2.5 rounded-[10px] border border-kx-critical/25 text-kx-critical-ink hover:bg-kx-critical/10 transition-colors text-[14px] flex items-center justify-center gap-2">
               <Trash2 className="w-4 h-4" />
               Delete Study
             </button>
@@ -246,7 +255,7 @@ export function StudyPreview({ item, onDeleted }: StudyPreviewProps) {
               <AlertDialogCancel className="rounded-[10px]">Cancel</AlertDialogCancel>
               <AlertDialogAction 
                 onClick={handleDelete}
-                className="bg-red-600 hover:bg-red-700 rounded-[10px]"
+                className="bg-kx-critical-ink hover:opacity-90 rounded-[10px]"
               >
                 {deleteStudy.isPending ? 'Deleting...' : 'Delete Study'}
               </AlertDialogAction>
