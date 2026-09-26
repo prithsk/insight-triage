@@ -161,18 +161,77 @@ function simulateLabValuesFromScore(riskScore: number): LabValues {
 }
 
 // ── Path A: the three-model ensemble (DenseNet121 / GoogLeNet / ResNet18) ─────
+//
+// COLD START. The service loads three torch models in a FastAPI `lifespan`
+// handler, so uvicorn accepts no connections until all three are resident, and
+// importing torch alone costs several seconds before that starts. On a Railway
+// instance that has scaled to zero, the first request therefore waits for the
+// whole container boot. A single 30 s attempt was under that: the first upload
+// after any idle period timed out, and — correctly, but unhelpfully — produced
+// an unscored study. For a demo that is every first upload.
+//
+// So: two attempts. The retry is the same call to the same model. It is not a
+// second opinion, a degraded mode, or a substitute value — if both attempts
+// fail the study stays unscored exactly as before. What the retry buys is that
+// attempt 1 is what started the container, and attempt 2 arrives after it is up.
+const ML_ATTEMPT_TIMEOUTS_MS = [25_000, 45_000];
+
+/** Statuses that mean "the container is not ready", as opposed to "the service
+ *  answered and refused". Railway's proxy returns these while an instance boots. */
+const COLD_START_STATUSES = new Set([502, 503, 504]);
+
 async function callMLService(imageBase64: string, mlApiUrl: string, mlApiKey: string): Promise<MLResult> {
-  const res = await fetch(`${mlApiUrl}/predict`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(mlApiKey ? { Authorization: `Bearer ${mlApiKey}` } : {}),
-    },
-    body: JSON.stringify({ image_b64: imageBase64, use_tta: true }),
-    signal: AbortSignal.timeout(30_000),
-  });
-  if (!res.ok) throw new Error(`ML service ${res.status}: ${await res.text()}`);
-  return res.json() as Promise<MLResult>;
+  type Attempt =
+    | { kind: 'ok'; value: MLResult }
+    | { kind: 'cold'; error: Error }      // container not up: retry is worth it
+    | { kind: 'fatal'; error: Error };    // service answered and refused: retry is not
+
+  let lastError: Error = new Error('ML service unreachable');
+
+  for (let attempt = 0; attempt < ML_ATTEMPT_TIMEOUTS_MS.length; attempt++) {
+    const isLast = attempt === ML_ATTEMPT_TIMEOUTS_MS.length - 1;
+    let outcome: Attempt;
+
+    try {
+      const res = await fetch(`${mlApiUrl}/predict`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(mlApiKey ? { Authorization: `Bearer ${mlApiKey}` } : {}),
+        },
+        body: JSON.stringify({ image_b64: imageBase64, use_tta: true }),
+        signal: AbortSignal.timeout(ML_ATTEMPT_TIMEOUTS_MS[attempt]),
+      });
+
+      if (res.ok) {
+        outcome = { kind: 'ok', value: await res.json() as MLResult };
+      } else {
+        const error = new Error(`ML service ${res.status}: ${await res.text()}`);
+        // A 401 or a 422 means the service is up and this request is wrong.
+        // Spending another 45 s to be told so again helps nobody.
+        outcome = COLD_START_STATUSES.has(res.status)
+          ? { kind: 'cold', error }
+          : { kind: 'fatal', error };
+      }
+    } catch (err) {
+      // fetch itself rejected: TimeoutError, DNS failure, connection refused, or
+      // a truncated body. Every one of those is consistent with a container that
+      // is still booting, so all are treated as cold.
+      outcome = { kind: 'cold', error: err instanceof Error ? err : new Error(String(err)) };
+    }
+
+    if (outcome.kind === 'ok') return outcome.value;
+    if (outcome.kind === 'fatal') throw outcome.error;
+
+    lastError = outcome.error;
+    if (isLast) throw lastError;
+    console.log(
+      `ML service attempt ${attempt + 1} failed (${outcome.error.name}: ${outcome.error.message}); ` +
+      `container likely cold, retrying with a longer timeout`,
+    );
+  }
+
+  throw lastError;
 }
 
 // ── Path B: Gemini vision ─────────────────────────────────────────────────────
