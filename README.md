@@ -115,9 +115,17 @@ model nobody chose. With the flag off, or with both paths unavailable, the reque
 
 ## Design system
 
-- **Palette**: warm green/paper identity (`tailwind.config.ts` → `landing.*` tokens) — `#2F6F5E`
-  primary, cool light backgrounds, deep green/near-black bands for high-contrast sections.
-- **Type**: Playfair Display (serif display), Inter (body/UI), IBM Plex Mono (data/metrics).
+- **Palette**: one namespace, `kx-*`, shared by the public site and the clinical app —
+  `#FFFFFF` canvas, `#F6F7F9` surface, `#12151A` ink, `#6B7280` muted, `#3B5BFF` and
+  `#0F9D6E` accents, `#E8503A` critical (a fill only — `#B03A28` `kx-critical-ink` for
+  severity text, since `#E8503A` is 3.7:1 on white and fails SC 1.4.3). The `landing.*`
+  warm green/paper block in `tailwind.config.ts` is **dead**: zero uses in `src/`. This
+  section previously described it as the live identity; it never shipped.
+- **Type**: Inter Tight (`font-display`), Instrument Serif (`font-editorial`), IBM Plex Mono
+  (`font-mono`). Playfair Display is configured as `font-serif` and is **not used anywhere**.
+  `font-editorial` appears in 7 landing components and 1 clinical file — that asymmetry is
+  most of why the inner app reads as a different product from the landing page, and it is a
+  composition gap, not a palette one.
 - **Motion** (landing/marketing pages only — deliberately absent from the clinical worklist):
   scroll-triggered reveals (`components/ui/reveal.tsx`), a scroll-pinned word-highlight statement
   (`components/landing/ScrollHighlightText.tsx`), sticky stacking cards

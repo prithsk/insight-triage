@@ -24,8 +24,19 @@ export default {
         editorial: ['Instrument Serif', 'Times New Roman', 'serif'],
       },
       colors: {
-        // Kroix Precision — light public-site identity (Landing/About/Contact/Auth only).
-        // Additive namespace; never used by the dashboard, so the clinical app is unaffected.
+        // Kroix Precision — THE palette, for the public site and the clinical app
+        // alike. 1703 uses across `src/` as of 2026-09-26.
+        //
+        // This comment used to read "Landing/About/Contact/Auth only ... never used
+        // by the dashboard, so the clinical app is unaffected". That stopped being
+        // true and nobody updated it, which made it a trap: it invites the next
+        // person to treat a `kx-*` change as safe for the clinical app. It is not.
+        // Anything edited here lands on the worklist and the reviewer too.
+        //
+        // The `landing.*` block further down is the opposite case — it is DEAD.
+        // Zero utility-class uses in `src/`. Left in place rather than deleted so
+        // the warm sage/gold direction it encodes is not lost, but nothing renders
+        // from it today.
         kx: {
           canvas:   "#FFFFFF",
           surface:  "#F6F7F9",
