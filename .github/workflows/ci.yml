@@ -50,7 +50,7 @@ jobs:
         # import.meta.env.DEV gates the JSX, but whether the module is dropped
         # depends on tree-shaking succeeding across the whole import graph.
         run: |
-          for marker in "HeroBeforeAfter" "Sort these chest X-rays" "VS-01" "E-series" "Sample rows · not patient data"; do
+          for marker in "HeroBeforeAfter" "Sort these chest X-rays" "VS-01" "E-series" "T-series" "Sample rows · not patient data" "sample rows · not patient data"; do
             if grep -rq "$marker" dist/assets/ 2>/dev/null; then
               echo "::error::DEV-only marker '$marker' shipped to production"
               exit 1

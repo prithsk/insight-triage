@@ -51,6 +51,7 @@ import HeroLab from "./pages/HeroLab";
 import MotionLab from "./pages/MotionLab";
 import Validation from "./pages/Validation";
 import EditorialVariants from "./pages/EditorialVariants";
+import TxtVariants from "./pages/TxtVariants";
 
 const queryClient = new QueryClient();
 
@@ -86,6 +87,7 @@ const App = () => (
                   <Route path="/trace-variants" element={<TraceVariants />} />
                   <Route path="/worklist-variants" element={<WorklistVariants />} />
                   <Route path="/editorial-variants" element={<EditorialVariants />} />
+                  <Route path="/txt-variants" element={<TxtVariants />} />
                   <Route path="/reader-variants" element={<ReaderVariants />} />
                   <Route path="/analytics-variants" element={<AnalyticsVariantsPage />} />
                   <Route path="/hero-lab" element={<HeroLab />} />
