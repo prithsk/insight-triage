@@ -67,6 +67,24 @@ export default {
           // Existing values above are untouched.
           "critical-ink": "#B03A28",
           warn:           "#B45309",
+
+          // Warm paper ground, for the E-series editorial variants.
+          //
+          // `surface` (#F6F7F9) and `muted` (#6B7280 — Tailwind's gray-500) are
+          // blue-cast. Every design reference collected for this product is warm
+          // off-white: Harvey, Moda, Petrarch, Forward, RonanRx. Side by side the
+          // difference reads as "software" versus "document", which is most of
+          // what separates the landing page's feel from the worklist's.
+          //
+          // ADDITIVE ONLY. Nothing existing is repointed, so the live dashboard
+          // and landing page are unchanged until something opts in. If an E
+          // variant is chosen, the move is to repoint `surface`/`muted` here
+          // rather than to sprinkle `paper` through the app.
+          paper:      "#F7F6F3",
+          paper2:     "#EFEDE7",
+          "paper-ink":  "#1A1815",
+          "paper-muted":"#8A8378",
+          "paper-line": "rgba(26,24,21,0.10)",
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
