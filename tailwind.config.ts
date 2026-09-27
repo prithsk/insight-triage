@@ -80,10 +80,13 @@ export default {
           // and landing page are unchanged until something opts in. If an E
           // variant is chosen, the move is to repoint `surface`/`muted` here
           // rather than to sprinkle `paper` through the app.
+          // `paper-muted` is 5.17:1 on `paper` — it shipped at #8A8378, which is
+          // 3.47:1 and fails SC 1.4.3, in the same commit that added these
+          // tokens to enforce contrast elsewhere. Computed, not eyeballed.
           paper:      "#F7F6F3",
           paper2:     "#EFEDE7",
           "paper-ink":  "#1A1815",
-          "paper-muted":"#8A8378",
+          "paper-muted":"#6E675C",
           "paper-line": "rgba(26,24,21,0.10)",
         },
         border: "hsl(var(--border))",
