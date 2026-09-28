@@ -1,12 +1,14 @@
 import { useMemo, useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { useTargetMetrics } from "@/hooks/useTargetMetrics";
+import { formatDuration } from "@/lib/worklistOrder";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, BarChart, Bar, Cell,
 } from "recharts";
 import {
-  Clock, TrendingUp, RotateCcw, Download, ArrowUpRight,
+  Clock, Target, RotateCcw, Download, ArrowUpRight,
   ArrowDownRight, BarChart3, CheckCircle2, AlertTriangle,
   AlertCircle, Loader2, Info,
 } from "lucide-react";
@@ -31,6 +33,10 @@ export default function Analytics() {
   const [activeTab,  setActiveTab]  = useState<ChartTab>("mttr");
 
   const { data, isLoading, error } = useAnalytics();
+  // Computed client-side from studies already fetched, reusing `breached()` from
+  // the SLA replay engine so this page and the validation work cannot disagree
+  // about what "late" means.
+  const targets = useTargetMetrics();
 
   // ── Summary stats ─────────────────────────────────────────────────────────
   // Measured series only. The "without Kroix" arm this page used to chart was
@@ -74,7 +80,7 @@ export default function Analytics() {
     csv += `evaluated against a without-Kroix baseline. Do not present these as a comparison.\n\n`;
     csv += `MTTR DATA\nDate,Value (min)\n`;
     data.series.mttr.forEach(r => { csv += `${r.date},${r.value}\n`; });
-    csv += `\nTHROUGHPUT DATA\nDate,Value (scans/hr)\n`;
+    csv += `\nSTUDIES REVIEWED\nDate,Count\n`;
     data.series.throughput.forEach(r => { csv += `${r.date},${r.value}\n`; });
     csv += `\nOVERRIDE RATE\nDate,Value (%)\n`;
     data.series.override.forEach(r => { csv += `${r.date},${r.value}\n`; });
@@ -92,7 +98,7 @@ export default function Analytics() {
 
   const tabs: { id: ChartTab; label: string }[] = [
     { id: "mttr",      label: "Time to Review"     },
-    { id: "throughput",label: "Throughput"          },
+    { id: "throughput",label: "Studies Reviewed"    },
     { id: "overrides", label: "Override Rate"       },
     { id: "feedback",  label: "Feedback Quality"    },
   ];
@@ -191,28 +197,43 @@ export default function Analytics() {
                     )}
                     <div className="flex items-center gap-2 mt-4 pt-4 border-t border-kx-border">
                       <Clock className="w-4 h-4 text-kx-accent3" />
-                      <span className="text-[13px] text-kx-muted">Mean time to review (critical)</span>
+                      <span className="text-[13px] text-kx-muted">Mean across all reviewed studies</span>
                     </div>
                   </div>
 
-                  {/* Throughput */}
+                  {/* Read inside target — the metric this product exists to move.
+                      It replaced the average-throughput tile. Kroix does not make
+                      a radiologist read faster, it changes what they read first,
+                      and the SLA replay holds throughput FIXED because that is the
+                      only way the comparison means anything. A scans/hr tile
+                      invites the reading that Kroix moves it — the same claim torn
+                      off the landing page on 2026-07-30. This one can go down,
+                      which is what makes it a measurement. */}
                   <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-kx-border p-6 shadow-sm">
-                    <p className="text-[13px] text-kx-muted">Avg. Throughput</p>
-                    <p className="text-[36px] font-display font-medium text-kx-ink mt-1">
-                      {stats?.avgThroughput}<span className="text-[20px] text-kx-muted ml-1">scans/hr</span>
-                    </p>
-                    {stats && stats.tpTrend !== 0 && (
-                      <div className={cn(
-                        "inline-flex items-center gap-1 text-[13px] font-medium px-2 py-1 rounded-lg mt-2",
-                        stats.tpTrend > 0 ? "bg-kx-accent3/10 text-kx-accent3" : "bg-kx-critical/10 text-kx-critical-ink"
-                      )}>
-                        {stats.tpTrend > 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
-                        {Math.abs(stats.tpTrend).toFixed(0)}
-                      </div>
+                    <p className="text-[13px] text-kx-muted">Read Inside Target</p>
+                    {targets.hasData && targets.insideRate !== null ? (
+                      <>
+                        <p className="text-[36px] font-display font-medium text-kx-ink mt-1">
+                          {targets.insideRate.toFixed(0)}<span className="text-[20px] text-kx-muted ml-1">%</span>
+                        </p>
+                        <p className="text-[13px] text-kx-muted mt-2">
+                          {targets.inside} of {targets.reviewed} reviewed
+                          {targets.missed > 0 && (
+                            <span className="text-kx-critical-ink"> · {targets.missed} missed</span>
+                          )}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-[36px] font-display font-medium text-kx-muted mt-1">—</p>
+                        <p className="text-[13px] text-kx-muted mt-2">
+                          No studies reviewed yet.
+                        </p>
+                      </>
                     )}
                     <div className="flex items-center gap-2 mt-4 pt-4 border-t border-kx-border">
-                      <TrendingUp className="w-4 h-4 text-kx-accent3" />
-                      <span className="text-[13px] text-kx-muted">Scans reviewed per hour</span>
+                      <Target className="w-4 h-4 text-kx-accent3" />
+                      <span className="text-[13px] text-kx-muted">Read within the band&rsquo;s read-time target</span>
                     </div>
                   </div>
 
@@ -269,6 +290,100 @@ export default function Analytics() {
               </div>
             </section>
 
+            {/* ── Read-time targets by band ──────────────────────────────────
+                A single "inside target" percentage hides the thing that hurts:
+                the routine band has a 24-hour window and dominates any average,
+                so the headline stays comfortable while criticals miss a
+                30-minute one. This splits it, and shows the WORST read in each
+                band rather than only the middle, because the tail is what a
+                department feels.
+
+                Counts, not a comparison. Nothing here says what would have
+                happened without Kroix — that needs the SLA replay over a real
+                historical worklist. */}
+            {targets.hasData && (
+              <section className="px-8 py-8 border-b border-kx-border">
+                <div className="max-w-[1600px] mx-auto">
+                  <div className="flex items-baseline gap-3 mb-1">
+                    <h2 className="font-display text-[20px] font-medium text-kx-ink">Read-time targets</h2>
+                    <span className="font-mono text-[12px] text-kx-muted">by band</span>
+                  </div>
+                  <p className="text-[13px] text-kx-muted mb-6 max-w-2xl leading-relaxed">
+                    Studies this workspace has reviewed, against each band&rsquo;s target. Read time is
+                    measured from upload to the row being marked reviewed — a proxy, since there is no
+                    dedicated timestamp, and any later edit to a study inflates it.
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    {targets.bands.map(b => {
+                      const pct = b.total > 0 ? (b.inside / b.total) * 100 : null;
+                      return (
+                        <div key={b.band} className="bg-white/80 rounded-2xl border border-kx-border p-6 shadow-sm">
+                          <div className="flex items-baseline justify-between">
+                            <p className="text-[13px] text-kx-ink font-medium">{b.label}</p>
+                            <span className="font-mono text-[12px] text-kx-muted">
+                              target {formatDuration(b.target)}
+                            </span>
+                          </div>
+
+                          {b.total === 0 ? (
+                            <p className="text-[13px] text-kx-muted mt-4">None reviewed yet.</p>
+                          ) : (
+                            <>
+                              <p className="text-[32px] font-display font-medium text-kx-ink mt-2 leading-none">
+                                {pct!.toFixed(0)}<span className="text-[18px] text-kx-muted ml-1">%</span>
+                              </p>
+                              <p className="text-[13px] text-kx-muted mt-1.5">
+                                {b.inside} of {b.total} inside target
+                              </p>
+
+                              <div className="h-1.5 bg-kx-surface2 rounded-full overflow-hidden mt-3">
+                                <div
+                                  className={cn("h-full rounded-full", b.missed > 0 ? "bg-kx-critical" : "bg-kx-accent3")}
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+
+                              <div className="mt-4 pt-4 border-t border-kx-border space-y-1.5">
+                                <div className="flex justify-between">
+                                  <span className="text-[12px] text-kx-muted">Missed</span>
+                                  <span className={cn("font-mono text-[12px]", b.missed > 0 ? "text-kx-critical-ink" : "text-kx-muted")}>
+                                    {b.missed}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-[12px] text-kx-muted">Median read</span>
+                                  <span className="font-mono text-[12px] text-kx-ink">
+                                    {b.medianMs === null ? "—" : formatDuration(b.medianMs)}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-[12px] text-kx-muted">Slowest</span>
+                                  <span className={cn(
+                                    "font-mono text-[12px]",
+                                    b.worstMs !== null && b.worstMs > b.target ? "text-kx-critical-ink" : "text-kx-ink"
+                                  )}>
+                                    {b.worstMs === null ? "—" : formatDuration(b.worstMs)}
+                                  </span>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {targets.unscoredReviewed > 0 && (
+                    <p className="text-[13px] text-kx-muted mt-5">
+                      {targets.unscoredReviewed} reviewed {targets.unscoredReviewed === 1 ? "study" : "studies"} carried
+                      no score, so no band and no target. Those are excluded rather than counted as met.
+                    </p>
+                  )}
+                </div>
+              </section>
+            )}
+
             {/* ── Charts ───────────────────────────────────────────────────────── */}
             <section className="px-8 py-8">
               <div className="max-w-[1600px] mx-auto">
@@ -296,7 +411,7 @@ export default function Analytics() {
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="font-display text-[18px] text-kx-ink">
                       {activeTab === "mttr"      && "Mean Time to Review (Critical Bucket)"}
-                      {activeTab === "throughput" && "Scans Reviewed per Hour"}
+                      {activeTab === "throughput" && "Studies Reviewed per Day"}
                       {activeTab === "overrides"  && "Priority Override Rate"}
                       {activeTab === "feedback"   && "Daily Feedback Breakdown"}
                       <span className="text-[14px] text-kx-muted font-sans ml-2">— Last 7 Days</span>
@@ -334,7 +449,7 @@ export default function Analytics() {
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
                           <XAxis dataKey="date" stroke={CHART_GREY} tick={{ fill:"#6B7280", fontSize:12 }} />
                           <YAxis stroke={CHART_GREY} tick={{ fill:"#6B7280", fontSize:12 }} />
-                          <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`${v} scans/hr`, "Studies reviewed"]} />
+                          <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`${v}`, "Studies reviewed"]} />
                           <Area type="monotone" dataKey="value" stroke={CHART_TEAL} fill="url(#gTpWith)" strokeWidth={2} />
                         </AreaChart>
                       </ResponsiveContainer>

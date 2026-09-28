@@ -32,6 +32,44 @@ import { cn } from "@/lib/utils";
 import { WorklistItem } from "@/lib/types";
 import { HeatmapOverlay, useHeatmapType } from "@/components/reviewer/HeatmapOverlay";
 
+/**
+ * Lab provenance, stated by the system rather than echoed from the row.
+ *
+ * `Source: {labs.source}` printed the column verbatim. A seeded row carrying
+ * `source = 'hl7'` therefore rendered "Source: hl7" — naming a real hospital
+ * interchange standard — directly beneath the badge that says "Simulated — not
+ * a real lab draw". Both were on screen at once and one of them was false.
+ *
+ * Nothing in Kroix produces a real lab value. `infer-cxr` computes all six as a
+ * closed-form function of the risk score; no model and no blood draw is
+ * involved, and none of them could be derived from a radiograph. So the UI
+ * states that, and a source string it does not recognise is reported as an
+ * unexpected value rather than laundered into provenance.
+ *
+ * The moment a genuine feed exists, this is where it gets a case — deliberately
+ * one place, so "these came from HL7" can never again be a property of a row.
+ */
+const KNOWN_LAB_SOURCES: Record<string, string> = {
+  simulated_from_risk_score:
+    "Computed from the risk score. No blood draw and no model is involved.",
+};
+
+function LabProvenance({ source }: { source: string | null | undefined }) {
+  const known = source ? KNOWN_LAB_SOURCES[source] : undefined;
+
+  return (
+    <div className="text-[12px] text-kx-muted mt-4 pt-4 border-t border-kx-border space-y-1.5">
+      <p>{known ?? "Computed from the risk score. No blood draw and no model is involved."}</p>
+      {source && !known && (
+        <p className="text-kx-warn">
+          This row is tagged <span className="font-mono">{source}</span>, which is not a source
+          Kroix writes. The values are still simulated — nothing here produces a real lab result.
+        </p>
+      )}
+    </div>
+  );
+}
+
 // Legacy circle ROI — used only when heatmap type is NOT gradcam
 interface ROIRegion { x: number; y: number; intensity: number; label: string }
 
@@ -467,25 +505,38 @@ export default function Reviewer() {
                   ROI Controls
                 </span>
               </div>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-[14px] text-kx-muted">Show {LANGUAGE.AREA_OF_INTEREST}</span>
-                <Switch checked={showROI} onCheckedChange={setShowROI} />
-              </div>
-              {showROI && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-[13px]">
-                    <span className="text-kx-muted">Opacity</span>
-                    <span className="font-mono text-kx-muted">{roiOpacity[0]}%</span>
+              {/* The toggle and the slider are gated on localization EXISTING.
+                  They used to render unconditionally, so a study with no region
+                  map showed a live "Show Area of Interest" switch set on and a
+                  70% opacity slider directly above the sentence "No localization
+                  for this study". A control implies a capability: a radiologist
+                  flips it, nothing happens, and the reasonable conclusion is
+                  either that the software is broken or that an overlay exists
+                  and is hidden. Same defect class as the Area of Interest chip
+                  removed from StudyPreview on 2026-09-26. */}
+              {hasLocalization && (
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-[14px] text-kx-muted">Show {LANGUAGE.AREA_OF_INTEREST}</span>
+                    <Switch checked={showROI} onCheckedChange={setShowROI} />
                   </div>
-                  <Slider
-                    value={roiOpacity}
-                    onValueChange={setRoiOpacity}
-                    min={0}
-                    max={100}
-                    step={1}
-                    className="w-full"
-                  />
-                </div>
+                  {showROI && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-[13px]">
+                        <span className="text-kx-muted">Opacity</span>
+                        <span className="font-mono text-kx-muted">{roiOpacity[0]}%</span>
+                      </div>
+                      <Slider
+                        value={roiOpacity}
+                        onValueChange={setRoiOpacity}
+                        min={0}
+                        max={100}
+                        step={1}
+                        className="w-full"
+                      />
+                    </div>
+                  )}
+                </>
               )}
               {/* State what evidence actually exists. Previously, when no
                   localization data was available, the viewer drew invented
@@ -522,9 +573,7 @@ export default function Reviewer() {
               {item.labs ? (
                 <>
                   <LabFlags labs={item.labs} />
-                  <p className="text-[12px] text-kx-muted mt-4 pt-4 border-t border-kx-border">
-                    Source: {item.labs.source || 'Unknown'}
-                  </p>
+                  <LabProvenance source={item.labs.source} />
                 </>
               ) : (
                 <p className="text-[14px] text-kx-muted">{LANGUAGE.EMPTY.LABS}</p>

@@ -150,6 +150,7 @@ export default function Assistant() {
 
   const { messages, isStreaming, error, sendMessage, stopStreaming, clearMessages } = useAssistant();
   const { data: docs, isLoading: docsLoading } = useDocuments();
+  const hasKnowledgeBase = Boolean(docs && docs.length > 0);
   const uploadDoc = useUploadDocument();
 
   const bottomRef  = useRef<HTMLDivElement>(null);
@@ -200,28 +201,37 @@ export default function Assistant() {
       <div className="h-[calc(100vh-72px)] flex overflow-hidden">
 
         {/* ── Left Sidebar ────────────────────────────────────────────────── */}
-        <aside className="w-[280px] shrink-0 bg-kx-ink flex flex-col border-r border-white/8">
+        <aside className="w-[280px] shrink-0 bg-kx-surface flex flex-col border-r border-kx-border">
 
           {/* Header */}
-          <div className="px-5 pt-6 pb-4 border-b border-white/8">
+          <div className="px-5 pt-6 pb-4 border-b border-kx-border">
             <div className="flex items-center gap-2.5 mb-1">
               <div className="w-7 h-7 rounded-lg bg-kx-accent3/20 flex items-center justify-center">
                 <BrainCircuit className="w-4 h-4 text-kx-accent3" />
               </div>
-              <h2 className="text-[14px] font-semibold text-white">TriageAI Assistant</h2>
+              <h2 className="text-[14px] font-semibold text-kx-ink">TriageAI Assistant</h2>
             </div>
-            <p className="text-[11px] text-white/40 leading-relaxed">
-              Evidence-based clinical knowledge. Non-diagnostic — for workflow support only.
+            {/* The subtitle depends on whether there IS a knowledge base.
+                `rag-assistant` appends retrieved context only `if (ragContext)`;
+                with no documents it omits the block and answers anyway, so the
+                reply is the general model's training data. Calling that
+                "evidence-based clinical knowledge" names evidence that does not
+                exist, on a page whose suggested questions include CURB-65
+                criteria. */}
+            <p className="text-[11px] text-kx-muted leading-relaxed">
+              {hasKnowledgeBase
+                ? "Answers are grounded in the documents below. Non-diagnostic — for workflow support only."
+                : "General medical model. Non-diagnostic — for workflow support only."}
             </p>
           </div>
 
           {/* Study context */}
           <div className="px-4 pt-4">
-            <p className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-2">Study Context</p>
+            <p className="text-[10px] font-semibold text-kx-muted uppercase tracking-widest mb-2">Study Context</p>
             {studyContext ? (
               <StudyContextChip context={studyContext} onClear={() => setStudyContext(null)} />
             ) : (
-              <p className="text-[12px] text-white/30 italic">
+              <p className="text-[12px] text-kx-muted italic">
                 No study linked. Open Assistant from the Reviewer to add context.
               </p>
             )}
@@ -230,17 +240,20 @@ export default function Assistant() {
           {/* Knowledge Base */}
           <div className="px-4 pt-5 flex-1 overflow-hidden flex flex-col">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-[10px] font-semibold text-white/30 uppercase tracking-widest">Knowledge Base</p>
-              {docsLoading && <Loader2 className="w-3 h-3 text-white/30 animate-spin" />}
+              <p className="text-[10px] font-semibold text-kx-muted uppercase tracking-widest">Knowledge Base</p>
+              {docsLoading && <Loader2 className="w-3 h-3 text-kx-muted animate-spin" />}
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-0.5 mb-3 scrollbar-thin scrollbar-thumb-white/10">
+            <div className="flex-1 overflow-y-auto space-y-0.5 mb-3 scrollbar-thin scrollbar-thumb-kx-ink/10">
               {docs && docs.length > 0 ? (
                 docs.map(doc => <DocRow key={doc.id} doc={doc} />)
               ) : (
-                <p className="text-[12px] text-white/25 italic px-3 py-2">
-                  No documents uploaded yet. Add guidelines or SOPs to improve responses.
-                </p>
+                <div className="border border-kx-warn/30 bg-kx-warn/10 px-3 py-2.5">
+                  <p className="text-[12px] text-kx-warn leading-relaxed">
+                    No documents yet, so nothing here is retrieved. Answers come from the
+                    general model&rsquo;s training data, not from your guidelines.
+                  </p>
+                </div>
               )}
             </div>
 
@@ -248,17 +261,17 @@ export default function Assistant() {
             {uploadDoc.isPending && (
               <div className="flex items-center gap-2 mt-2 px-3">
                 <Loader2 className="w-3.5 h-3.5 text-kx-accent3 animate-spin" />
-                <span className="text-[11px] text-white/40">Uploading & embedding…</span>
+                <span className="text-[11px] text-kx-muted">Uploading & embedding…</span>
               </div>
             )}
           </div>
 
           {/* Clear chat */}
           {messages.length > 0 && (
-            <div className="px-4 pb-4 pt-2 border-t border-white/8">
+            <div className="px-4 pb-4 pt-2 border-t border-kx-border">
               <button
                 onClick={clearMessages}
-                className="w-full text-[12px] text-white/30 hover:text-white/60 transition-colors py-2 text-center"
+                className="w-full text-[12px] text-kx-muted hover:text-kx-ink transition-colors py-2 text-center"
               >
                 Clear conversation
               </button>
@@ -377,7 +390,10 @@ export default function Assistant() {
               )}
             </div>
             <p className="text-[11px] text-kx-muted mt-2 text-center">
-              Powered by RAG + Gemini. Non-diagnostic — for workflow support only.
+              {hasKnowledgeBase
+                ? "Retrieval over your documents, answered by Gemini. Not the Kroix ensemble, which scores images only."
+                : "Answered by Gemini with no retrieval. Not the Kroix ensemble, which scores images only."}
+              {" "}Non-diagnostic — for workflow support only.
             </p>
           </div>
         </div>
