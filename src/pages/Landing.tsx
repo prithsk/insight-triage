@@ -383,7 +383,6 @@ const Landing = () => {
                 <p className="text-[13px] uppercase tracking-wide">Legal</p>
                 <div className="space-y-3">
                   <span className="block text-[15px]">Privacy Policy</span>
-                  <span className="block text-[15px]">HIPAA Compliance</span>
                 </div>
               </div>
             </div>
