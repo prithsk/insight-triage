@@ -111,8 +111,8 @@ export default function Contact() {
     }`;
 
   const contactInfo = [
-    { icon: Mail, label: "Email", value: "hello@kroix.health", description: "General inquiries" },
-    { icon: Building2, label: "Partnerships", value: "partners@kroix.health", description: "Hospital integrations" },
+    { icon: Mail, label: "Email", value: "hello@trykroix.com", description: "General inquiries" },
+    { icon: Building2, label: "Partnerships", value: "partners@trykroix.com", description: "Hospital integrations" },
     { icon: Clock, label: "Response Time", value: "< 24 hours", description: "Business days" },
   ];
 
