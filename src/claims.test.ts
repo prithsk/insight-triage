@@ -599,3 +599,30 @@ describe("claims: the triage bands are defined in one place", () => {
       .toMatch(/canonical\.requires_grad_\(True\)/);
   });
 });
+
+describe("the product tour's ensemble panel adds up", () => {
+  const tour = fs.readFileSync("src/components/landing/AppTourDemo.tsx", "utf8");
+
+  it("computes the fused score from the per-model votes rather than typing it", () => {
+    // The fused figure was a hand-typed literal beside three votes that did not
+    // average to it — twice. Deriving it makes that impossible.
+    expect(tour).toMatch(/const FUSED\s*=\s*Math\.round\(\(MODELS\.reduce/);
+    // Anchored to the panel's "fused" label. The first version of this matched
+    // the caption's `${FUSED.toFixed(2)}` too, so hardcoding the panel back to a
+    // literal still passed — a guard that checked nothing.
+    expect(tour, "the fused panel must render FUSED, not a literal")
+      .toMatch(/>fused<\/span>\s*<span[^>]*>\{FUSED\.toFixed\(2\)\}<\/span>/);
+    expect(tour, "the target study's score must be the fused score")
+      .toMatch(/score:\s*FUSED\s*\}/);
+  });
+
+  it("uses equal weights, matching ensemble_weights.json", () => {
+    const votes = [...tour.matchAll(/name: "(densenet121|googlenet|resnet18)", score: ([0-9.]+)/g)]
+      .map(m => Number(m[2]));
+    expect(votes).toHaveLength(3);
+    const fused = Math.round((votes.reduce((a, b) => a + b, 0) / 3) * 100) / 100;
+    // A CRITICAL example must actually land in the CRITICAL band.
+    expect(fused).toBeGreaterThanOrEqual(0.65);
+    for (const v of votes) expect(v).toBeLessThanOrEqual(1);
+  });
+});

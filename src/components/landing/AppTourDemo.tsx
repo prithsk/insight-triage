@@ -23,10 +23,37 @@ interface Step {
   click?: boolean;
 }
 
+/**
+ * Illustrative per-model votes for the tour's target study.
+ *
+ * These are RISK SCORES FOR ONE EXAMPLE STUDY — how sure each model is that this
+ * radiograph is abnormal. They are not accuracy figures and must never be read or
+ * presented as such; the model's accuracy is 97.7% 5-fold CV, stated with its
+ * cohort in SpeedAccuracyDuo and read from ensemble_weights.json by the tests.
+ *
+ * High, and tightly grouped, on purpose. The ensemble is a binary classifier, so
+ * on an unambiguous abnormal study its outputs sit near 1 rather than in the
+ * 0.8s — the earlier 0.90 / 0.86 / 0.82 depicted three models that were unsure
+ * of an ICU respiratory-distress film, which is both less realistic and read by
+ * visitors as "low accuracy".
+ *
+ * Fusion is an equal-weight average (ensemble_weights.json → normalised_weights
+ * = [1/3, 1/3, 1/3]). The fused figure and the target's score are COMPUTED from
+ * these three below, so the panel cannot print a total its parts do not make:
+ *
+ *     (0.97 + 0.95 + 0.96) / 3 = 2.88 / 3 = 0.96
+ */
+const MODELS = [
+  { name: "densenet121", score: 0.97 },
+  { name: "googlenet", score: 0.95 },
+  { name: "resnet18", score: 0.96 },
+];
+const FUSED = Math.round((MODELS.reduce((a, m) => a + m.score, 0) / MODELS.length) * 100) / 100;
+
 const STEPS: Step[] = [
   { scene: "worklist", ms: 1700, caption: "Studies arrive in the order they were acquired" },
   { scene: "worklist", ms: 1900, caption: "The ensemble scores each one on arrival" },
-  { scene: "worklist", ms: 1800, caption: "C48D02 scores 0.86 — it jumps to position 1", cursor: { x: 52, y: 30 } },
+  { scene: "worklist", ms: 1800, caption: `C48D02 scores ${FUSED.toFixed(2)} — it jumps to position 1`, cursor: { x: 52, y: 30 } },
   { scene: "worklist", ms: 700, caption: "Opening the study", cursor: { x: 52, y: 30 }, click: true },
   { scene: "reviewer", ms: 2600, caption: "Reviewer opens with the Grad-CAM overlay already rendered" },
   { scene: "reviewer", ms: 2000, caption: "Per-model scores show why the ensemble flagged it", cursor: { x: 78, y: 82 } },
@@ -40,26 +67,7 @@ const STUDIES = [
   { id: "7F2A91", loc: "ER-3 · follow-up", score: 0.31 },
   { id: "E60F71", loc: "ICU-4 · post-op", score: 0.22 },
 ];
-const TARGET = { id: "C48D02", loc: "ICU-1 · resp. distress", score: 0.86 };
-
-/**
- * Illustrative per-model votes for the tour's target study.
- *
- * The panel below prints these three and a "fused" number, so they have to be an
- * arithmetic identity or the tour teaches a lie. Fusion is an equal-weight average
- * (services/ml-api/ensemble_weights.json → normalised_weights = [1/3, 1/3, 1/3]),
- * so these must average to TARGET.score:
- *
- *     (0.90 + 0.86 + 0.82) / 3 = 2.58 / 3 = 0.86
- *
- * The previous values (0.88 / 0.85 / 0.79) averaged 0.84 and were printed under a
- * fused 0.86 — the numbers never added up, under the old weights either.
- */
-const MODELS = [
-  { name: "densenet121", score: 0.90 },
-  { name: "googlenet", score: 0.86 },
-  { name: "resnet18", score: 0.82 },
-];
+const TARGET = { id: "C48D02", loc: "ICU-1 · resp. distress", score: FUSED };
 
 /**
  * Read latency for the tour's analytics pane. ONE series, deliberately.
@@ -276,7 +284,7 @@ export function AppTourDemo({ dark = false }: { dark?: boolean }) {
                 </div>
                 <div className={`flex items-center gap-2 mt-3 pt-2.5 border-t ${hair}`}>
                   <span className={`font-mono text-[10px] w-[74px] ${sub}`}>fused</span>
-                  <span className="font-mono text-[13px] text-kx-critical font-medium">0.86</span>
+                  <span className="font-mono text-[13px] text-kx-critical font-medium">{FUSED.toFixed(2)}</span>
                 </div>
 
                 <div className="flex gap-2 mt-4">
