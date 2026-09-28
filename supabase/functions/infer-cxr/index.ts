@@ -342,8 +342,10 @@ serve(async (req) => {
     if (!isValidUUID(study_id)) return new Response(JSON.stringify({ error: 'Invalid study_id format' }), { status: 400, headers: allHeaders });
     if (image_data && !isValidBase64(image_data)) return new Response(JSON.stringify({ error: 'Invalid image data' }), { status: 400, headers: allHeaders });
 
-    const ML_API_URL            = Deno.env.get('ML_API_URL') ?? '';
-    const ML_API_KEY            = Deno.env.get('ML_API_KEY') ?? '';
+    // Trim whitespace and trailing slashes: a pasted secret with a stray space
+    // or "/" produced an invalid URL or "…app//predict".
+    const ML_API_URL            = (Deno.env.get('ML_API_URL') ?? '').trim().replace(/\/+$/, '');
+    const ML_API_KEY            = (Deno.env.get('ML_API_KEY') ?? '').trim();
     const LOVABLE_API_KEY       = Deno.env.get('LOVABLE_API_KEY') ?? '';
     // Path B is OPT-IN. Set VISION_FALLBACK_ENABLED=true to allow it.
     //
