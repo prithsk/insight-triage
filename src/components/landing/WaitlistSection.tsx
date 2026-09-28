@@ -163,9 +163,15 @@ export function WaitlistSection() {
     <section id="waitlist" className="py-28 md:py-36 px-6 bg-kx-ink relative overflow-hidden">
       <div className="relative z-10 max-w-[720px] mx-auto text-center">
         <Reveal>
-          {/* kx-accent2 is 3.59:1 on kx-ink and fails SC 1.4.3 as text; kx-tint2
-              is the same hue family at 16.3:1. Computed, not eyeballed. */}
-          <span className="text-kx-tint2 text-[12.5px] font-mono font-medium tracking-wide uppercase mb-4 block">
+          {/* Red, not blue. kx-accent2 is 3.59:1 on kx-ink and fails SC 1.4.3 as
+              text. kx-critical is 4.91:1 and passes, and it ties this block to
+              the logo dot in the nav, which is the only other place red appears
+              on the page. Red is NOT the ground here on purpose: #E8503A is
+              3.72:1, so white body text on it fails, and red is the CRITICAL
+              severity colour in the clinical app — spending a whole marketing
+              section on it cheapens the one signal that has to mean "now".
+              Computed, not eyeballed. */}
+          <span className="text-kx-critical text-[12.5px] font-mono font-medium tracking-wide uppercase mb-4 block">
             Early access
           </span>
           <h2 className="font-display text-[38px] md:text-[50px] leading-[1.04] tracking-[-0.025em] text-white mb-5">
