@@ -108,16 +108,19 @@ export function LiveQueueHero() {
   }, []);
 
   return (
-    <div
-      className="relative rounded-2xl border border-kx-border bg-kx-surface/60 backdrop-blur-sm p-4"
-      style={{ height: items.length * (ROW_HEIGHT + GAP) + 16 }}
-    >
+    // Height comes from the content, not a formula. The formula here was
+    // rows × (row + gap) + 16, which ignored the 36px header offset and the card's
+    // own 32px of padding, so the card came out 52px short: the last row hung
+    // out of the bottom and the caption, pinned to that edge, sat on top of it.
+    <div className="relative rounded-2xl border border-kx-border bg-kx-surface/60 backdrop-blur-sm p-4">
       <div className="absolute top-3 left-4 right-4 flex items-center justify-between font-mono text-[11px] text-kx-muted uppercase tracking-wider">
         <span>Worklist demo</span>
         <span>Sorted by score</span>
       </div>
 
-      <div className="relative mt-9" style={{ height: items.length * (ROW_HEIGHT + GAP) }}>
+      {/* Rows are absolutely positioned so they can slide, so this box needs an
+          explicit height. The last row takes no trailing gap. */}
+      <div className="relative mt-9" style={{ height: items.length * (ROW_HEIGHT + GAP) - GAP }}>
         {items.map((item, index) => {
           const bucket = BUCKET(item.score);
           return (
@@ -143,7 +146,7 @@ export function LiveQueueHero() {
         })}
       </div>
 
-      <p className="absolute -bottom-6 left-0 font-mono text-[10.5px] text-kx-muted/70">
+      <p className="mt-3 font-mono text-[10.5px] text-kx-muted/70">
         Illustrative loop. Not patient data, not a live feed.
       </p>
     </div>
