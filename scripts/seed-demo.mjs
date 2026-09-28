@@ -173,6 +173,20 @@ if (first.outcome !== "scored") {
   console.log(`\nStopped. The first upload did not score.\n  ${diagnose(first)}`);
   process.exit(1);
 }
+// "Scored" is not enough: the last run scored all sixteen with Gemini because
+// the ensemble was unreachable and the fallback was on. Only the ensemble counts.
+if (!/ensemble/i.test(first.model ?? "")) {
+  console.log(
+    `\nStopped. The first upload was scored by "${first.model}", not the Kroix ensemble.\n` +
+      `  infer-cxr could not reach the ML service and fell back to Gemini. Check, in Supabase:\n` +
+      `  - Secrets: ML_API_URL = https://insight-triage-production-1839.up.railway.app\n` +
+      `  - Secrets: ML_API_KEY = Railway's API_KEY value\n` +
+      `  - Secrets: VISION_FALLBACK_ENABLED deleted\n` +
+      `  - infer-cxr redeployed after those changes\n` +
+      `  Then delete this study and run again.`,
+  );
+  process.exit(1);
+}
 
 // ── 2. The rest ────────────────────────────────────────────────────────────
 console.log("\nStep 2 — the rest:");
