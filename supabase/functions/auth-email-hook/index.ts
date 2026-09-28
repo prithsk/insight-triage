@@ -15,7 +15,7 @@ const corsHeaders = {
 }
 
 // Configuration
-const SITE_NAME = "Insight Triage"
+const SITE_NAME = "Kroix"
 const SENDER_DOMAIN = "notify.trykroix.com"
 const ROOT_DOMAIN = "trykroix.com"
 const FROM_DOMAIN = "trykroix.com"
