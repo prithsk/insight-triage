@@ -391,7 +391,13 @@ const Landing = () => {
 
           <div className="border-t border-kx-border mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-[14px]">© 2025 Kroix. All rights reserved.</p>
-            <p className="text-[13px]">Non-diagnostic workflow tool. For clinical decision support only.</p>
+            {/* The regulatory status lives here since the FDA question left the FAQ —
+                this was then the only place on the page saying it. The old line
+                read "For clinical decision support only", which named the Cures
+                Act CDS exemption Kroix does NOT qualify for (§3060's first
+                criterion fails for any software that analyses a medical image)
+                and implied clinical use. CADt, 21 CFR 892.2080, Class II. */}
+            <p className="text-[13px]">Non-diagnostic workflow tool. Pre-clearance — not for clinical use.</p>
           </div>
         </div>
       </footer>
