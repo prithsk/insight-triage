@@ -98,12 +98,6 @@ export function SpeedAccuracyDuo() {
     // tint3 rather than surface2: "What Kroix is" directly above is surface2, and
     // two identical backgrounds in a row read as one long section.
     <section className="py-28 md:py-36 px-6 bg-kx-tint3 relative overflow-hidden">
-      <div
-        className="absolute inset-0 pointer-events-none opacity-70"
-        style={{
-          background: "radial-gradient(800px circle at 50% -10%, rgba(15,157,110,0.12), transparent 62%)",
-        }}
-      />
       <div className="relative z-10 max-w-[1240px] mx-auto">
         <Reveal className="text-center mb-16">
           <span className="text-kx-accent2 text-[12.5px] font-mono font-medium tracking-wide uppercase mb-4 block">

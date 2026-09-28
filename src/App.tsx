@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { RouteErrorBoundary, clearChunkReloadFlag } from "@/components/RouteErrorBoundary";
 
 // Eager: the entry path. A visitor lands on one of these, and the auth pages are
 // where they go next, so splitting them would only add a round-trip.
@@ -57,6 +58,15 @@ const queryClient = new QueryClient();
 
 /** Matches ProtectedRoute's own pending state, so a chunk fetch and an approval
  *  check don't look like two different kinds of waiting. */
+function ClearReloadFlagOnMount() {
+  useEffect(() => {
+    // A route rendered, so whatever chunk problem there was is over. Reset the
+    // one-shot guard; otherwise the next real failure gets no retry.
+    clearChunkReloadFlag();
+  }, []);
+  return null;
+}
+
 function RouteFallback() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -73,42 +83,45 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Suspense fallback={<RouteFallback />}>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              {/* Design comparison galleries. Internal tooling for picking section
-                  variants — dev-only so they aren't publicly browsable in production. */}
-              {import.meta.env.DEV && (
-                <>
-                  <Route path="/validation" element={<Validation />} />
-                  <Route path="/hero-variants" element={<HeroVariants />} />
-                  <Route path="/about-variants" element={<AboutVariants />} />
-                  <Route path="/info-variants" element={<InfoVariants />} />
-                  <Route path="/trace-variants" element={<TraceVariants />} />
-                  <Route path="/worklist-variants" element={<WorklistVariants />} />
-                  <Route path="/editorial-variants" element={<EditorialVariants />} />
-                  <Route path="/txt-variants" element={<TxtVariants />} />
-                  <Route path="/reader-variants" element={<ReaderVariants />} />
-                  <Route path="/analytics-variants" element={<AnalyticsVariantsPage />} />
-                  <Route path="/hero-lab" element={<HeroLab />} />
-                  <Route path="/motion-lab" element={<MotionLab />} />
-                </>
-              )}
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/reviewer" element={<ProtectedRoute><Reviewer /></ProtectedRoute>} />
-              <Route path="/reviewer/:studyId" element={<ProtectedRoute><Reviewer /></ProtectedRoute>} />
-              <Route path="/analytics"  element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-              <Route path="/assistant"  element={<ProtectedRoute><Assistant /></ProtectedRoute>} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+          <ClearReloadFlagOnMount />
+          <RouteErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                {/* Design comparison galleries. Internal tooling for picking section
+                    variants — dev-only so they aren't publicly browsable in production. */}
+                {import.meta.env.DEV && (
+                  <>
+                    <Route path="/validation" element={<Validation />} />
+                    <Route path="/hero-variants" element={<HeroVariants />} />
+                    <Route path="/about-variants" element={<AboutVariants />} />
+                    <Route path="/info-variants" element={<InfoVariants />} />
+                    <Route path="/trace-variants" element={<TraceVariants />} />
+                    <Route path="/worklist-variants" element={<WorklistVariants />} />
+                    <Route path="/editorial-variants" element={<EditorialVariants />} />
+                    <Route path="/txt-variants" element={<TxtVariants />} />
+                    <Route path="/reader-variants" element={<ReaderVariants />} />
+                    <Route path="/analytics-variants" element={<AnalyticsVariantsPage />} />
+                    <Route path="/hero-lab" element={<HeroLab />} />
+                    <Route path="/motion-lab" element={<MotionLab />} />
+                  </>
+                )}
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                <Route path="/reviewer" element={<ProtectedRoute><Reviewer /></ProtectedRoute>} />
+                <Route path="/reviewer/:studyId" element={<ProtectedRoute><Reviewer /></ProtectedRoute>} />
+                <Route path="/analytics"  element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                <Route path="/assistant"  element={<ProtectedRoute><Assistant /></ProtectedRoute>} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </RouteErrorBoundary>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

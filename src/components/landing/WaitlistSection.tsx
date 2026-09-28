@@ -155,22 +155,23 @@ export function WaitlistSection() {
   }
 
   return (
-    <section id="waitlist" className="py-28 md:py-36 px-6 bg-kx-surface2 relative overflow-hidden">
-      <div
-        className="absolute inset-0 pointer-events-none opacity-70"
-        style={{
-          background: "radial-gradient(900px circle at 50% 0%, rgba(59,91,255,0.10), transparent 60%)",
-        }}
-      />
+    // Solid kx-ink, not the old kx-surface2 under a blue radial bloom. The
+    // headline is the one line on this page that has to land, and a gradient
+    // behind large type is the thing that made it read as soft. White on
+    // #12151A is 18.29:1; the white form card below now reads as a panel on a
+    // dark ground rather than a card on a tint.
+    <section id="waitlist" className="py-28 md:py-36 px-6 bg-kx-ink relative overflow-hidden">
       <div className="relative z-10 max-w-[720px] mx-auto text-center">
         <Reveal>
-          <span className="text-kx-accent2 text-[12.5px] font-mono font-medium tracking-wide uppercase mb-4 block">
+          {/* kx-accent2 is 3.59:1 on kx-ink and fails SC 1.4.3 as text; kx-tint2
+              is the same hue family at 16.3:1. Computed, not eyeballed. */}
+          <span className="text-kx-tint2 text-[12.5px] font-mono font-medium tracking-wide uppercase mb-4 block">
             Early access
           </span>
-          <h2 className="font-display text-[38px] md:text-[50px] leading-[1.04] tracking-[-0.025em] text-kx-ink mb-5">
+          <h2 className="font-display text-[38px] md:text-[50px] leading-[1.04] tracking-[-0.025em] text-white mb-5">
             Kroix is in validation.
           </h2>
-          <p className="text-[17.5px] text-kx-muted leading-relaxed max-w-xl mx-auto mb-10">
+          <p className="text-[17.5px] text-white/65 leading-relaxed max-w-xl mx-auto mb-10">
             We're measuring, on departments' own historical worklists, whether reordering
             actually brings studies inside their read-time targets. Join the list and we'll
             share what we find — including if it turns out to be nothing.

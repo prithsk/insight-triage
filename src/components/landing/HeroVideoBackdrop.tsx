@@ -110,20 +110,19 @@ export function HeroVideoBackdrop({
 
   return (
     <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`} aria-hidden="true">
-      {/* Generated ambient field — always rendered, hidden once real footage plays */}
+      {/* Ambient ground — always rendered, hidden once real footage plays.
+          FLAT, deliberately. This was three drifting coloured radials (blue,
+          red, green) under a `kx-drift` animation. Two problems: it is the
+          gradient-wash look every AI-built landing page has, and deferring the
+          video off the critical path means it is now what a visitor sees FIRST
+          and for longer, so it was setting the tone for the whole page. A solid
+          near-black reads as intentional and lets the scrim and the type carry
+          the hero. The scan grid stays — a 1px line pattern is texture, not a
+          gradient. */}
       <div
         className="absolute inset-0 transition-opacity duration-1000"
         style={{ opacity: playing ? 0 : 1, background: "#0B0E11" }}
       >
-        <div
-          className="absolute inset-0 kx-drift"
-          style={{
-            background:
-              "radial-gradient(900px circle at 22% 28%, rgba(59,91,255,0.30), transparent 58%)," +
-              "radial-gradient(760px circle at 78% 66%, rgba(232,80,58,0.22), transparent 60%)," +
-              "radial-gradient(680px circle at 55% 12%, rgba(15,157,110,0.18), transparent 62%)",
-          }}
-        />
         {/* faint scan grid, a nod to the imaging surface without being literal */}
         <div
           className="absolute inset-0 opacity-[0.16]"

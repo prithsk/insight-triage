@@ -98,13 +98,6 @@ export function InfoSpotlightSwitcher() {
 
   return (
     <section className="py-28 md:py-36 px-6 bg-kx-ink relative overflow-hidden">
-      <div
-        className="absolute inset-0 pointer-events-none opacity-70"
-        style={{
-          background:
-            "radial-gradient(1000px circle at 15% 10%, rgba(59,91,255,0.16), transparent 55%), radial-gradient(900px circle at 90% 90%, rgba(232,80,58,0.14), transparent 55%)",
-        }}
-      />
       <div className="relative z-10 max-w-6xl mx-auto grid lg:grid-cols-[1fr_1.15fr] gap-14 items-center">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/40 mb-4">

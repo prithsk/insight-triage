@@ -88,7 +88,7 @@ const LAYERS: Layer[] = [
     name: "Arrival",
     tag: "DICOM in",
     body: "A chest X-ray lands from the modality with a timestamp, an accession number and a location. Nothing about it says how sick the patient is.",
-    tint: "linear-gradient(135deg, rgba(18,21,26,0.05), rgba(255,255,255,0.95))",
+    tint: "#F2F3F5",   // was a 135deg wash; flat so the stack reads as panels
     border: "rgba(18,21,26,0.14)",
     glow: "0 26px 60px -24px rgba(18,21,26,0.40)",
     visual: (on) => (
@@ -110,7 +110,7 @@ const LAYERS: Layer[] = [
     name: "Model Ensemble",
     tag: "3 CNNs, fused",
     body: "DenseNet121, GoogLeNet and ResNet18 each read the study independently. Their outputs are fused with equal published weights, so no single model's blind spot decides a case.",
-    tint: "linear-gradient(135deg, rgba(59,91,255,0.16), rgba(255,255,255,0.94))",
+    tint: "#E7EBFF",
     border: "rgba(59,91,255,0.40)",
     glow: "0 26px 60px -22px rgba(59,91,255,0.45)",
     visual: (on) => (
@@ -142,7 +142,7 @@ const LAYERS: Layer[] = [
     name: "Explainability",
     tag: "Grad-CAM",
     body: "The overlay shows which region drove the score. A flag you can't check isn't worth having — so every result ships with the evidence attached.",
-    tint: "linear-gradient(135deg, rgba(232,80,58,0.14), rgba(255,255,255,0.94))",
+    tint: "#FCEAE7",
     border: "rgba(232,80,58,0.40)",
     glow: "0 26px 60px -22px rgba(232,80,58,0.42)",
     visual: (on) => (
@@ -178,7 +178,7 @@ const LAYERS: Layer[] = [
     name: "Triage & Ordering",
     tag: "The queue rewrites",
     body: "Fused scores become queue positions. The critical study moves to position one the moment it's scored — not on the next refresh, not when someone notices.",
-    tint: "linear-gradient(135deg, rgba(15,157,110,0.16), rgba(255,255,255,0.94))",
+    tint: "#E4F4EE",
     border: "rgba(15,157,110,0.42)",
     glow: "0 26px 60px -22px rgba(15,157,110,0.42)",
     visual: (on) => (
@@ -206,7 +206,7 @@ const LAYERS: Layer[] = [
     name: "Radiologist Sign-off",
     tag: "The human call",
     body: "Kroix presents an ordering and its reasoning. The radiologist confirms or overrides, and that decision — not the model's — is what enters the record.",
-    tint: "linear-gradient(135deg, rgba(200,159,101,0.18), rgba(255,255,255,0.95))",
+    tint: "#F7F0E6",
     border: "rgba(200,159,101,0.45)",
     glow: "0 26px 60px -22px rgba(200,159,101,0.42)",
     visual: (on) => (
@@ -377,13 +377,6 @@ const SCATTER = [
 export function AboutScatter() {
   return (
     <section className="relative py-28 md:py-36 px-6 bg-kx-tint2 overflow-hidden">
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.6]"
-        style={{
-          background:
-            "radial-gradient(900px circle at 80% 20%, rgba(59,91,255,0.12), transparent 60%), radial-gradient(700px circle at 10% 80%, rgba(59,91,255,0.08), transparent 55%)",
-        }}
-      />
       <div className="relative z-10 max-w-[1240px] mx-auto">
         <div className="grid md:grid-cols-[1.1fr_0.9fr] gap-8 md:gap-16 items-start mb-16">
           {/* Deliberately one step under TraceBento's 58px — that section is the

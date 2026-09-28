@@ -121,7 +121,7 @@ export function TraceBento() {
             lead="Three models vote, one number ships."
             body="Each network scores the study independently. The fused number is an equal-weight blend of the three, and you can pull it apart at any time."
             tag="Ensemble breakdown"
-            tint="from-[#FDF3F1]"
+            tint="bg-[#FDF3F1]"
             delay={0}
           >
             <div className="rounded-2xl bg-white border border-kx-border p-7 space-y-5">
@@ -141,7 +141,7 @@ export function TraceBento() {
             lead="See where the model actually looked."
             body="Every score carries a Grad-CAM overlay, so the radiologist can agree or disagree with the evidence, not just the number."
             tag="Visual evidence"
-            tint="from-[#EEF1FF]"
+            tint="bg-[#EEF1FF]"
             delay={90}
           >
             <div className="rounded-2xl bg-white border border-kx-border p-5">
@@ -169,7 +169,7 @@ export function TraceBento() {
             lead="Every hand-off is written down."
             body="Arrival, inference, re-rank, sign-off. The log is append-only and tied to the clinician who confirmed it."
             tag="Audit trail"
-            tint="from-[#EAF7F1]"
+            tint="bg-[#EAF7F1]"
             delay={0}
           >
             <div className="rounded-2xl bg-white border border-kx-border divide-y divide-kx-border">
@@ -189,7 +189,7 @@ export function TraceBento() {
             lead="And the clock is traced too."
             body="Per-span timings for every stage of the pipeline, so a slow read is a thing you can point at rather than guess about."
             tag="Latency spans"
-            tint="from-[#F1F2F6]"
+            tint="bg-[#F1F2F6]"
             delay={90}
           >
             <TraceWaterfall />
@@ -218,7 +218,7 @@ function BentoCard({
   return (
     <Reveal
       delayMs={delay}
-      className={`rounded-3xl border border-kx-border bg-gradient-to-b ${tint} to-white p-8 md:p-10`}
+      className={`rounded-3xl border border-kx-border ${tint} p-8 md:p-10`}
     >
       <p className="font-display text-[23px] md:text-[25px] leading-snug tracking-[-0.01em] text-kx-ink mb-1.5">
         {lead}{" "}
@@ -237,13 +237,6 @@ function BentoCard({
 export function TraceDarkStage() {
   return (
     <section className="relative bg-kx-ink overflow-hidden border-t border-kx-border">
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(900px circle at 20% 0%, rgba(59,91,255,0.22), transparent 60%), radial-gradient(700px circle at 85% 30%, rgba(232,80,58,0.18), transparent 60%)",
-        }}
-      />
       <div className="relative z-10 max-w-6xl mx-auto px-6 py-28 md:py-36">
         <Reveal className="max-w-3xl mb-14">
           <Eyebrow className="text-white/40 mb-5 block">Under the hood</Eyebrow>
@@ -404,13 +397,6 @@ export function TraceInspector() {
 export function TraceAnnotatedReceipt() {
   return (
     <section className="py-28 md:py-36 px-6 bg-kx-tint2 border-t border-kx-border relative overflow-hidden">
-      <div
-        className="absolute inset-0 pointer-events-none opacity-70"
-        style={{
-          background:
-            "radial-gradient(800px circle at 70% 0%, rgba(59,91,255,0.10), transparent 62%)",
-        }}
-      />
       <div className="relative z-10 max-w-3xl mx-auto">
         <Reveal className="text-center mb-16">
           <Eyebrow className="text-kx-accent2 mb-4 block">Under the hood</Eyebrow>

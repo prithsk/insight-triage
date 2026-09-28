@@ -21,10 +21,6 @@ import { Reveal } from "@/components/ui/reveal";
 export function CaseStudy() {
   return (
     <Reveal className="rounded-2xl bg-kx-ink p-8 md:p-12 relative overflow-hidden">
-      <div
-        className="absolute inset-0 opacity-40 pointer-events-none"
-        style={{ background: "radial-gradient(600px circle at 100% 0%, rgba(59,91,255,0.25), transparent 70%)" }}
-      />
       <div className="grid md:grid-cols-[1fr_auto] gap-8 items-center relative z-10">
         <div>
           <span className="font-mono text-[11px] uppercase tracking-wider text-kx-accent2 mb-4 block">
