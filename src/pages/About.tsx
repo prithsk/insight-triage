@@ -209,7 +209,6 @@ export default function About() {
                 <p className="text-[13px] uppercase tracking-wide">Legal</p>
                 <div className="space-y-3">
                   <span className="block text-[15px]">Privacy Policy</span>
-                  <span className="block text-[15px]">HIPAA Compliance</span>
                 </div>
               </div>
             </div>
@@ -217,7 +216,7 @@ export default function About() {
 
           <div className="border-t border-kx-border mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-[14px]">© 2025 Kroix. All rights reserved.</p>
-            <p className="text-[13px]">Non-diagnostic workflow tool. For clinical decision support only.</p>
+            <p className="text-[13px]">Non-diagnostic workflow tool. Pre-clearance — not for clinical use.</p>
           </div>
         </div>
       </footer>

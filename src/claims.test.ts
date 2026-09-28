@@ -626,3 +626,21 @@ describe("the product tour's ensemble panel adds up", () => {
     for (const v of votes) expect(v).toBeLessThanOrEqual(1);
   });
 });
+
+describe("footer copy makes no regulatory or compliance claim it cannot back", () => {
+  const pages = fs.readdirSync("src/pages").filter(f => f.endsWith(".tsx")).map(f => `src/pages/${f}`);
+  const strip = (p: string) =>
+    fs.readFileSync(p, "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+  it.each(pages)("%s does not claim clinical decision support", (p) => {
+    // The Cures Act §3060 CDS exclusion does not apply to software that analyses
+    // a medical image, and "for … only" implies clinical use. This line sat on
+    // seven pages, including Login and Signup.
+    expect(strip(p)).not.toMatch(/for clinical decision support only/i);
+  });
+
+  it.each(pages)("%s does not list HIPAA compliance", (p) => {
+    // Kroix handles no patient data and has no BAA-covered infrastructure.
+    expect(strip(p)).not.toMatch(/HIPAA Compliance/);
+  });
+});

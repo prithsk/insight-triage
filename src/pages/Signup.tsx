@@ -251,7 +251,7 @@ export default function Signup() {
 
           {/* Bottom note */}
           <p className="text-[13px] text-kx-muted text-center mt-6">
-            Non-diagnostic workflow tool. For clinical decision support only.
+            Non-diagnostic workflow tool. Pre-clearance — not for clinical use.
           </p>
         </Reveal>
       </section>
