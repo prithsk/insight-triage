@@ -85,8 +85,8 @@ Load-bearing and easy to break. Full detail in `/rls-audit`.
 | Table | Contains | Gate |
 |---|---|---|
 | `studies` | Imaging metadata, storage paths, `patient_hash` | `is_approved_user()`; delete is admin |
-| `triage_results` | Risk score, bucket, confidence, heatmap, model version, latency | same |
-| `lab_results` | Blood gas, WBC, CRP, procalcitonin | same |
+| `triage_results` | Risk score, bucket, confidence (uncalibrated, not displayed), heatmap, model version, latency | same |
+| `lab_results` | **Unused since 2026-10-04.** Held simulated values derived from the risk score; nothing writes or reads it now | same |
 | `feedback_events` | Clinician confirm / over-call / under-call | same |
 | `documents` | Uploaded clinical documents | same |
 | `embeddings` | Vector metadata; `source_type` includes `study_finding`, `historical_decision` — **patient-derived** | `is_approved_user()` since `20260728120000` |

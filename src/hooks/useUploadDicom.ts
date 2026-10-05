@@ -39,7 +39,6 @@ function isScoredResult(r: unknown): r is {
   roi_heatmap?: string | null;
   model_version?: string | null;
   inference_time_ms?: number | null;
-  lab_values?: Record<string, number> | null;
   findings?: string[] | null;
 } {
   if (!r || typeof r !== 'object') return false;
@@ -241,47 +240,12 @@ export function useUploadDicom() {
         );
       }
 
-      // 5. Store the simulated lab panel.
-      //
-      // NOT measurements, and not derived from the image: infer-cxr computes
-      // these as a closed-form function of the risk score (see
-      // `simulateLabValuesFromScore`). They are written as
-      // `simulated_from_risk_score` — the previous `ai_vision_analysis` said
-      // a vision model produced them, and none ever did.
-      //
-      // Skipped entirely when the function returns none. The hardcoded
-      // "normal" panel that used to stand in (CO2 40, pH 7.40, O2 97, …) was a
-      // fabricated set of blood-gas values stored as if drawn from a patient.
-      const labValues = inferenceResult.lab_values;
-      if (labValues) {
-        const { error: labError } = await supabase
-          .from('lab_results')
-          .insert({
-            study_id: study.id,
-            co2: labValues.co2,
-            ph: labValues.ph,
-            o2: labValues.o2,
-            wbc: labValues.wbc,
-            crp: labValues.crp,
-            procalcitonin: labValues.procalcitonin,
-            source: 'simulated_from_risk_score',
-            timestamp: new Date().toISOString()
-          });
-
-        if (labError) {
-          // Non-fatal: the labs are simulated and nothing clinical depends on
-          // them. The triage result — the part that orders the worklist — is
-          // already committed above.
-          console.error('Failed to store simulated lab panel:', labError);
-        }
-      }
-
       // Log findings if available
       if (inferenceResult.findings && inferenceResult.findings.length > 0) {
         console.log('AI Findings:', inferenceResult.findings);
       }
 
-      // 6. Update study status to QUEUED
+      // 5. Update study status to QUEUED
       await supabase
         .from('studies')
         .update({ status: 'QUEUED' })

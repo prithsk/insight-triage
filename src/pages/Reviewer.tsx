@@ -3,7 +3,6 @@ import { useParams, Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { BucketBadge } from "@/components/ui/bucket-badge";
 import { RiskScore } from "@/components/ui/risk-score";
-import { LabFlags } from "@/components/ui/lab-flags";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,51 +23,12 @@ import {
   Loader2,
   ImageOff,
   ArrowLeft,
-  Beaker,
   MessageSquare,
   BrainCircuit,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WorklistItem } from "@/lib/types";
 import { HeatmapOverlay, useHeatmapType } from "@/components/reviewer/HeatmapOverlay";
-
-/**
- * Lab provenance, stated by the system rather than echoed from the row.
- *
- * `Source: {labs.source}` printed the column verbatim. A seeded row carrying
- * `source = 'hl7'` therefore rendered "Source: hl7" — naming a real hospital
- * interchange standard — directly beneath the badge that says "Simulated — not
- * a real lab draw". Both were on screen at once and one of them was false.
- *
- * Nothing in Kroix produces a real lab value. `infer-cxr` computes all six as a
- * closed-form function of the risk score; no model and no blood draw is
- * involved, and none of them could be derived from a radiograph. So the UI
- * states that, and a source string it does not recognise is reported as an
- * unexpected value rather than laundered into provenance.
- *
- * The moment a genuine feed exists, this is where it gets a case — deliberately
- * one place, so "these came from HL7" can never again be a property of a row.
- */
-const KNOWN_LAB_SOURCES: Record<string, string> = {
-  simulated_from_risk_score:
-    "Computed from the risk score. No blood draw and no model is involved.",
-};
-
-function LabProvenance({ source }: { source: string | null | undefined }) {
-  const known = source ? KNOWN_LAB_SOURCES[source] : undefined;
-
-  return (
-    <div className="text-[12px] text-kx-muted mt-4 pt-4 border-t border-kx-border space-y-1.5">
-      <p>{known ?? "Computed from the risk score. No blood draw and no model is involved."}</p>
-      {source && !known && (
-        <p className="text-kx-warn">
-          This row is tagged <span className="font-mono">{source}</span>, which is not a source
-          Kroix writes. The values are still simulated — nothing here produces a real lab result.
-        </p>
-      )}
-    </div>
-  );
-}
 
 // Legacy circle ROI — used only when heatmap type is NOT gradcam
 interface ROIRegion { x: number; y: number; intensity: number; label: string }
@@ -472,13 +432,11 @@ export default function Reviewer() {
                     size="lg"
                   />
                 </div>
-                <div className="grid grid-cols-3 gap-3 pt-4 border-t border-kx-border">
-                  <div>
-                    <p className="text-[12px] text-kx-muted mb-1">Confidence</p>
-                    <p className="font-mono font-medium text-kx-ink">
-                      {(item.triage.confidence * 100).toFixed(0)}%
-                    </p>
-                  </div>
+                {/* No "Confidence" tile. It was a monotone function of distance to the
+                    nearest decision boundary — the score restated, never calibrated
+                    against outcomes — printed as "Confidence: 88%", which reads as a
+                    measured probability of being right. It is not one. */}
+                <div className="grid grid-cols-2 gap-3 pt-4 border-t border-kx-border">
                   <div>
                     <p className="text-[12px] text-kx-muted mb-1">Inference</p>
                     <p className="font-mono font-medium text-kx-ink">
@@ -557,29 +515,6 @@ export default function Reviewer() {
               )}
             </div>
 
-            {/* Lab Panel */}
-            <div className="p-5 border-b border-kx-border">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Beaker className="w-4 h-4 text-kx-accent3" />
-                  <span className="text-[12px] font-medium text-kx-muted uppercase tracking-wider">
-                    Lab Values
-                  </span>
-                </div>
-                <span className="text-[11px] font-medium text-kx-warn bg-kx-warn/10 px-2 py-0.5 rounded-full">
-                  Simulated — not a real lab draw
-                </span>
-              </div>
-              {item.labs ? (
-                <>
-                  <LabFlags labs={item.labs} />
-                  <LabProvenance source={item.labs.source} />
-                </>
-              ) : (
-                <p className="text-[14px] text-kx-muted">{LANGUAGE.EMPTY.LABS}</p>
-              )}
-            </div>
-            
             {/* Feedback Panel */}
             <div className="p-5">
               <div className="flex items-center gap-2 mb-4">

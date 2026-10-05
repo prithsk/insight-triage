@@ -137,9 +137,6 @@ export function StudyPreview({ item, onDeleted }: StudyPreviewProps) {
             <span className="text-[13px] font-medium text-kx-muted uppercase tracking-wide">
               {LANGUAGE.RISK_SCORE}
             </span>
-            <span className="text-[12px] text-kx-muted">
-              Confidence: {(item.triage.confidence * 100).toFixed(0)}%
-            </span>
           </div>
           
           <div className="flex items-end gap-4">
@@ -192,40 +189,6 @@ export function StudyPreview({ item, onDeleted }: StudyPreviewProps) {
         </div>
       )}
       
-      {/* Lab Values */}
-      {item.labs && (
-        <div className="bg-white rounded-2xl border border-kx-border p-5 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-[13px] font-medium text-kx-muted uppercase tracking-wide">
-              Lab Values
-            </span>
-            <span className="text-[11px] font-medium text-kx-warn bg-kx-warn/10 px-2 py-0.5 rounded-full">
-              Simulated — not a real lab draw
-            </span>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            {item.labs.wbc && (
-              <div className="text-center p-3 bg-kx-surface rounded-xl">
-                <p className="text-[11px] text-kx-muted mb-1">WBC</p>
-                <p className="font-mono text-[16px] font-semibold text-kx-ink">{item.labs.wbc}</p>
-              </div>
-            )}
-            {item.labs.crp && (
-              <div className="text-center p-3 bg-kx-surface rounded-xl">
-                <p className="text-[11px] text-kx-muted mb-1">CRP</p>
-                <p className="font-mono text-[16px] font-semibold text-kx-ink">{item.labs.crp}</p>
-              </div>
-            )}
-            {item.labs.procalcitonin && (
-              <div className="text-center p-3 bg-kx-surface rounded-xl">
-                <p className="text-[11px] text-kx-muted mb-1">PCT</p>
-                <p className="font-mono text-[16px] font-semibold text-kx-ink">{item.labs.procalcitonin}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-      
       {/* Actions */}
       <div className="mt-auto space-y-3">
         <button 
@@ -247,7 +210,7 @@ export function StudyPreview({ item, onDeleted }: StudyPreviewProps) {
             <AlertDialogHeader>
               <AlertDialogTitle className="font-display text-[20px]">Delete this study?</AlertDialogTitle>
               <AlertDialogDescription className="text-kx-muted">
-                This will permanently delete the study, associated triage results, lab values, 
+                This will permanently delete the study, associated triage results 
                 and any uploaded files. This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>

@@ -111,49 +111,45 @@ describe("no localisation is claimed without a heatmap behind it", () => {
 });
 
 /**
- * A claims rule, living here because this file already enumerates the clinical
- * surfaces.
+ * No lab values in the clinical app — not labelled ones, none.
  *
- * `lab_results` is a closed-form function of the risk score computed in
- * `infer-cxr`. No model and no blood draw is involved, and nothing could derive
- * a blood test from a radiograph. CLAUDE.md recorded this as open on two
- * surfaces, `PreviewPanel.tsx` and the worklist `Labs` column — both of which
- * have since been consolidated away, so the gap closed by deletion rather than
- * by a fix. That is exactly the kind of thing that silently reopens the next
- * time someone adds a panel, so the invariant is stated here instead of being
- * remembered.
+ * `lab_results` was a closed-form function of the risk score computed in
+ * `infer-cxr`: no model and no blood draw, and nothing that could be derived
+ * from a radiograph. On 2026-09-26 it was labelled "Simulated — not a real lab
+ * draw" everywhere it rendered; on 2026-10-04 it was removed, because a label
+ * makes a fabricated value honest to read without making it any less
+ * fabricated. These rules keep it out at every layer that produced or showed it.
  */
-const LAB_FIELDS = /\.labs[.?]\s*(wbc|crp|procalcitonin|co2|ph|o2)\b/;
-const LAB_COMPONENT = /<LabFlags\b/;
-const SIMULATED_LABEL = /Simulated\s*—\s*not a real lab draw/;
+// `labs.wbc`, `labs?.wbc` and `labs['wbc']` all count. The first version took one
+// character between `labs` and the field, so optional chaining walked past it.
+const LAB_FIELDS = /\.labs\s*(\?\.|\.|\??\.?\[\s*['"])\s*(wbc|crp|procalcitonin|co2|ph|o2)\b/;
+const LAB_COMPONENT = /<LabFlags\b|lab-flags/;
 
-/** Does this file render lab figures, as opposed to merely passing them along? */
-const rendersLabs = (src: string) => LAB_FIELDS.test(src) || LAB_COMPONENT.test(src);
-
-describe("simulated lab values are labelled wherever they are rendered", () => {
-  it.each(CLINICAL_FILES)("%s", (file) => {
-    const src = read(file);
-    if (!rendersLabs(src)) return;
-
-    expect(
-      SIMULATED_LABEL.test(src),
-      `${file} renders lab values but carries no "Simulated — not a real lab draw" ` +
-      `label. These are a closed-form function of the risk score, not a blood ` +
-      `draw — see CLAUDE.md, Public claims.`,
-    ).toBe(true);
+describe("no lab values are produced or shown", () => {
+  it.each(CLINICAL_FILES)("%s renders no lab figures", (file) => {
+    const code = readCode(file);
+    expect(LAB_FIELDS.test(code) || LAB_COMPONENT.test(code),
+      `${file} renders lab values. Kroix cannot measure them — see CLAUDE.md, Public claims.`).toBe(false);
   });
 
-  it("at least two surfaces are actually covered by that rule", () => {
-    // Guards the guard: if the detection regexes stop matching anything, the
-    // it.each above passes vacuously for every file and asserts nothing.
-    const covered = CLINICAL_FILES.filter((f) => rendersLabs(read(f)));
-    expect(
-      covered,
-      "expected StudyPreview and Reviewer to be detected as rendering labs",
-    ).toEqual(expect.arrayContaining([
-      "src/components/dashboard/StudyPreview.tsx",
-      "src/pages/Reviewer.tsx",
-    ]));
+  it("the detection would have matched the panels it replaced", () => {
+    // Guards the guard: the old Reviewer and StudyPreview panels, verbatim
+    // shapes, must trip the rule, or the it.each above checks nothing.
+    expect(LAB_FIELDS.test("{item.labs.wbc}")).toBe(true);
+    expect(LAB_FIELDS.test("{item.labs?.crp}")).toBe(true);
+    expect(LAB_FIELDS.test("{item.labs['o2']}")).toBe(true);
+    expect(LAB_COMPONENT.test("<LabFlags labs={item.labs} />")).toBe(true);
+  });
+
+  it("infer-cxr computes and returns no lab values", () => {
+    const fn = readCode("supabase/functions/infer-cxr/index.ts");
+    expect(fn).not.toMatch(/simulateLabValues|lab_values/);
+  });
+
+  it("nothing writes lab rows", () => {
+    for (const f of ["src/hooks/useUploadDicom.ts", "scripts/seed-demo.mjs"]) {
+      expect(readCode(f), `${f} must not insert into lab_results`).not.toMatch(/from\(["']lab_results["']\)/);
+    }
   });
 });
 
@@ -176,23 +172,6 @@ describe("the reviewer does not offer control over evidence it does not have", (
     expect(guard, "the ROI controls must sit inside a hasLocalization branch").toBeGreaterThan(-1);
     // Nothing may close that branch between the guard and the control.
     expect(src.slice(guard, controls)).not.toMatch(/\)\}\s*$/);
-  });
-
-  it("never prints a raw lab source string as provenance", () => {
-    const code = readCode("src/pages/Reviewer.tsx");
-    // `Source: {item.labs.source}` rendered a seeded row's `hl7` — naming a real
-    // hospital interchange standard — directly under "Simulated — not a real lab
-    // draw". Both were true on screen at once and one of them was a lie.
-    expect(code, "lab source must not be interpolated straight into the UI")
-      .not.toMatch(/Source:\s*\{[^}]*\.source/);
-    expect(code, "provenance must go through the component that states it")
-      .toMatch(/<LabProvenance/);
-  });
-
-  it("states lab provenance as a fact about the system, not the row", () => {
-    expect(src).toMatch(/KNOWN_LAB_SOURCES/);
-    expect(src, "the only source this system writes must be the one it recognises")
-      .toMatch(/simulated_from_risk_score/);
   });
 });
 
@@ -263,5 +242,14 @@ describe("read time is recorded by the database, not inferred", () => {
     expect(sql).toMatch(/BEFORE INSERT OR UPDATE ON public\.studies/);
     expect(sql, "on update, start from the stored value").toMatch(/NEW\.reviewed_at\s*:=\s*OLD\.reviewed_at/);
     expect(sql, "no backfill from the proxy").not.toMatch(/SET\s+reviewed_at\s*=\s*updated_at/i);
+  });
+});
+
+describe("confidence is not presented as a measurement", () => {
+  it.each(CLINICAL_FILES)("%s does not render triage confidence as a percentage", (file) => {
+    // `confidence` is a monotone function of distance to the nearest decision
+    // boundary: the score restated, never calibrated against outcomes. Shown as
+    // "Confidence: 88%" it reads as a measured probability of being right.
+    expect(readCode(file)).not.toMatch(/\.confidence\s*\*\s*100/);
   });
 });

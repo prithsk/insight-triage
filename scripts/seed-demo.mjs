@@ -14,7 +14,7 @@
  *   1. upload to the `dicom-files` bucket
  *   2. insert a `studies` row, status PROCESSING
  *   3. POST infer-cxr with the signed-in user's JWT
- *   4. scored   → insert `triage_results` (+ simulated labs), status QUEUED
+ *   4. scored   → insert `triage_results`, status QUEUED
  *      unscored → no triage row, status PENDING ("awaiting triage")
  *   5. print the outcome
  *
@@ -133,13 +133,6 @@ async function seedOne(name) {
     return { name, outcome: "error", detail: `triage row: ${tr.error.message}` };
   }
 
-  if (body.lab_values) {
-    await sb.from("lab_results").insert({
-      study_id: study.id, ...body.lab_values,
-      source: "simulated_from_risk_score",
-      timestamp: new Date().toISOString(),
-    });
-  }
   await sb.from("studies").update({ status: "QUEUED" }).eq("id", study.id);
 
   return { name, outcome: "scored", score: body.risk_score, bucket: body.risk_bucket, model: body.model_version, ms };

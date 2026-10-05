@@ -191,9 +191,9 @@ export default function Assistant() {
 
   const SUGGESTIONS = [
     "What imaging findings correlate with high pneumonia risk scores?",
-    "Explain the significance of elevated CRP and procalcitonin in respiratory cases.",
+    "What chest X-ray findings typically warrant same-hour reading?",
     "What are the CURB-65 criteria for pneumonia severity?",
-    "How should I prioritize a CRITICAL score with normal lab values?",
+    "How should I prioritize two CRITICAL studies that arrived at the same time?",
   ];
 
   return (

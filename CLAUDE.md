@@ -181,19 +181,16 @@ Three smaller fabrications went with it, all reached from the same request:
   WBC 7.5, CRP 1.5, PCT 0.05) into `lab_results` whenever the function returned
   none, stored as `source: 'ai_vision_analysis'`.
 
-**Labelling closed 2026-09-26; the feature is still open.** `lab_results` is a
-closed-form function of the risk score computed in `infer-cxr`. No model and no
-blood draw is involved: Gemini is not asked for these and could not derive a
-blood test from a radiograph. The two unlabelled surfaces this file used to
-name, `PreviewPanel.tsx` and the worklist `Labs` column, **no longer exist** —
-they were consolidated away, so that gap closed by deletion rather than by a
-fix, which is precisely how it would have silently reopened. The rule is now
-stated instead of remembered: `src/design.test.ts` fails any clinical surface
-that renders lab figures without "Simulated — not a real lab draw", and carries
-a second test asserting the detection actually matches something, so the rule
-cannot pass vacuously. Rows are written as `source: 'simulated_from_risk_score'`.
-**The feature itself is still unresolved** — labelling a simulation is not the
-same as not shipping one.
+**Lab values: removed 2026-10-04.** `lab_results` was a closed-form function of the
+risk score computed in `infer-cxr` — no model, no blood draw, nothing a radiograph
+could supply. It was labelled "Simulated — not a real lab draw" on 2026-09-26, which
+made it honest to read and changed nothing about what it was, then removed: the
+panels in Reviewer and StudyPreview, `simulateLabValuesFromScore()` in `infer-cxr`,
+the insert in `useUploadDicom`, the seed script, and `lab-flags.tsx`. The table
+stays, unused. `src/design.test.ts` fails any clinical surface rendering lab figures
+(including `labs?.x` and `labs['x']` — the first pattern missed optional chaining,
+caught by mutation) and any code that computes or writes them. A real lab feed would
+come from the hospital's systems; nothing here should manufacture one.
 
 A **tenth** shape was found on 2026-09-26, in the same family as the ROI
 circles and in the same place a demo would meet it:
@@ -210,10 +207,13 @@ circles and in the same place a demo would meet it:
 The lesson repeats the one from the ninth: a claim rule scoped to the file
 where the defect was last seen does not cover the defect.
 
-**Still open — `confidence` is not a measurement.** Both scoring paths compute it
-as a monotone function of distance to the nearest decision boundary. It carries
-no information the score does not already carry, nothing calibrated it against
-outcomes, and the reviewer renders it as "Confidence: NN%".
+**`confidence` is not a measurement, and since 2026-10-04 is not displayed as one.**
+Both scoring paths compute it as a monotone function of distance to the nearest
+decision boundary — the score restated, never calibrated against outcomes. The API
+and `triage_results` still carry it; the Reviewer and StudyPreview no longer print
+"Confidence: NN%", and `design.test.ts` fails any clinical surface that renders
+`confidence * 100`. Calibrating it would need held-out outcomes; until then it does
+not appear.
 
 **How these keep surviving:** `npx tsc --noEmit` checked zero files (see Frontend),
 so "typecheck passes" was meaningless, and none of them were covered by a test.
@@ -238,7 +238,7 @@ Every instance was found by reading, not by tooling.
 
 ## Verification
 
-`npm test` — 244 tests, Vitest. CI runs typecheck, tests, build, and a set of shell
+`npm test` — 330 tests, Vitest. CI runs typecheck, tests, build, and a set of shell
 assertions on the build output (`.github/workflows/ci.yml`).
 
 **What is covered:** the ranking statistics behind the validation sprint; the SLA
@@ -276,14 +276,20 @@ class on their own. The next real upgrades are a live-Supabase test asserting an
 unapproved user reads nothing, and a behavioural test POSTing malformed payloads at
 a locally-served function.
 
-**`supabase/functions/` is not type-checked by anything.** `deno` appears nowhere
-in `.github/workflows/ci.yml`, and `npm run typecheck` is `tsc --build` over
-`src/`. The vitest suites read edge-function files as *text*, not as code. So the
-clinical path — the one that scores an image and decides a queue position — has
-weaker static checking than the landing page, and a type error there is found by
-the function failing in production. Adding a `deno check` step is the outstanding
-fix. This is the same shape as the `npx tsc --noEmit` problem in Frontend: a
-check everyone believed was running over code it never touched.
+**`supabase/functions/` is type-checked by CI since 2026-10-04** (`deno check`,
+one step per function). Until then nothing checked the clinical path — `npm run
+typecheck` is `tsc --build` over `src/`, and the vitest suites read edge-function
+files as text — the same shape as the `npx tsc --noEmit` problem in Frontend. Two
+flags matter: `--node-modules-dir=none`, because the root `package.json` otherwise
+puts Deno in node_modules mode and it refuses `npm:` imports (auth-email-hook), and
+`--no-lock`, so it writes no `deno.lock` into the checkout.
+
+**Read time is `studies.reviewed_at`**, set by trigger `trg_studies_reviewed_at` on
+the first transition into REVIEWED, never changed afterwards, client-supplied values
+ignored (migration `20261004120000`). Analytics has no fallback to `updated_at`;
+rows reviewed before the column existed are counted as untimed, not timed by proxy.
+The trigger was behaviour-tested in real Postgres (PGlite) outside the repo; the
+in-repo test is static, like the rest of the migration suite.
 
 **The approval gate had no test until 2026-09-26, and it was broken.**
 `AuthContext` cleared `loading` before the profile fetch resolved, so every

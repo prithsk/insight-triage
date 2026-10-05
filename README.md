@@ -17,7 +17,7 @@ Upload (DICOM / JPG / PNG)
       → Path A: Kroix ML API (3-model ensemble)   ← primary
       → Path B: Gemini vision fallback              (OPT-IN: VISION_FALLBACK_ENABLED=true)
       → neither succeeded: 422 / 503, scored:false, and NO triage row
-  → triage_results + lab_results stored (only when a model produced a score)
+  → triage_results stored (only when a model produced a score)
   → study status → QUEUED, or back to PENDING and "awaiting triage" if unscored
   → worklist re-sorts in real time (CRITICAL → REVIEW → CLEAR)
 ```
@@ -31,14 +31,16 @@ There is no third path. A study that no model scored stays **unscored**: the ima
 readable, no `triage_results` row is written, and the worklist pins it last in both sort directions
 with an "awaiting triage" chip. See `CLAUDE.md` → Public claims for why.
 
-Lab values (CO2, pH, O2, WBC, CRP, procalcitonin) shown alongside triage results are **simulated**
-— a closed-form function of the risk score, computed in `infer-cxr` and stored with
-`source = 'simulated_from_risk_score'`. No model and no blood draw is involved; none of these can be
-derived from a radiograph. They are labeled "Simulated — not a real lab draw" in the Reviewer and in
-StudyPreview, which are now the only two surfaces that render them — `PreviewPanel` and the worklist
-`Labs` column, which this README previously named as unlabeled, were consolidated away. Since
-2026-09-26 `src/design.test.ts` fails any clinical surface that renders lab figures without the
-label, so this is enforced rather than asserted. The simulation itself remains a simulation.
+**There are no lab values.** Kroix used to show a blood panel (CO2, pH, O2, WBC, CRP,
+procalcitonin) beside each study. It was a closed-form function of the risk score computed in
+`infer-cxr` — no model, no blood draw, nothing a radiograph could supply — labelled "Simulated" from
+2026-09-26 and removed on 2026-10-04. `src/design.test.ts` fails any clinical surface that renders lab
+figures and any code that computes or writes them. The `lab_results` table remains, unused, holding
+only the old simulated rows.
+
+**There is no confidence figure** in the UI either. The API still returns `confidence`, but it is a
+monotone function of distance to the decision boundary — the score restated, never calibrated — so it
+is not shown as one.
 
 ## Project structure
 

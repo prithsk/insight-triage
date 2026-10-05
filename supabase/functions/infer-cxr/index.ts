@@ -49,11 +49,6 @@ interface MLResult {
   inference_ms:  number;
 }
 
-interface LabValues {
-  co2: number; ph: number; o2: number;
-  wbc: number; crp: number; procalcitonin: number;
-}
-
 // ── Decision thresholds: ONE definition, sourced from the model's artifact ────
 //
 // These bands were previously written in three places that did not agree:
@@ -107,58 +102,17 @@ function boundaryConfidence(score: number): number {
   return +Math.min(0.99, 0.70 + dist * 0.80).toFixed(4);
 }
 
-// ── Lab values: SIMULATED, and a pure function of the risk score ──────────────
+// ── No lab values ─────────────────────────────────────────────────────────────
 //
-// These are not measurements and not model output. CO2, pH, O2, WBC, CRP and
-// procalcitonin are blood tests; none of them can be derived from a chest
-// radiograph, and nothing in this function reads the image. Every value is a
-// closed-form curve through `riskScore`. Gemini was never asked for any of them
-// either — see the prompt below, which requests a score and findings text only.
-//
-// The `Math.random()` jitter that used to sit on each curve was removed on
-// 2026-09-25: it gave these numbers the texture of independent observations
-// carrying their own noise, which is exactly what they are not. Deterministic
-// makes the dependence visible — two studies with the same score get identical
-// "labs", because there is only one number here.
-//
-// Stored with source = 'simulated_from_risk_score' so the provenance travels
-// with the row. A real lab feed replaces this function; it does not extend it.
-function simulateLabValuesFromScore(riskScore: number): LabValues {
-  const s = Math.max(0, Math.min(1, riskScore));
+// This function used to return a blood panel — CO2, pH, O2, WBC, CRP,
+// procalcitonin — computed as a closed-form curve through the risk score. None
+// of those can be derived from a radiograph and nothing here read the image for
+// them; they were the score restated in clinical units, stored under
+// `lab_results` and rendered beside a real patient's film. A label saying
+// "Simulated" made them honest to read and changed nothing about what they were.
+// Removed 2026-10-04. A real lab feed would arrive from the hospital's systems,
+// not be manufactured here, so there is nothing to replace this with.
 
-  const co2 = s >= CRITICAL_THRESHOLD ? 48 + (s - CRITICAL_THRESHOLD) * 34
-             : s >= REVIEW_THRESHOLD   ? 44 + ((s - REVIEW_THRESHOLD) / REVIEW_SPAN) * 6
-             : 36 + (s / REVIEW_THRESHOLD) * 8;
-
-  const ph  = s >= CRITICAL_THRESHOLD ? 7.32 - (s - CRITICAL_THRESHOLD) * 0.34
-             : s >= REVIEW_THRESHOLD   ? 7.38 - ((s - REVIEW_THRESHOLD) / REVIEW_SPAN) * 0.06
-             : 7.45 - (s / REVIEW_THRESHOLD) * 0.07;
-
-  const o2  = s >= CRITICAL_THRESHOLD ? 88 - (s - CRITICAL_THRESHOLD) * 28
-             : s >= REVIEW_THRESHOLD   ? 94 - ((s - REVIEW_THRESHOLD) / REVIEW_SPAN) * 6
-             : 99 - (s / REVIEW_THRESHOLD) * 4;
-
-  const wbc = s >= CRITICAL_THRESHOLD ? 16 + (s - CRITICAL_THRESHOLD) * 34
-             : s >= REVIEW_THRESHOLD   ? 11 + ((s - REVIEW_THRESHOLD) / REVIEW_SPAN) * 7
-             : 5 + (s / REVIEW_THRESHOLD) * 6;
-
-  const crp = s >= CRITICAL_THRESHOLD ? 50 + (s - CRITICAL_THRESHOLD) * 428
-             : s >= REVIEW_THRESHOLD   ? 10 + ((s - REVIEW_THRESHOLD) / REVIEW_SPAN) * 50
-             : 0.5 + (s / REVIEW_THRESHOLD) * 8;
-
-  const pct = s >= CRITICAL_THRESHOLD ? 2 + (s - CRITICAL_THRESHOLD) * 37
-             : s >= REVIEW_THRESHOLD   ? 0.25 + ((s - REVIEW_THRESHOLD) / REVIEW_SPAN) * 2.75
-             : 0.02 + (s / REVIEW_THRESHOLD) * 0.18;
-
-  return {
-    co2:          +Math.max(30,   Math.min(65,  co2)).toFixed(1),
-    ph:           +Math.max(7.15, Math.min(7.48, ph)).toFixed(2),
-    o2:           Math.round(Math.max(75, Math.min(100, o2))),
-    wbc:          +Math.max(3,    Math.min(30,  wbc)).toFixed(1),
-    crp:          +Math.max(0.1,  Math.min(250, crp)).toFixed(1),
-    procalcitonin:+Math.max(0.01, Math.min(20,  pct)).toFixed(2),
-  };
-}
 
 // ── Path A: the three-model ensemble (DenseNet121 / GoogLeNet / ResNet18) ─────
 //
@@ -414,7 +368,6 @@ serve(async (req) => {
           risk_bucket:       mlResult.risk_bucket,
           confidence:        mlResult.confidence,
           findings,
-          lab_values:        simulateLabValuesFromScore(mlResult.risk_score),
           roi_heatmap:       mlResult.roi_heatmap,          // gradcam base64 JSON
           model_version:     mlResult.model_version,
           inference_time_ms: Date.now() - t0,
@@ -441,7 +394,6 @@ serve(async (req) => {
           risk_bucket:       bucketFor(gemini.risk_score),
           confidence:        boundaryConfidence(gemini.risk_score),
           findings:          gemini.findings,
-          lab_values:        simulateLabValuesFromScore(gemini.risk_score),
           roi_heatmap:       null,   // Gemini returns no localisation. Say so.
           model_version:     'gemini-2.5-flash-vision',
           inference_time_ms: Date.now() - t0,
