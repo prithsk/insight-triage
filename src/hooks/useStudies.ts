@@ -17,6 +17,12 @@ export interface Study {
   site_id: string;
   created_at: string;
   updated_at: string;
+  /**
+   * When the study was first marked REVIEWED, on the database clock. Set only by
+   * the `trg_studies_reviewed_at` trigger; clients cannot write it. Optional
+   * until migration 20261004120000 is applied to the live database.
+   */
+  reviewed_at?: string | null;
 }
 
 export interface TriageResult {
@@ -234,7 +240,9 @@ export function useSubmitFeedback() {
       // Mark study as REVIEWED and record when review happened
       await supabase
         .from('studies')
-        .update({ status: 'REVIEWED' as StudyStatus, updated_at: new Date().toISOString() })
+        // The read time is recorded by the database (`reviewed_at`, set by a
+        // trigger on this transition), not by this browser's clock.
+        .update({ status: 'REVIEWED' as StudyStatus })
         .eq('id', studyId);
 
       return data;

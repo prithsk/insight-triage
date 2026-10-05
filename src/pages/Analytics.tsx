@@ -227,7 +227,9 @@ export default function Analytics() {
                       <>
                         <p className="text-[36px] font-display font-medium text-kx-muted mt-1">—</p>
                         <p className="text-[13px] text-kx-muted mt-2">
-                          No studies reviewed yet.
+                          {targets.untimedReviewed > 0
+                            ? "Read times are recorded from now on."
+                            : "No studies reviewed yet."}
                         </p>
                       </>
                     )}
@@ -309,9 +311,9 @@ export default function Analytics() {
                     <span className="font-mono text-[12px] text-kx-muted">by band</span>
                   </div>
                   <p className="text-[13px] text-kx-muted mb-6 max-w-2xl leading-relaxed">
-                    Studies this workspace has reviewed, against each band&rsquo;s target. Read time is
-                    measured from upload to the row being marked reviewed — a proxy, since there is no
-                    dedicated timestamp, and any later edit to a study inflates it.
+                    Studies this workspace has reviewed, against each band&rsquo;s target. Read time runs
+                    from upload to the moment the study was first marked reviewed, recorded by the
+                    database and never changed afterwards. Upload time comes from the uploading browser.
                   </p>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -374,6 +376,13 @@ export default function Analytics() {
                     })}
                   </div>
 
+                  {targets.untimedReviewed > 0 && (
+                    <p className="text-[13px] text-kx-muted mt-5">
+                      {targets.untimedReviewed} {targets.untimedReviewed === 1 ? "study was" : "studies were"} reviewed
+                      before read times were recorded, so {targets.untimedReviewed === 1 ? "it is" : "they are"} left
+                      out rather than timed by a guess.
+                    </p>
+                  )}
                   {targets.unscoredReviewed > 0 && (
                     <p className="text-[13px] text-kx-muted mt-5">
                       {targets.unscoredReviewed} reviewed {targets.unscoredReviewed === 1 ? "study" : "studies"} carried

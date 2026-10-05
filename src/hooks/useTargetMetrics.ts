@@ -58,6 +58,12 @@ export interface TargetMetrics {
   bands: BandMetrics[];
   /** Reviewed studies that carry no score, so no band and no target. */
   unscoredReviewed: number;
+  /**
+   * Studies marked reviewed before `reviewed_at` existed (migration
+   * 20261004120000). Their real read time is unknown, so they are excluded from
+   * attainment rather than timed by a proxy.
+   */
+  untimedReviewed: number;
   isLoading: boolean;
   error: Error | null;
 }
@@ -71,16 +77,18 @@ const BAND_LABEL: Record<Band, string> = {
 const BAND_ORDER: Band[] = ["critical", "medium", "routine"];
 
 /**
- * When a study was read.
+ * When a study was read: `reviewed_at`, set by a database trigger on the first
+ * transition into REVIEWED and never changed after (see migration
+ * 20261004120000_studies_reviewed_at.sql). It replaced `updated_at`, which any
+ * later edit moved and which the browser supplied itself.
  *
- * PROXY, and labelled as one in the UI. There is no `reviewed_at` column, so
- * this uses `updated_at` on a row whose status is REVIEWED. Any later edit to
- * the row moves it, which inflates the measured time. It is honest enough to
- * show a department its own shape and not honest enough to publish. The fix is
- * a `reviewed_at` timestamp written once, on transition.
+ * There is deliberately NO fallback to `updated_at`. A study without
+ * `reviewed_at` has no known read time, and timing it by the proxy would put the
+ * old error back under the new name. Such studies are counted, not timed.
  */
 function readAtOf(s: StudyWithTriage): number {
-  const t = Date.parse(s.updated_at);
+  if (!s.reviewed_at) return Number.NaN;
+  const t = Date.parse(s.reviewed_at);
   return Number.isFinite(t) ? t : Number.NaN;
 }
 
@@ -109,13 +117,18 @@ export function useTargetMetrics(targets: Targets = WORKLIST_TARGETS): TargetMet
         target: targets[b], medianMs: null, worstMs: null,
       })),
       unscoredReviewed: 0,
+      untimedReviewed: 0,
       isLoading,
       error: (error as Error) ?? null,
     };
 
     if (!studies || studies.length === 0) return empty;
 
-    const reviewed = studies.filter(s => s.status === "REVIEWED");
+    // A study counts as read if it HAS a read time, whatever its status now —
+    // a reviewed study that was later archived was still read. The old
+    // `status === "REVIEWED"` filter silently dropped those. Rows still marked
+    // REVIEWED but with no `reviewed_at` predate the column.
+    const reviewed = studies.filter(s => s.reviewed_at || s.status === "REVIEWED");
     if (reviewed.length === 0) return empty;
 
     const durations: Record<Band, number[]> = { critical: [], medium: [], routine: [] };
@@ -125,10 +138,13 @@ export function useTargetMetrics(targets: Targets = WORKLIST_TARGETS): TargetMet
       routine: { total: 0, inside: 0, missed: 0 },
     };
     let unscoredReviewed = 0;
+    let untimedReviewed = 0;
 
     for (const s of reviewed) {
       const band = bandForBucket(s.triage_results?.[0]?.risk_bucket);
       if (!band) { unscoredReviewed++; continue; }
+
+      if (!s.reviewed_at) { untimedReviewed++; continue; }
 
       const arrivedAt = arrivedAtOf(s);
       const readAt = readAtOf(s);
@@ -177,6 +193,7 @@ export function useTargetMetrics(targets: Targets = WORKLIST_TARGETS): TargetMet
       insideRate: total > 0 ? (inside / total) * 100 : null,
       bands,
       unscoredReviewed,
+      untimedReviewed,
       isLoading,
       error: (error as Error) ?? null,
     };

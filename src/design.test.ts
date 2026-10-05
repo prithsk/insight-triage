@@ -243,3 +243,25 @@ describe("analytics measures the thing the product claims to move", () => {
     expect(src).not.toMatch(/withoutKroix/);
   });
 });
+
+describe("read time is recorded by the database, not inferred", () => {
+  it("analytics times reads by reviewed_at and never falls back to updated_at", () => {
+    // updated_at moved on any later edit and was supplied by the browser.
+    // A fallback to it would put the proxy back under a new name.
+    const hook = readCode("src/hooks/useTargetMetrics.ts");
+    expect(hook).toMatch(/reviewed_at/);
+    expect(hook, "updated_at must not be used as a read time").not.toMatch(/updated_at/);
+  });
+
+  it("the client does not send its own clock when marking a study reviewed", () => {
+    const studies = readCode("src/hooks/useStudies.ts");
+    expect(studies).not.toMatch(/status:\s*'REVIEWED'[^}]*updated_at/);
+  });
+
+  it("a trigger owns reviewed_at and ignores client-supplied values", () => {
+    const sql = read("supabase/migrations/20261004120000_studies_reviewed_at.sql");
+    expect(sql).toMatch(/BEFORE INSERT OR UPDATE ON public\.studies/);
+    expect(sql, "on update, start from the stored value").toMatch(/NEW\.reviewed_at\s*:=\s*OLD\.reviewed_at/);
+    expect(sql, "no backfill from the proxy").not.toMatch(/SET\s+reviewed_at\s*=\s*updated_at/i);
+  });
+});
