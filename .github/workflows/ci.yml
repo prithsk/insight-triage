@@ -26,6 +26,33 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # The edge functions are the clinical path — infer-cxr scores an image and
+      # decides a queue position — and until 2026-10-04 nothing type-checked them:
+      # `npm run typecheck` is tsc over src/, and the vitest suites read these
+      # files as text. Same shape as the --noEmit problem above.
+      #
+      # --node-modules-dir=none: the repo root has a package.json, which puts Deno
+      # in node_modules mode and makes it refuse `npm:` specifiers that are not
+      # installed there (auth-email-hook imports two). --no-lock keeps it from
+      # writing deno.lock files into the checkout. A function with its own
+      # deno.json (JSX settings) is checked with it.
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Typecheck edge functions
+        run: |
+          fail=0
+          for dir in supabase/functions/*/; do
+            [ -f "$dir/index.ts" ] || continue
+            cfg=""
+            [ -f "$dir/deno.json" ] && cfg="--config $dir/deno.json"
+            echo "::group::deno check $dir"
+            deno check --no-lock --node-modules-dir=none $cfg "$dir/index.ts" || fail=1
+            echo "::endgroup::"
+          done
+          exit $fail
+
       - name: Tests
         run: npm test
 

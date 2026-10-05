@@ -54,3 +54,6 @@ radiology*.csv
 
 # tsc --build writes these next to the tsconfigs
 *.tsbuildinfo
+
+# /brag launch-video output (renders, frames, stems)
+brag-output*/
